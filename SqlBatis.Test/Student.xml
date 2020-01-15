@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+
+<commands namespace="">
+
+  <variable id="columns">
+    Id,Age,Name
+  </variable>
+
+  <select id="list-dynamic">
+    select ${columns} from student
+   
+   <where>      
+      <if test="Age != null" value="age >= @Age"/>
+    </where>
+
+  </select>
+
+  <insert id="add">
+    insert into student(name,age)values(@Name,@age)
+  </insert>
+
+</commands>
