@@ -36,7 +36,7 @@ namespace SqlBatis.Expressions.Resovles
                 }
             }
             return node;
-        }    
+        }
 
         protected override Expression VisitNew(NewExpression node)
         {
@@ -48,7 +48,14 @@ namespace SqlBatis.Expressions.Resovles
                 {
                     var name = TableInfoCache
                         .GetColumnName(member.Member.DeclaringType, member.Member.Name);
-                    _textBuilder.Append($"{name} AS {column}");
+                    if (name != column)
+                    {
+                        _textBuilder.Append($"{name} AS {column}");
+                    }
+                    else
+                    {
+                        _textBuilder.Append($"{name}");
+                    }
                 }
                 else if (item is MethodCallExpression)
                 {

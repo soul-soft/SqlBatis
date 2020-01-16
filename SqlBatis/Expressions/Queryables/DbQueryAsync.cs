@@ -12,6 +12,8 @@ namespace SqlBatis.Queryables
 {
     public partial class DbQuery<T>
     {
+
+        #region async
         public Task<int> CountAsync(int? commandTimeout = null)
         {
             var sql = ResovleCount();
@@ -113,6 +115,7 @@ namespace SqlBatis.Queryables
             var sql = ResolveSelect();
             return _context.ExecuteQueryAsync<TResult>(sql, _parameters, commandTimeout);
         }
+      
         public async Task<(IEnumerable<TResult>, int)> SelectManyAsync<TResult>(Expression<Func<T, TResult>> expression, int? commandTimeout = null)
         {
             _selectExpression = expression;
@@ -125,6 +128,7 @@ namespace SqlBatis.Queryables
                 return (list, count);
             }
         }
+       
         public async Task<T> SingleAsync(int? commandTimeout = null)
         {
             Take(1);
@@ -136,5 +140,6 @@ namespace SqlBatis.Queryables
             Take(1);
             return (await SelectAsync(expression, commandTimeout)).FirstOrDefault();
         }
+        #endregion
     }
 }

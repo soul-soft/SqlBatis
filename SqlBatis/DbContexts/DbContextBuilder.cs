@@ -12,7 +12,7 @@ namespace SqlBatis
         public IXmlResovle XmlResovle { get; set; }
         public ILogger Logger { get; set; }
         public IDbConnection Connection { get; set; }
-        //public DbContextType DbContextType { get; set; }
+        public DbContextType DbContextType { get; set; }
         public ITypeMapper TypeMapper { get; set; }
     }
 }

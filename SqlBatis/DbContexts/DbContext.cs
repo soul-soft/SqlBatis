@@ -12,6 +12,8 @@ namespace SqlBatis
 {
     public interface IDbContext
     {
+        IDbConnection Connection { get; }
+        DbContextType DbContextType { get; }
         IXmlMapper From<T>(string id, T parameter) where T : class;
         IXmlMapper From(string id);
         void BeginTransaction();
@@ -41,43 +43,37 @@ namespace SqlBatis
         private readonly ILogger _logger = null;
 
         private readonly IXmlResovle _xmlResovle = null;
-
-        private readonly IDbConnection _connection = null;
-
+        
         private IDbTransaction _transaction = null;
 
         private readonly ITypeMapper _typeMapper = null;
+
+        public IDbConnection Connection { get; } = null;
+
+        public DbContextType DbContextType { get; } = DbContextType.Mysql;
 
         protected virtual DbContextBuilder OnConfiguring(DbContextBuilder builder)
         {
             return builder;
         }
 
-        public DbContext()
+        protected DbContext()          
         {
             var builder = OnConfiguring(new DbContextBuilder());
-            _connection = builder.Connection;
+            Connection = builder.Connection;
             _typeMapper = builder.TypeMapper ?? new TypeMapper();
             _logger = builder.Logger;
+            DbContextType = builder.DbContextType;
+
         }
 
-        public DbContext(IDbConnection connection)
-            : this(connection, new TypeMapper(), null)
+        public DbContext(DbContextBuilder builder)
         {
+            Connection = builder.Connection;
+            _typeMapper = builder.TypeMapper ?? new TypeMapper();
+            _logger = builder.Logger;
+            DbContextType = builder.DbContextType;
         }
-
-        public DbContext(IDbConnection connection, IXmlResovle resovle)
-          : this(connection, new TypeMapper(), resovle)
-        {
-        }
-
-        public DbContext(IDbConnection connection, ITypeMapper typeMapper, IXmlResovle resovle)
-        {
-            _connection = connection;
-            _typeMapper = typeMapper;
-            _xmlResovle = resovle;
-        }
-
         /// <summary>
         /// xml query
         /// </summary>
@@ -102,7 +98,7 @@ namespace SqlBatis
         /// </summary>
         public IEnumerable<dynamic> ExecuteQuery(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null)
         {
-            using (var cmd = _connection.CreateCommand())
+            using (var cmd = Connection.CreateCommand())
             {
                 Initialize(cmd, sql, parameter, commandTimeout, commandType);
                 using (var reader = cmd.ExecuteReader())
@@ -120,7 +116,7 @@ namespace SqlBatis
         /// </summary>
         public async Task<IEnumerable<dynamic>> ExecuteQueryAsync(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null)
         {
-            using (var cmd = (_connection as DbConnection).CreateCommand())
+            using (var cmd = (Connection as DbConnection).CreateCommand())
             {
                 Initialize(cmd, sql, parameter, commandTimeout, commandType);
                 using (var reader = await cmd.ExecuteReaderAsync())
@@ -130,7 +126,6 @@ namespace SqlBatis
                     while (reader.Read())
                     {
                         list.Add(handler(reader));
-
                     }
                     return list;
                 }
@@ -141,7 +136,7 @@ namespace SqlBatis
         /// </summary>
         public IMultiResult ExecuteMultiQuery(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null)
         {
-            var cmd = _connection.CreateCommand();
+            var cmd = Connection.CreateCommand();
             Initialize(cmd, sql, parameter, commandTimeout, commandType);
             return new MultiResult(cmd, _typeMapper);
         }
@@ -150,7 +145,7 @@ namespace SqlBatis
         /// </summary>
         public IEnumerable<T> ExecuteQuery<T>(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null)
         {
-            using (var cmd = _connection.CreateCommand())
+            using (var cmd = Connection.CreateCommand())
             {
                 Initialize(cmd, sql, parameter, commandTimeout, commandType);
                 using (var reader = cmd.ExecuteReader())
@@ -168,7 +163,7 @@ namespace SqlBatis
         /// </summary>
         public async Task<IEnumerable<T>> ExecuteQueryAsync<T>(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null)
         {
-            using (var cmd = (_connection as DbConnection).CreateCommand())
+            using (var cmd = (Connection as DbConnection).CreateCommand())
             {
                 Initialize(cmd, sql, parameter, commandTimeout, commandType);
                 using (var reader = await cmd.ExecuteReaderAsync())
@@ -189,7 +184,7 @@ namespace SqlBatis
         /// </summary>
         public int ExecuteNonQuery(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null)
         {
-            using (var cmd = _connection.CreateCommand())
+            using (var cmd = Connection.CreateCommand())
             {
                 Initialize(cmd, sql, parameter, commandTimeout, commandType);
                 return cmd.ExecuteNonQuery();
@@ -201,7 +196,7 @@ namespace SqlBatis
         /// </summary>
         public async Task<int> ExecuteNonQueryAsync(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null)
         {
-            using (var cmd = (_connection as DbConnection).CreateCommand())
+            using (var cmd = (Connection as DbConnection).CreateCommand())
             {
                 Initialize(cmd, sql, parameter, commandTimeout, commandType);
                 return await cmd.ExecuteNonQueryAsync();
@@ -213,7 +208,7 @@ namespace SqlBatis
         /// </summary>
         public T ExecuteScalar<T>(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null)
         {
-            using (var cmd = _connection.CreateCommand())
+            using (var cmd = Connection.CreateCommand())
             {
                 Initialize(cmd, sql, parameter, commandTimeout, commandType);
                 var result = cmd.ExecuteScalar();
@@ -230,7 +225,7 @@ namespace SqlBatis
         /// </summary>
         public async Task<T> ExecuteScalarAsync<T>(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null)
         {
-            using (var cmd = (_connection as DbConnection).CreateCommand())
+            using (var cmd = (Connection as DbConnection).CreateCommand())
             {
                 Initialize(cmd, sql, parameter, commandTimeout, commandType);
                 var result = await cmd.ExecuteScalarAsync();
@@ -248,7 +243,7 @@ namespace SqlBatis
         public void BeginTransaction()
         {
             _logger?.LogDebug("begin transaction");
-            _transaction = _connection.BeginTransaction();
+            _transaction = Connection.BeginTransaction();
         }
 
         /// <summary>
@@ -259,7 +254,7 @@ namespace SqlBatis
         public void BeginTransaction(IsolationLevel level)
         {
             _logger?.LogDebug("begin transaction isolationLevel = " + level);
-            _transaction = _connection.BeginTransaction(level);
+            _transaction = Connection.BeginTransaction(level);
         }
 
         /// <summary>
@@ -269,7 +264,7 @@ namespace SqlBatis
         {
             _logger?.LogDebug("colse connection");
             _transaction?.Dispose();
-            _connection?.Dispose();
+            Connection?.Dispose();
             DbContextState = DbContextState.Closed;
         }
 
@@ -289,7 +284,7 @@ namespace SqlBatis
         public void Open()
         {
             _logger?.LogDebug("open connection");
-            _connection?.Open();
+            Connection?.Open();
             DbContextState = DbContextState.Open;
         }
 
@@ -300,7 +295,7 @@ namespace SqlBatis
         public async Task OpenAsync()
         {
             _logger?.LogDebug("open connection");
-            await (_connection as DbConnection).OpenAsync();
+            await (Connection as DbConnection).OpenAsync();
             DbContextState = DbContextState.Open;
         }
 

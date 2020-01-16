@@ -16,6 +16,7 @@ using System.Reflection;
 using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
+using System.Data.SqlClient;
 
 namespace SqlBatis.Test
 {
@@ -25,7 +26,8 @@ namespace SqlBatis.Test
         protected override DbContextBuilder OnConfiguring(DbContextBuilder builder)
         {
             ILoggerFactory factory = LoggerFactory.Create(b => { b.AddConsole(); b.AddDebug(); b.SetMinimumLevel(LogLevel.Debug); });
-            builder.Connection = new MySql.Data.MySqlClient.MySqlConnection("server=127.0.0.1;user id=root;password=1024;database=test;");
+            //builder.Connection = new MySql.Data.MySqlClient.MySqlConnection("server=127.0.0.1;user id=root;password=1024;database=test;");
+            builder.Connection = new SqlConnection("Data Source=192.168.31.33;Initial Catalog=test;User ID=sa;Password=yangche!1234;Pooling=true");
             builder.XmlResovle = null;
             builder.Logger = factory.CreateLogger<MysqlDbConrext>();
             return builder;
@@ -35,15 +37,37 @@ namespace SqlBatis.Test
             Students = new DbQuery<Student>(this);
         }
     }
+  
+    public class SqlDbConrext : DbContext
+    {
+        public readonly IDbQuery<Student> Students;
+        private readonly static ILoggerFactory _loggerFactory
+            = LoggerFactory.Create(b => { b.AddConsole(); b.AddDebug(); b.SetMinimumLevel(LogLevel.Debug); });
+        protected override DbContextBuilder OnConfiguring(DbContextBuilder builder)
+        {            
+            builder.Connection = new SqlConnection("Data Source=192.168.31.33;Initial Catalog=test;User ID=sa;Password=yangche!1234;Pooling=true");
+            builder.XmlResovle = null;
+            builder.DbContextType = DbContextType.SqlServer;
+            builder.Logger = _loggerFactory.CreateLogger<MysqlDbConrext>();
+            return builder;
+        }
+        public SqlDbConrext(IXmlResovle resovle)
+        {
+            Students = new DbQuery<Student>(this);
+        }
+    }
+    
     [Table("student")]
     public class Student
     {
-        [Column("id", ColumnKey.Primary, true)]
+        [Column("Id", ColumnKey.Primary, true)]
         public int? Id { get; set; }
-        [Column("name")]
+        [Column("Name")]
         public string Name { get; set; }
-        [Column("age")]
+        [Column("Age")]
         public int Age { get; set; }
+        [Column("IsDelete")]
+        public bool? IsDelete { get; set; }
     }
     public class StudentGroup
     {
@@ -71,17 +95,18 @@ namespace SqlBatis.Test
         [Test]
         public void Test2()
         {
-
-            var db = new MysqlDbConrext(null);
+            var db = new SqlDbConrext(null);
             db.Open();
 
-            var row = db.Students.Where(a => a.Age == 5)
-                .Update(new Student
+            var (list,count) = db.Students
+                .GroupBy(a=>a.Age)
+                .Page(1,2)
+                .SelectMany(s=>new
                 {
-                    Id = 20,
-                    Age = 90,
-                    Name = "zs"
+                    s.Age,
+                    Count = Func.COUNT(1)
                 });
+               
         }
 
         [Test]
@@ -92,7 +117,7 @@ namespace SqlBatis.Test
             var resovle = new BooleanExpressionResovle(expression).Resovle();
             Assert.Pass();
         }
-      
-      
+
+
     }
 }
