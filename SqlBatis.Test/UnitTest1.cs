@@ -3,17 +3,42 @@ using SqlBatis.Attributes;
 using SqlBatis.DbContexts;
 using SqlBatis.Expressions;
 using SqlBatis.Expressions.Resovles;
+using SqlBatis.Queryables;
 using SqlBatis.XmlResovles;
 using System;
+using System.Linq;
+using System.Data;
 using System.Diagnostics;
 using System.Linq.Expressions;
+using Dapper;
+using System.Text.RegularExpressions;
+using System.Reflection;
+using System.Collections.Generic;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Console;
 
 namespace SqlBatis.Test
 {
+    public class MysqlDbConrext : DbContext
+    {
+        public readonly IDbQuery<Student> Students;
+        protected override DbContextBuilder OnConfiguring(DbContextBuilder builder)
+        {
+            ILoggerFactory factory = LoggerFactory.Create(b => { b.AddConsole(); b.AddDebug(); b.SetMinimumLevel(LogLevel.Debug); });
+            builder.Connection = new MySql.Data.MySqlClient.MySqlConnection("server=127.0.0.1;user id=root;password=1024;database=test;");
+            builder.XmlResovle = null;
+            builder.Logger = factory.CreateLogger<MysqlDbConrext>();
+            return builder;
+        }
+        public MysqlDbConrext(IXmlResovle resovle)
+        {
+            Students = new DbQuery<Student>(this);
+        }
+    }
     [Table("student")]
     public class Student
     {
-        [Column("id",ColumnKey.Primary,true)]
+        [Column("id", ColumnKey.Primary, true)]
         public int? Id { get; set; }
         [Column("name")]
         public string Name { get; set; }
@@ -46,39 +71,17 @@ namespace SqlBatis.Test
         [Test]
         public void Test2()
         {
-            var resovle = new XmlResovle();
-            resovle.Load(@"E:\SqlBatis\SqlBatis.Test\Student.xml");
-            var db = new DbContext(new MySql.Data.MySqlClient.MySqlConnection("server=47.110.55.16;user id=root;password=Yangche51!1234;database=test;"), resovle);
+
+            var db = new MysqlDbConrext(null);
             db.Open();
-            db.BeginTransaction();
 
-            //db.From<Student>().Update();
-
-            var stu = db.From<Student>().Insert(new Student()
-            {
-                Age=12,Name="zs"
-            });
-
-            var arr = new int?[] { };
-
-            var list = db.From<Student>()
-                 .Where(a => Operator.In(a.Id, arr))
-                 .Select();
-
-            db.CommitTransaction();
-            //var list1 = db.From("list-dynamic", new { Age = (int?)2 })
-            //    .ExecuteQuery<Student>();
-
-            //var list2 = db.From("list-dynamic", new { Age = (int?)null })
-            //  .ExecuteQuery<Student>();
-            var columns1 = TableInfoCache.GetColumns(typeof(Student));
-            var stop = new Stopwatch();
-            stop.Start();
-            for (int i = 0; i < 100000; i++)
-            {
-                var columns = TableInfoCache.GetColumns(typeof(Student));
-            }
-            stop.Stop();
+            var row = db.Students.Where(a => a.Age == 5)
+                .Update(new Student
+                {
+                    Id = 20,
+                    Age = 90,
+                    Name = "zs"
+                });
         }
 
         [Test]
@@ -89,5 +92,7 @@ namespace SqlBatis.Test
             var resovle = new BooleanExpressionResovle(expression).Resovle();
             Assert.Pass();
         }
+      
+      
     }
 }

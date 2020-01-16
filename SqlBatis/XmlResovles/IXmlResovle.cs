@@ -6,7 +6,7 @@ namespace SqlBatis
 {
     public interface IXmlResovle
     {
-        string Resolve<T>(string id, T parameter);
+        string Resolve<T>(string id, T parameter) where T : class;
         string Resolve(string id);
     }
 }

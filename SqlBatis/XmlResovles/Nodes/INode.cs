@@ -6,5 +6,6 @@ namespace SqlBatis.XmlResovles
 {
     interface INode
     {
+
     }
 }

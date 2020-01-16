@@ -6,10 +6,11 @@ using System.Text;
 using System.Linq;
 using SqlBatis.Expressions.Resovles;
 using SqlBatis.Expressions;
+using System.Threading.Tasks;
 
 namespace SqlBatis.Queryables
 {
-    public class MysqlQueryable<T> : IDbQueryable<T>
+    public partial class DbQuery<T> : IDbQuery<T>
     {
         #region fields
 
@@ -18,26 +19,31 @@ namespace SqlBatis.Queryables
 
         private readonly PageData _page = new PageData();
 
+        private string _lockname = string.Empty;
+
         private readonly IDbContext _context = null;
 
-        private Expression _filterExpression = null;
-     
         private readonly List<Expression> _whereExpressions = new List<Expression>();
 
         private readonly List<SetExpression> _setExpressions = new List<SetExpression>();
 
         private readonly List<OrderExpression> _orderExpressions = new List<OrderExpression>();
 
+        private readonly List<Expression> _groupExpressions = new List<Expression>();
+
+        private readonly List<Expression> _havingExpressions = new List<Expression>();
+        
+        private Expression _filterExpression = null;
+
         private Expression _selectExpression = null;
 
-        private Expression _groupExpression = null;
+        private Expression _countExpression = null;
 
-        private Expression _havingExpression = null;
-
-        public MysqlQueryable(IDbContext context)
+        public DbQuery(IDbContext context)
         {
             _context = context;
         }
+
         #endregion
 
         #region resovle
@@ -51,6 +57,25 @@ namespace SqlBatis.Queryables
             }
         }
       
+        private string ResovleCount()
+        {
+            var table = TableInfoCache.GetTable(typeof(T)).Name;
+            var columns = "1";
+            if (_countExpression!=null)
+            {
+                columns = new SelectExpressionResovle(_countExpression).Resovle();
+            }
+            var where = ResolveWhere();
+            var group = ResolveGroup();
+            var sql = $"SELECT COUNT({columns}) FROM {table}{where}{group}";
+            if (group.Length>0)
+            {
+                sql = $"SELECT COUNT(1) FROM ({sql}) as t";
+                return sql;
+            }
+            return sql;
+        }
+      
         private string ResolveSelect()
         {
             var table = TableInfoCache.GetTable(typeof(T)).Name;
@@ -60,7 +85,7 @@ namespace SqlBatis.Queryables
             var having = ResolveHaving();
             var order = ResolveOrder();
             var limit = ResovleLimit();
-            var sql = $"SELECT {columns} FROM {table}{where}{group}{having}{order}{limit}";
+            var sql = $"SELECT {columns} FROM {table}{where}{group}{having}{order}{limit}{_lockname}";
             return sql;
         }
 
@@ -168,22 +193,37 @@ namespace SqlBatis.Queryables
 
         private string ResolveGroup()
         {
-            if (_groupExpression != null)
+            var buffer = new StringBuilder();
+            foreach (var item in _groupExpressions)
             {
-                var result = new GroupExpressionResovle(_groupExpression).Resovle();
-                return $" GROUP BY {result}";
+                var result = new GroupExpressionResovle(item).Resovle();
+                buffer.Append($"{result},");
             }
-            return string.Empty;
+            var sql = string.Empty;
+            if (buffer.Length>0)
+            {
+                buffer.Remove(buffer.Length - 1, 1);
+                sql = $" GROUP BY {buffer.ToString()} ";
+            }
+            return sql;
         }
 
         private string ResolveHaving()
         {
-            if (_havingExpression != null)
+            var buffer = new StringBuilder();
+            foreach (var item in _havingExpressions)
             {
-                var result = new BooleanExpressionResovle(_havingExpression, _parameters).Resovle();
-                return $" HAVING {result}";
+                var result = new BooleanExpressionResovle(item, _parameters).Resovle();
+                if (item==_havingExpressions.First())
+                {
+                    buffer.Append($" HAVING {result}");
+                }
+                else
+                {
+                    buffer.Append($" AND {result}");
+                }
             }
-            return string.Empty;
+            return buffer.ToString();
         }
 
         private string ResolveOrder()
@@ -212,8 +252,6 @@ namespace SqlBatis.Queryables
             return string.Empty;
         }
 
-
-
         class PageData
         {
             public int Index { get; set; } = -1;
@@ -235,11 +273,30 @@ namespace SqlBatis.Queryables
 
         #region implement
 
+        public int Count(int? commandTimeout = null)
+        {
+            var sql = ResovleCount();
+            return _context.ExecuteScalar<int>(sql,_parameters, commandTimeout);
+        }
+
+        public int Count<TResult>(Expression<Func<T, TResult>> expression)
+        {
+            _countExpression = expression;
+            return Count();
+        }
+
         public int Insert(T entity)
         {
             ResovleParameter(entity);
             var sql = ResovleInsert();
             return _context.ExecuteNonQuery(sql,_parameters);
+        }
+
+        public int InsertReturnId(T entity)
+        {
+            ResovleParameter(entity);
+            var sql = ResovleInsert()+ ";SELECT LAST_INSERT_ID()";
+            return _context.ExecuteScalar<int>(sql, _parameters);
         }
 
         public int Insert(IEnumerable<T> entitys)
@@ -252,13 +309,6 @@ namespace SqlBatis.Queryables
             return count;
         }
 
-        public int Update(T entity)
-        {
-            ResovleParameter(entity);
-            var sql = ResolveUpdate();
-            return _context.ExecuteNonQuery(sql, _parameters);
-        }
-
         public int Update(int? commandTimeout = null)
         {
             if (_setExpressions.Count > 0)
@@ -268,37 +318,24 @@ namespace SqlBatis.Queryables
             }
             return default;
         }
-
-        public IDbQueryable<T> Set<TResult>(Expression<Func<T, TResult>> column, TResult value, bool condition = true)
+       
+        public int Update(T entity)
         {
-            if (true)
-            {
-                _setExpressions.Add(new SetExpression
-                {
-                    Column = column,
-                    Expression = Expression.Constant(value)
-                });
-            }
-            return this;
-        }
-
-        public IDbQueryable<T> Set<TResult>(Expression<Func<T, TResult>> column, Expression<Func<T, TResult>> expression, bool condition = true)
-        {
-            if (true)
-            {
-                _setExpressions.Add(new SetExpression
-                {
-                    Column = column,
-                    Expression = expression
-                });
-            }
-            return this;
+            ResovleParameter(entity);
+            var sql = ResolveUpdate();
+            return _context.ExecuteNonQuery(sql, _parameters);
         }
 
         public int Delete(int? commandTimeout = null)
         {
             var sql = ResovleDelete();
             return _context.ExecuteNonQuery(sql, _parameters, commandTimeout);
+        }
+
+        public int Delete(Expression<Func<T, bool>> expression)
+        {
+            Where(expression);
+            return Delete();
         }
 
         public bool Exists(int? commandTimeout = null)
@@ -313,19 +350,48 @@ namespace SqlBatis.Queryables
             return Exists();
         }
 
-        public IDbQueryable<T> GroupBy<TResult>(Expression<Func<T, TResult>> expression)
+        public IDbQuery<T> Set<TResult>(Expression<Func<T, TResult>> column, TResult value, bool condition = true)
         {
-            _groupExpression = expression;
+            if (true)
+            {
+                _setExpressions.Add(new SetExpression
+                {
+                    Column = column,
+                    Expression = Expression.Constant(value)
+                });
+            }
             return this;
         }
 
-        public IDbQueryable<T> Having(Expression<Func<T, bool>> expression)
+        public IDbQuery<T> Set<TResult>(Expression<Func<T, TResult>> column, Expression<Func<T, TResult>> expression, bool condition = true)
         {
-            _havingExpression = expression;
+            if (true)
+            {
+                _setExpressions.Add(new SetExpression
+                {
+                    Column = column,
+                    Expression = expression
+                });
+            }
             return this;
         }
 
-        public IDbQueryable<T> OrderBy<TResult>(Expression<Func<T, TResult>> expression)
+        public IDbQuery<T> GroupBy<TResult>(Expression<Func<T, TResult>> expression)
+        {
+            _groupExpressions.Add(expression);
+            return this;
+        }
+
+        public IDbQuery<T> Having(Expression<Func<T, bool>> expression, bool condition = true)
+        {
+            if (condition)
+            {
+                _havingExpressions.Add(expression);
+            }
+            return this;
+        }
+
+        public IDbQuery<T> OrderBy<TResult>(Expression<Func<T, TResult>> expression)
         {
             _orderExpressions.Add(new OrderExpression
             {
@@ -335,7 +401,7 @@ namespace SqlBatis.Queryables
             return this;
         }
 
-        public IDbQueryable<T> OrderByDescending<TResult>(Expression<Func<T, TResult>> expression)
+        public IDbQuery<T> OrderByDescending<TResult>(Expression<Func<T, TResult>> expression)
         {
             _orderExpressions.Add(new OrderExpression
             {
@@ -345,22 +411,40 @@ namespace SqlBatis.Queryables
             return this;
         }
 
-        public IDbQueryable<T> Filter<TResult>(Expression<Func<T, TResult>> column)
+        public IDbQuery<T> Filter<TResult>(Expression<Func<T, TResult>> column)
         {
             _filterExpression = column;
             return this;
         }
 
-        public IDbQueryable<T> Page(int index, int count)
+        public IDbQuery<T> Page(int index, int count)
         {
             Skip((index - 1) * count, count);
+            return this;
+        }
+
+        public IDbQuery<T> With(string lockname)
+        {
+            _lockname = $" {lockname}";
             return this;
         }
 
         public IEnumerable<T> Select(int? commandTimeout = null)
         {
             var sql = ResolveSelect();
-            return _context.ExecuteQuery<T>(sql, _parameters);
+            return _context.ExecuteQuery<T>(sql, _parameters, commandTimeout);
+        }
+
+        public (IEnumerable<T>,int) SelectMany(int? commandTimeout = null)
+        {
+            var sql1 = ResolveSelect();
+            var sql2 = ResovleCount();
+            using (var multi = _context.ExecuteMultiQuery($"{sql1};{sql2}", _parameters, commandTimeout))
+            {
+                var list = multi.GetList<T>();
+                var count = multi.Get<int>();
+                return (list,count);
+            }
         }
 
         public IEnumerable<TResult> Select<TResult>(Expression<Func<T, TResult>> expression, int? commandTimeout = null)
@@ -368,6 +452,19 @@ namespace SqlBatis.Queryables
             _selectExpression = expression;
             var sql = ResolveSelect();
             return _context.ExecuteQuery<TResult>(sql, _parameters, commandTimeout);
+        }
+     
+        public (IEnumerable<TResult>,int) SelectMany<TResult>(Expression<Func<T, TResult>> expression, int? commandTimeout = null)
+        {
+            _selectExpression = expression;
+            var sql1 = ResolveSelect();
+            var sql2 = ResovleCount();
+            using (var multi = _context.ExecuteMultiQuery($"{sql1};{sql2}", _parameters, commandTimeout))
+            {
+                var list = multi.GetList<TResult>();
+                var count = multi.Get<int>();
+                return (list, count);
+            }
         }
 
         public T Single(int? commandTimeout = null)
@@ -382,20 +479,20 @@ namespace SqlBatis.Queryables
             return Select(expression, commandTimeout).FirstOrDefault();
         }
 
-        public IDbQueryable<T> Skip(int index, int count)
+        public IDbQuery<T> Skip(int index, int count)
         {
             _page.Index = index;
             _page.Count = count;
             return this;
         }
 
-        public IDbQueryable<T> Take(int count)
+        public IDbQuery<T> Take(int count)
         {
             Skip(0, count);
             return this;
         }
 
-        public IDbQueryable<T> Where(Expression<Func<T, bool>> expression, bool condition = true)
+        public IDbQuery<T> Where(Expression<Func<T, bool>> expression, bool condition = true)
         {
             if (condition)
             {

@@ -1,12 +1,22 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
+    <AssemblyName>SqlBatis</AssemblyName>
+    <Title>SqlBatis</Title>
+    <PackageTags>orm;sql;micro-orm;ibatis</PackageTags>
     <TargetFramework>netstandard2.0</TargetFramework>
     <Version>1.0.0-beta</Version>
+    <PackageProjectUrl>https://github.com/1448376744/SqlBatis</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/1448376744/SqlBatis</RepositoryUrl>
+    <PackageTags>A high performance Micro-ORM supporting SQL Server, MySQL, Sqlite, Linq, Xml..</PackageTags>
   </PropertyGroup>
 
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net45'">
+    <PackageReference Include="System.ValueTuple" Version="4.5.0" />
+  </ItemGroup>
+
   <ItemGroup>
-    <PackageReference Include="MySql.Data" Version="8.0.19" />
+    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="3.1.1" />
     <PackageReference Include="System.Reflection.Emit.Lightweight" Version="4.7.0" />
     <PackageReference Include="System.Xml.XmlDocument" Version="4.3.0" />
   </ItemGroup>

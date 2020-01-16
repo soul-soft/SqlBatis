@@ -1,11 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Linq;
 using System.Data;
 using System.Text;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace SqlBatis
 {
@@ -31,8 +32,10 @@ namespace SqlBatis
     /// </summary>
     public class TypeConvert
     {
-        private readonly static Dictionary<SerializerKey, object> _serializers = new Dictionary<SerializerKey, object>();
-        private readonly static Dictionary<Type, Func<object, Dictionary<string, object>>> _deserializers = new Dictionary<Type, Func<object, Dictionary<string, object>>>();
+        private readonly static ConcurrentDictionary<SerializerKey, object> _serializers 
+            = new ConcurrentDictionary<SerializerKey, object>();      
+        private readonly static ConcurrentDictionary<Type, Func<object, Dictionary<string, object>>> _deserializers 
+            = new ConcurrentDictionary<Type, Func<object, Dictionary<string, object>>>();
         private struct SerializerKey : IEquatable<SerializerKey>
         {
             private string[] Names { get; set; }
@@ -88,19 +91,28 @@ namespace SqlBatis
                 names[i] = record.GetName(i);
             }
             var key = new SerializerKey(typeof(T), names.Length == 1 ? null : names);
-            _serializers.TryGetValue(key, out object handler);
-            if (handler == null)
+            var handler = _serializers.GetOrAdd(key,k=> 
             {
-                lock (_serializers)
-                {
-                    handler = CreateTypeSerializerHandler<T>(mapper, record);
-                    if (!_serializers.ContainsKey(key))
-                    {
-                        _serializers.Add(key, handler);
-                    }
-                }
-            }
+                return CreateTypeSerializerHandler<T>(mapper, record);
+            });
             return handler as Func<IDataRecord, T>;
+        }
+        /// <summary>
+        /// IDataRecord Converted to dynamic
+        /// </summary>
+        public static Func<IDataRecord, dynamic> GetSerializer()
+        {
+            return (reader) =>
+            {
+                dynamic obj = new System.Dynamic.ExpandoObject();
+                var row = (IDictionary<string, object>)obj;
+                for (int i = 0; i < reader.FieldCount; i++)
+                {
+                    var name = reader.GetName(i);
+                    row.Add(name, reader.GetValue(i));
+                }
+                return row;
+            };
         }
         /// <summary>
         /// IDataRecord Converted to T
@@ -118,18 +130,10 @@ namespace SqlBatis
             {
                 return (object param) => param as Dictionary<string, object>;
             }
-            _deserializers.TryGetValue(type, out Func<object, Dictionary<string, object>> handler);
-            if (handler == null)
+            var handler = _deserializers.GetOrAdd(type, t=>
             {
-                lock (_deserializers)
-                {
-                    handler = CreateTypeDeserializerHandler(type) as Func<object, Dictionary<string, object>>;
-                    if (!_deserializers.ContainsKey(type))
-                    {
-                        _deserializers.Add(type, handler);
-                    }
-                }
-            }
+                return CreateTypeDeserializerHandler(type) as Func<object, Dictionary<string, object>>;
+            });
             return handler;
         }
         private static Func<object, Dictionary<string, object>> CreateTypeDeserializerHandler(Type type)

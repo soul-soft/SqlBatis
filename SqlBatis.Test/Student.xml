@@ -7,12 +7,7 @@
   </variable>
 
   <select id="list-dynamic">
-    select ${columns} from student
-   
-   <where>      
-      <if test="Age != null" value="age >= @Age"/>
-    </where>
-
+    select ${columns} from student where id=@Id limit 0,1
   </select>
 
   <insert id="add">

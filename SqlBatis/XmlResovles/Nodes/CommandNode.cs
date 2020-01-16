@@ -33,34 +33,35 @@ namespace SqlBatis.XmlResovles
             return string.Empty;
         }
 
-        private string ResolveWhereNode<T>(WhereNode node, T parameter)
+        private string ResolveWhereNode<T>(WhereNode node, T parameter) where T :class
         {
             var buffer = new StringBuilder();
             foreach (var item in node.Nodes)
             {
-                if (item is IfNode)
+                if (parameter!=default && item is IfNode)
                 {
-                    buffer.Append(ResolveIfNode<T>(item as IfNode, parameter));
+                    var text = ResolveIfNode(item as IfNode, parameter);
+                    buffer.Append($"{text} ");
                 }
                 else if (item is TextNode)
                 {
-                    buffer.Append(ResolveTextNode(item as TextNode));
+                    var text = ResolveTextNode(item as TextNode);
+                    buffer.Append($"{text} ");
                 }
             }
-            var sql = buffer.ToString();
-            sql = Regex.Replace(sql, @"\s+", " ").Trim(' ');
+            var sql = buffer.ToString().Trim(' ');
             if (sql.StartsWith("and", StringComparison.OrdinalIgnoreCase))
             {
-                sql = sql.Remove(0, 3).Trim(' ');
+                sql = sql.Remove(0, 3);
             }
             else if (sql.StartsWith("or", StringComparison.OrdinalIgnoreCase))
             {
-                sql = sql.Remove(0, 2).Trim(' ');
+                sql = sql.Remove(0, 2);
             }
             return sql.Length > 0 ? " WHERE " + sql : string.Empty;
         }
 
-        public string Resolve<T>(CommandNode command, T parameter)
+        public string Resolve<T>(CommandNode command, T parameter) where T : class
         {
             var buffer = new StringBuilder();
             foreach (var item in command.Nodes)
@@ -79,7 +80,6 @@ namespace SqlBatis.XmlResovles
                 }
             }
             var sql = buffer.ToString();
-            sql = Regex.Replace(sql, @"\s+", " ").Trim(' ');
             return sql;
         }
     }

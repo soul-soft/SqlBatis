@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace SqlBatis.DbContexts
+namespace SqlBatis
 {
     public enum DbContextType
     {

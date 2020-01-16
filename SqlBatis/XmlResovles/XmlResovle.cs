@@ -1,11 +1,12 @@
-﻿using System;
+﻿using SqlBatis.XmlResovles;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml;
 
-namespace SqlBatis.XmlResovles
+namespace SqlBatis
 {
     public class XmlResovle : IXmlResovle
     {
@@ -54,7 +55,7 @@ namespace SqlBatis.XmlResovles
                     text = text.Replace("${" + key + "}", value);
                 }
             }
-            return text;
+            return Regex.Replace(text,@"\s+"," ").Trim(' ');
         }
 
         private CommandNode ResolveCommand(XmlElement element)
@@ -88,6 +89,7 @@ namespace SqlBatis.XmlResovles
                             var test = iitem.Attributes["test"].Value;
                             var value = string.IsNullOrEmpty(iitem.InnerText) ?
                                 (iitem.Attributes["value"]?.Value ?? string.Empty) : iitem.InnerText;
+                            value = ResolveVariable(value);
                             whereNode.Nodes.Add(new IfNode
                             {
                                 Test = test,
@@ -112,7 +114,7 @@ namespace SqlBatis.XmlResovles
             return cmd;
         }
 
-        public string Resolve<T>(string id, T parameter)
+        public string Resolve<T>(string id, T parameter) where T:class
         {
             if (!commands.ContainsKey(id))
             {

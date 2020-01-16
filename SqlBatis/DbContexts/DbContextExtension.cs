@@ -6,11 +6,11 @@ using SqlBatis.Queryables;
 
 namespace SqlBatis.DbContexts
 {
-    public static class IDbContextExtension
+    public static class DbContextExtension
     {
-        public static IDbQueryable<T> From<T>(this IDbContext context)
+        public static IDbQuery<T> From<T>(this IDbContext context)
         {
-            return new MysqlQueryable<T>(context);
+            return new DbQuery<T>(context);
         }
     
     }
