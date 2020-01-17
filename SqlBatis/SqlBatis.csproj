@@ -8,7 +8,8 @@
     <Version>1.0.0</Version>
     <PackageProjectUrl>https://github.com/1448376744/SqlBatis</PackageProjectUrl>
     <RepositoryUrl>https://github.com/1448376744/SqlBatis</RepositoryUrl>
-    <PackageTags>A high performance Micro-ORM supporting SQL Server, MySQL, Sqlite, Linq, Xml..</PackageTags>
+    <PackageTags>orm;sql;micro-orm;mybatis</PackageTags>
+    <Description>A high performance Micro-ORM supporting SQL Server, MySQL, Sqlite etc..</Description>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
