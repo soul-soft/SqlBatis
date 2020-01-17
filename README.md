@@ -88,7 +88,7 @@ var db = new DbContext(new DbContextBuilder()
 });
 
 ```
-基本使用
+3. 基本使用
 
 ``` xml
 <?xml version="1.0" encoding="utf-8" ?>
@@ -118,11 +118,40 @@ var db = new DbContext(new DbContextBuilder()
 var db = new SqlContext();
 db.Open();
 //linq1
-db.From<Student>().Select();
+db.From<Student>()
+ .Select();
 //linq2
 db.Students.Select();
 //xml
  var list = db.From("student.list-dynamic",new {Age=1,Id=(int?)null})
              .ExecuteQuery<Student>();
+```
+## sql查询
+
+``` C#
+var db = new SqlDbContext();
+//只演示一个多结果集查询
+using(var mutil = db.ExecuteMultiQuery("select * from student limit 0,1;selct count(1) from student"))
+{
+  var list = mutil.GetList<Student>();
+  var count = mutil.Get<int>();
+}
+```
+
+## linq查询
+
+``` C#
+var db = new SqlDbContext();
+var flag = db.Student.Exists(a=>a.Id==2);
+var count = db.Student.Where(a=>a.Id>2).Count();
+var rows = db.Student.Where(a=>a.Id>=1).Delete();
+var (list,count) = db.Students
+                .Page(1,2)
+                .SelectMany();
+var parameter = new {Id=(int?)null,Age=20};
+var list = db.Students
+       .Where(a=>a.Id=parameter.Id,parameter.Id!=null)//当第二个条件成立，表达式有效，多个成立采用and连接
+       .Where(a=>a.Id=parameter.Id,parameter.Id!=null)
+    .Select();
 ```
 
