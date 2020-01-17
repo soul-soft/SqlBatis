@@ -118,7 +118,7 @@ namespace SqlBatis
             return sql;
         }
 
-        private string ResovleInsert()
+        private string ResovleInsert(bool identity)
         {
             var table = TableInfoCache.GetTable(typeof(T)).Name;
             var filters = new GroupExpressionResovle(_filterExpression).Resovle().Split(',');
@@ -129,6 +129,10 @@ namespace SqlBatis
             var intcolumnNames = string.Join(",", intcolumns.Select(s => s.ColumnName));
             var intcolumnParameters = string.Join(",", intcolumns.Select(s => $"@{s.PropertyName}"));
             var sql = $"INSERT INTO {table}({intcolumnNames}) VALUES ({intcolumnParameters})";
+            if (identity)
+            {
+                sql = $"{sql};SELECT @@IDENTITY";
+            }
             return sql;
         }
 
@@ -263,7 +267,6 @@ namespace SqlBatis
                 if (item == _orderExpressions.First())
                 {
                     buffer.Append($" ORDER BY ");
-
                 }
                 var result = new OrderExpressionResovle(item.Expression, item.Asc).Resovle();
                 buffer.Append(result);

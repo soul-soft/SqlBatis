@@ -8,6 +8,13 @@ using System.Xml;
 
 namespace SqlBatis
 {
+    public interface IXmlResovle
+    {
+        string Resolve<T>(string id, T parameter) where T : class;
+        string Resolve(string id);
+        void Load(string filename);
+        void Load(string path, string pattern);
+    }
     public class XmlResovle : IXmlResovle
     {
         private readonly Dictionary<string, CommandNode> commands = new Dictionary<string, CommandNode>();
@@ -15,7 +22,7 @@ namespace SqlBatis
         private Dictionary<string, string> ResolveVariables(XmlDocument document)
         {
             var variables = new Dictionary<string, string>();
-            foreach (XmlElement item in document.DocumentElement)
+            foreach (XmlElement item in document.DocumentElement.Cast<XmlNode>().Where(a => a.Name == "variable"))
             {
                 if (item.Name == "variable")
                 {
@@ -118,11 +125,12 @@ namespace SqlBatis
         {
             XmlDocument document = new XmlDocument();
             document.Load(filename);
-            var @namespace = document.DocumentElement.GetAttribute("namespace") 
+            var @namespace = document.DocumentElement.GetAttribute("namespace")
                 ?? string.Empty;
             var variables = ResolveVariables(document);
-            var elements = document.DocumentElement.Cast<XmlElement>()
-                .Where(a => a.Name != "variable");
+            var elements = document.DocumentElement
+                .Cast<XmlNode>()
+                .Where(a => a.Name != "variable" && a is XmlElement);
             foreach (XmlElement item in elements)
             {
                 var id = item.GetAttribute("id");

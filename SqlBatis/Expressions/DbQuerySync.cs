@@ -25,14 +25,14 @@ namespace SqlBatis
         public int Insert(T entity)
         {
             ResovleParameter(entity);
-            var sql = ResovleInsert();
+            var sql = ResovleInsert(false);
             return _context.ExecuteNonQuery(sql, _parameters);
         }
 
         public int InsertReturnId(T entity)
         {
             ResovleParameter(entity);
-            var sql = ResovleInsert() + ";SELECT LAST_INSERT_ID()";
+            var sql = ResovleInsert(true);
             return _context.ExecuteScalar<int>(sql, _parameters);
         }
 

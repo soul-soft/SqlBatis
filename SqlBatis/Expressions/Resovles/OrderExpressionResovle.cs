@@ -14,7 +14,7 @@ namespace SqlBatis.Expressions.Resovles
         {
             if (!asc)
             {
-                _asc = "DESC";
+                _asc = " DESC";
             }
         }
         protected override Expression VisitNew(NewExpression node)
@@ -29,14 +29,14 @@ namespace SqlBatis.Expressions.Resovles
         protected override Expression VisitMethodCall(MethodCallExpression node)
         {
             var result = new FunctionExpressionResovle(node).Resovle();
-            _textBuilder.Append($"{result} {_asc},");
+            _textBuilder.Append($"{result}{_asc},");
             return node;
         }
 
         protected override Expression VisitMember(MemberExpression node)
         {
             var name = TableInfoCache.GetColumnName(node.Member.DeclaringType, node.Member.Name);
-            _textBuilder.Append($"{name} {_asc},");
+            _textBuilder.Append($"{name}{_asc},");
             return node;
         }
 

@@ -66,7 +66,7 @@ namespace SqlBatis
         public Task<int> InsertAsync(T entity)
         {
             ResovleParameter(entity);
-            var sql = ResovleInsert();
+            var sql = ResovleInsert(false);
             return _context.ExecuteNonQueryAsync(sql, _parameters);
         }
 
@@ -83,7 +83,7 @@ namespace SqlBatis
         public Task<int> InsertReturnIdAsync(T entity)
         {
             ResovleParameter(entity);
-            var sql = ResovleInsert() + ";SELECT LAST_INSERT_ID()";
+            var sql = ResovleInsert(true);
             return _context.ExecuteScalarAsync<int>(sql, _parameters);
         }
 

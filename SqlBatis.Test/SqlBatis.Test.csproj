@@ -22,9 +22,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Student - 复制.xml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Update="Student.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

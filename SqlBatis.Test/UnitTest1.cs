@@ -5,114 +5,177 @@ using SqlBatis.Expressions.Resovles;
 using System;
 using System.Data;
 using System.Data.SqlClient;
+using System.Linq;
 using System.Linq.Expressions;
 
 namespace SqlBatis.Test
 {
-    public class MysqlDbConrext : DbContext
-    {
-        public readonly IDbQuery<Student> Students;
-        private static readonly IXmlResovle resovle;
-        static MysqlDbConrext()
-        {
-            resovle = new XmlResovle();
-            resovle.Load(@"E:\SqlBatis\SqlBatis.Test","*.xml");
-        }
-        protected override void OnLogging(string message, object parameter = null, int? commandTimeout = null, CommandType? commandType = null)
-        {
-          
-        }
-        protected override DbContextBuilder OnConfiguring(DbContextBuilder builder)
-        {
-            ILoggerFactory factory = LoggerFactory.Create(b => { b.AddConsole(); b.AddDebug(); b.SetMinimumLevel(LogLevel.Debug); });
-            builder.Connection = new MySql.Data.MySqlClient.MySqlConnection("server=127.0.0.1;user id=root;password=1024;database=test;");
-            builder.XmlResovle = null;
-            return builder;
-        }        
-        public MysqlDbConrext()
-        {
-            Students = new DbQuery<Student>(this);
-        }
 
-      
-    }
-
-    public class SqlDbConrext : DbContext
-    {
-        public readonly IDbQuery<Student> Students;
-
-        private readonly static ILoggerFactory _loggerFactory
-            = LoggerFactory.Create(b => { b.AddConsole(); b.AddDebug(); b.SetMinimumLevel(LogLevel.Debug); });
-
-        protected override DbContextBuilder OnConfiguring(DbContextBuilder builder)
-        {
-            builder.Connection = new SqlConnection("Data Source=192.168.31.33;Initial Catalog=test;User ID=sa;Password=yangche!1234;Pooling=true");
-            builder.XmlResovle = null;
-            builder.DbContextType = DbContextType.SqlServer;
-            return builder;
-        }
-        public SqlDbConrext()
-        {
-            Students = new DbQuery<Student>(this);
-        }
-    }
-
-    public class Student
-    {
-        public int? Id { get; set; }
-        public string Name { get; set; }
-        public int Age { get; set; }
-        public bool? IsDelete { get; set; }
-    }
-    public class StudentGroup
-    {
-        public int Cfe { get; set; }
-        public int Count { get; set; }
-    }
-
-    [Function]
-    public static class Func
-    {
-        public static T COUNT<T>(T column) => default;
-        public static string GROUP_CONCAT<T>(T column) => default;
-        public static string CONCAT(params object[] columns) => default;
-        public static string REPLACE(string column, string oldstr, string newstr) => default;
-
-    }
 
     public class Tests
     {
+        //public MysqlDbContext db = new MysqlDbContext();
+        public SqlDbContext db = new SqlDbContext();
+
         [SetUp]
         public void Setup()
         {
-
-        }
-        [Test]
-        public void Test2()
-        {
-            
-            var db = new MysqlDbConrext();
             db.Open();
+        }
 
-            var list = db.Students
+        [Test]
+        public void TestInsert()
+        {
+            var row = db.Students
                 .Filter(a => a.Id)
                 .Insert(new Student()
+                {
+                    Name = "zs"
+                });
+            var id = db.Students
+                .Filter(a => a.Id)
+                .InsertReturnId(new Student()
+                {
+                    Name = "zs"
+                });
+
+        }
+
+        [Test]
+        public void TestUpdate()
+        {
+            var row = db.Students
+                .Filter(a => a.Id)
+                .Where(a => a.Id == 1)
+                .Update(new Student()
                 {
                     Age = 90,
                     IsDelete = false,
                     Name = "zs"
                 });
+            row = db.Students
+               .Set(a => a.IsDelete, true)
+               .Set(a => a.Age, a => a.Age + 1)
+               .Where(a => a.Id == 3)
+               .Update();
         }
 
         [Test]
-        public void Test1()
+        public void TestDelete()
         {
-            var c = new { c = "ggg" };
-            Expression<Func<Student, bool>> expression = s => s.Id != null && Operator.NotContains(s.Name, c.c);
-            var resovle = new BooleanExpressionResovle(expression).Resovle();
-            Assert.Pass();
+            var row = db.Students
+                .Where(a => a.Id == 1)
+                .Delete();
         }
 
+        [Test]
+        public void TestCount()
+        {
+            var count = db.Students
+                .Where(a => a.Age > 3)
+                .Count();
+        }
 
+        [Test]
+        public void TestExists()
+        {
+            var flag1 = db.Students
+                .Where(a => a.Age > 3)
+                .Exists();
+
+            var flag2 = db.Students
+               .Where(a => a.Age < 3)
+               .Exists();
+        }
+
+        [Test]
+        public void TestDynamic()
+        {
+            var p = new { Id = (int?)1, Age = (int?)2 };
+
+            var list = db.Students
+                .Where(a => a.Id == p.Id, p.Id != null)
+                .Where(a => a.Age == p.Age, p.Age != null)
+                .Select();
+
+        }
+
+        [Test]
+        public void TestGroup()
+        {
+            var list = db.Students
+                .GroupBy(a => a.Age)
+                .Select(s => new
+                {
+                    s.Age,
+                    Id = Func.COUNT(1)
+                });
+        }
+
+        [Test]
+        public void TestSkip()
+        {
+            var list1 = db.Students
+                .Skip(1, 10)
+                .Select();
+
+            var list2 = db.Students
+              .Take(10)
+              .Select();
+        }
+        [Test]
+        public void TestPage()
+        {
+            var list1 = db.Students
+                .Page(1, 2)
+                .SelectMany();
+
+            var list2 = db.Students
+               .OrderBy(a => new { a.Id, a.IsDelete })
+               .Page(2, 2)
+               .SelectMany();
+        }
+        [Test]
+        public void TestSelect()
+        {
+            var arr = new int?[] { 1, 2, 3 };
+            
+            var list1 = db.Students
+                .Where(a => Operator.In(a.Id, arr))
+                .Select().ToList();
+            var list2 = db.Students
+                .Where(a => Operator.Contains(a.Name, "zs"))
+                .Select().ToList();
+            var list3 = db.Students
+                .Where(a => a.IsDelete == true)
+                .Select().ToList();
+        }
+        [Test]
+        public void TestXml()
+        {
+            var row = db.From("sutdent.add", new Student()
+            {
+                Name = "xml",
+                Age = 90
+            }).ExecuteNonQuery();
+
+            var p = new { Id = (int?)1, Index = 1, Count = 10 };
+            var list = db.From("sutdent.list-dynamic", p)
+                .ExecuteQuery<Student>()
+                .ToList();
+        }
     }
+
+
+
+
+
+    public class Student
+    {
+        public int? Id { get; set; }
+        public string Name { get; set; }
+        public int? Age { get; set; }
+        public bool? IsDelete { get; set; }
+    }
+
 }

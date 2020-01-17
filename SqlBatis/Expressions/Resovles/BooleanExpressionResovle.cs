@@ -54,13 +54,13 @@ namespace SqlBatis.Expressions.Resovles
                     {
                         SetParameterValue(Expression.Constant($"{value}%", typeof(string)));
                     }
-                    else if (node.Method.Name == nameof(Operator.StartsWith) || node.Method.Name == nameof(Operator.NotStartsWith))
+                    else if (node.Method.Name == nameof(Operator.EndsWith) || node.Method.Name == nameof(Operator.NotEndsWith))
                     {
-                        SetParameterValue(Expression.Constant($"{value}%", typeof(string)));
+                        SetParameterValue(Expression.Constant($"%{value}", typeof(string)));
                     }
                     else if (node.Method.Name == nameof(Operator.Contains) || node.Method.Name == nameof(Operator.NotContains))
                     {
-                        SetParameterValue(Expression.Constant($"{value}%", typeof(string)));
+                        SetParameterValue(Expression.Constant($"%{value}%", typeof(string)));
                     }
                     else
                     {

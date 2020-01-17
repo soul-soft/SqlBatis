@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace SqlBatis
 {
-    public interface IDbContext
+    public interface IDbContext : IDisposable
     {
         IDbConnection Connection { get; }
         DbContextType DbContextType { get; }
@@ -55,7 +55,7 @@ namespace SqlBatis
             return builder;
         }
 
-        protected virtual void OnLogging(string message, object parameter = null, int? commandTimeout = null, CommandType? commandType = null)
+        protected virtual void OnLogging(string message, IDataParameterCollection parameter = null, int? commandTimeout = null, CommandType? commandType = null)
         {
         }
 
@@ -63,14 +63,15 @@ namespace SqlBatis
         {
             var builder = OnConfiguring(new DbContextBuilder());
             Connection = builder.Connection;
+            _xmlResovle = builder.XmlResovle;
             _typeMapper = builder.TypeMapper ?? new TypeMapper();
             DbContextType = builder.DbContextType;
-
         }
 
         public DbContext(DbContextBuilder builder)
         {
             Connection = builder.Connection;
+            _xmlResovle = builder.XmlResovle;
             _typeMapper = builder.TypeMapper ?? new TypeMapper();
             DbContextType = builder.DbContextType;
         }
@@ -247,8 +248,8 @@ namespace SqlBatis
         /// <returns></returns>
         public void BeginTransaction()
         {
-            OnLogging("begin transaction");
             _transaction = Connection.BeginTransaction();
+            OnLogging("begin transaction");
         }
 
         /// <summary>
@@ -258,9 +259,8 @@ namespace SqlBatis
         /// <returns></returns>
         public void BeginTransaction(IsolationLevel level)
         {
-
-            OnLogging("begin transaction isolationLevel = " + level);
             _transaction = Connection.BeginTransaction(level);
+            OnLogging("begin transaction isolationLevel = " + level);
         }
 
         /// <summary>
@@ -268,10 +268,10 @@ namespace SqlBatis
         /// </summary>
         public void Close()
         {
-            OnLogging("colse connection");
             _transaction?.Dispose();
             Connection?.Dispose();
             DbContextState = DbContextState.Closed;
+            OnLogging("colse connection");
         }
 
         /// <summary>
@@ -279,9 +279,9 @@ namespace SqlBatis
         /// </summary>
         public void CommitTransaction()
         {
-            OnLogging("commit transaction");
             _transaction?.Commit();
             DbContextState = DbContextState.Commit;
+            OnLogging("commit transaction");
         }
 
         /// <summary>
@@ -289,9 +289,9 @@ namespace SqlBatis
         /// </summary>
         public void Open()
         {
-            OnLogging("open connection");
             Connection?.Open();
             DbContextState = DbContextState.Open;
+            OnLogging("open connection");
         }
 
         /// <summary>
@@ -300,9 +300,9 @@ namespace SqlBatis
         /// <returns></returns>
         public async Task OpenAsync()
         {
-            OnLogging("open connection");
             await (Connection as DbConnection).OpenAsync();
             DbContextState = DbContextState.Open;
+            OnLogging("open connection");
         }
 
         /// <summary>
@@ -310,9 +310,9 @@ namespace SqlBatis
         /// </summary>
         public void RollbackTransaction()
         {
-            OnLogging("rollback");
             _transaction?.Rollback();
             DbContextState = DbContextState.Rollback;
+            OnLogging("rollback");
 
         }
         /// <summary>
@@ -320,7 +320,6 @@ namespace SqlBatis
         /// </summary>      
         private void Initialize(IDbCommand cmd, string sql, object parameter, int? commandTimeout = null, CommandType? commandType = null)
         {
-            OnLogging(sql, parameter, commandTimeout, commandType);
             var dbParameters = new List<IDbDataParameter>();
             cmd.Transaction = _transaction;
             cmd.CommandText = sql;
@@ -398,6 +397,7 @@ namespace SqlBatis
                     }
                 }
             }
+            OnLogging(cmd.CommandText, cmd.Parameters, commandTimeout, commandType);
         }
 
         /// <summary>
@@ -412,5 +412,10 @@ namespace SqlBatis
             return parameter;
         }
 
+        public void Dispose()
+        {
+            _transaction?.Dispose();
+            Connection?.Dispose();
+        }
     }
 }

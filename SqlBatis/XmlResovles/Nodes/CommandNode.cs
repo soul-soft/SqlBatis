@@ -58,7 +58,7 @@ namespace SqlBatis.XmlResovles
             {
                 sql = sql.Remove(0, 2);
             }
-            return sql.Length > 0 ? " WHERE " + sql : string.Empty;
+            return sql.Length > 0 ? "WHERE " + sql : string.Empty;
         }
 
         public string Resolve<T>(CommandNode command, T parameter) where T : class
@@ -68,19 +68,30 @@ namespace SqlBatis.XmlResovles
             {
                 if (item is TextNode)
                 {
-                    buffer.Append(ResolveTextNode(item as TextNode));
+                    var txt = ResolveTextNode(item as TextNode);
+                    if (txt.Length > 0)
+                    {
+                        buffer.AppendFormat($" {txt}");
+                    }
                 }
                 else if (item is WhereNode)
                 {
-                    buffer.Append(ResolveWhereNode(item as WhereNode, parameter));
+                    var txt = ResolveWhereNode(item as WhereNode, parameter);
+                    if (txt.Length > 0)
+                    {
+                        buffer.AppendFormat($" {txt}");
+                    }
                 }
                 else if (item is IfNode)
                 {
-                    buffer.Append(ResolveIfNode(item as IfNode, parameter));
+                    var txt = ResolveIfNode(item as IfNode, parameter);
+                    if (txt.Length>0)
+                    {
+                        buffer.AppendFormat($" {txt}");
+                    }
                 }
             }
-            var sql = buffer.ToString();
-            return sql;
+            return buffer.ToString().Trim(' ');
         }
     }
 }
