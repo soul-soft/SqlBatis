@@ -90,6 +90,54 @@ var db = new DbContext(new DbContextBuilder()
 });
 
 ```
+
+3.asp.net core
+``` C#
+//SqlDbContext.cs
+ public class SqlDbContext : DbContext
+    {
+        private ILogger<SqlDbContext> _logger = null;
+        protected override void OnLogging(string message, IDataParameterCollection parameter = null, int? commandTimeout = null, CommandType? commandType = null)
+        {
+            _logger.LogInformation(message);
+            if (parameter != null)
+            {
+                foreach (IDataParameter item in parameter)
+                {
+                    _logger.LogInformation($"{item.ParameterName} = {item.Value ?? "NULL"}");
+                }
+            }
+        }
+
+        public SqlDbContext(DbContextBuilder builder, ILogger<SqlDbContext> logger) :
+            base(builder)
+        {
+            _logger = logger;
+        }
+    }
+//Startup.cs
+ public void ConfigureServices(IServiceCollection services)
+        {
+            services.AddSingleton<IXmlResovle>(s =>
+            {
+                var resovle = new XmlResovle();
+                resovle.Load("./Mappers", "*.xml");
+                return resovle;
+            });
+            services.AddScoped(s =>
+            {
+                var logger = s.GetService<ILogger<SqlDbContext>>();
+                var resovle = s.GetService<IXmlResovle>();
+                return new SqlDbContext(new DbContextBuilder()
+                {
+                    Connection = new SqlConnection(Configuration.GetConnectionString("sqlserver")),
+                    DbContextType = DbContextType.SqlServer,
+                    XmlResovle = resovle,
+                }, logger);
+            });
+            services.AddControllers();
+        }
+```
 3. 基本使用
 
 ``` xml
