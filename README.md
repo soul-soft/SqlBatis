@@ -46,30 +46,7 @@ var flag= result.Func(new Student { Age = 1, Name = "zs" });
 */
 ```
 ## Configuration
-1.第一种方式
-
-``` xml
-<?xml version="1.0" encoding="utf-8" ?>
-<commands namespace="sutdent">
-  <variable id="columns">
-    Id,Age,Name
-  </variable>
-
-  <select id="list-dynamic">
-    select ${columns} from student 
-    <where>
-     <if test="Id!=null" value="Id=@Id"/>
-     <if test="Age!=null" value="Age>@Age"/>
-     </where>
-    limit 0,1   
-  </select>
-
-  <insert id="add">
-    insert into student(name,age)values(@Name,@age)
-  </insert>
-
-</commands>
-```
+1. 第一种方式
 
 ``` C#
 public class SqlDbContext : DbContext
@@ -100,6 +77,43 @@ public class SqlDbContext : DbContext
         Students = new DbQuery<Student>(this);
     }
 }
+```
+2. 第二种
+
+``` C#
+var db = new DbContext(new DbContextBuilder()
+{ 
+    DbContextType=DbContextType.Mysql,
+    ...
+});
+
+```
+基本使用
+
+``` xml
+<?xml version="1.0" encoding="utf-8" ?>
+<commands namespace="sutdent">
+  <variable id="columns">
+    Id,Age,Name
+  </variable>
+
+  <select id="list-dynamic">
+    select ${columns} from student 
+    <where>
+     <if test="Id!=null" value="Id=@Id"/>
+     <if test="Age!=null" value="Age>@Age"/>
+     </where>
+    limit 0,1   
+  </select>
+
+  <insert id="add">
+    insert into student(name,age)values(@Name,@age)
+  </insert>
+
+</commands>
+```
+
+``` C#
 //new 
 var db = new SqlContext();
 db.Open();
