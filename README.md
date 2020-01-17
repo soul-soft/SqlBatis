@@ -45,7 +45,7 @@ var flag= result.Func(new Student { Age = 1, Name = "zs" });
 2. public class Student{ public int Age{get;set;} public string Name {get;set;}}
 */
 ```
-## Configuration
+## 配置DbContext
 1. 第一种方式
 
 ``` C#
@@ -145,13 +145,15 @@ var db = new SqlDbContext();
 var flag = db.Student.Exists(a=>a.Id==2);
 var count = db.Student.Where(a=>a.Id>2).Count();
 var rows = db.Student.Where(a=>a.Id>=1).Delete();
+//分页查询
 var (list,count) = db.Students
                 .Page(1,2)
                 .SelectMany();
 var parameter = new {Id=(int?)null,Age=20};
+//动态查询
 var list = db.Students
        .Where(a=>a.Id=parameter.Id,parameter.Id!=null)//当第二个条件成立，表达式有效，多个成立采用and连接
        .Where(a=>a.Id=parameter.Id,parameter.Id!=null)
-    .Select();
+       .Select();
 ```
 
