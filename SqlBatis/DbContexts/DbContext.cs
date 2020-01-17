@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
@@ -16,6 +15,7 @@ namespace SqlBatis
         DbContextType DbContextType { get; }
         IXmlMapper From<T>(string id, T parameter) where T : class;
         IXmlMapper From(string id);
+        IDbQuery<T> From<T>();
         void BeginTransaction();
         void BeginTransaction(IsolationLevel level);
         void Close();
@@ -40,10 +40,8 @@ namespace SqlBatis
     {
         public DbContextState DbContextState = DbContextState.Closed;
 
-        private readonly ILogger _logger = null;
-
         private readonly IXmlResovle _xmlResovle = null;
-        
+
         private IDbTransaction _transaction = null;
 
         private readonly ITypeMapper _typeMapper = null;
@@ -57,12 +55,15 @@ namespace SqlBatis
             return builder;
         }
 
-        protected DbContext()          
+        protected virtual void OnLogging(string message, object parameter = null, int? commandTimeout = null, CommandType? commandType = null)
+        {
+        }
+
+        protected DbContext()
         {
             var builder = OnConfiguring(new DbContextBuilder());
             Connection = builder.Connection;
             _typeMapper = builder.TypeMapper ?? new TypeMapper();
-            _logger = builder.Logger;
             DbContextType = builder.DbContextType;
 
         }
@@ -71,7 +72,6 @@ namespace SqlBatis
         {
             Connection = builder.Connection;
             _typeMapper = builder.TypeMapper ?? new TypeMapper();
-            _logger = builder.Logger;
             DbContextType = builder.DbContextType;
         }
         /// <summary>
@@ -85,14 +85,19 @@ namespace SqlBatis
         /// <summary>
         /// xml query
         /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
         public IXmlMapper From(string id)
         {
             var sql = _xmlResovle.Resolve(id);
             return new XmlMapper(this, sql);
         }
 
+        /// <summary>
+        /// linq query
+        /// </summary>
+        public IDbQuery<T> From<T>()
+        {
+            return new DbQuery<T>(this);
+        }
         /// <summary>
         /// Executes a query, returning the data typed as dynamic.
         /// </summary>
@@ -242,7 +247,7 @@ namespace SqlBatis
         /// <returns></returns>
         public void BeginTransaction()
         {
-            _logger?.LogDebug("begin transaction");
+            OnLogging("begin transaction");
             _transaction = Connection.BeginTransaction();
         }
 
@@ -253,7 +258,8 @@ namespace SqlBatis
         /// <returns></returns>
         public void BeginTransaction(IsolationLevel level)
         {
-            _logger?.LogDebug("begin transaction isolationLevel = " + level);
+
+            OnLogging("begin transaction isolationLevel = " + level);
             _transaction = Connection.BeginTransaction(level);
         }
 
@@ -262,7 +268,7 @@ namespace SqlBatis
         /// </summary>
         public void Close()
         {
-            _logger?.LogDebug("colse connection");
+            OnLogging("colse connection");
             _transaction?.Dispose();
             Connection?.Dispose();
             DbContextState = DbContextState.Closed;
@@ -273,7 +279,7 @@ namespace SqlBatis
         /// </summary>
         public void CommitTransaction()
         {
-            _logger?.LogDebug("commit transaction");
+            OnLogging("commit transaction");
             _transaction?.Commit();
             DbContextState = DbContextState.Commit;
         }
@@ -283,7 +289,7 @@ namespace SqlBatis
         /// </summary>
         public void Open()
         {
-            _logger?.LogDebug("open connection");
+            OnLogging("open connection");
             Connection?.Open();
             DbContextState = DbContextState.Open;
         }
@@ -294,7 +300,7 @@ namespace SqlBatis
         /// <returns></returns>
         public async Task OpenAsync()
         {
-            _logger?.LogDebug("open connection");
+            OnLogging("open connection");
             await (Connection as DbConnection).OpenAsync();
             DbContextState = DbContextState.Open;
         }
@@ -304,7 +310,7 @@ namespace SqlBatis
         /// </summary>
         public void RollbackTransaction()
         {
-            _logger?.LogDebug("rollback");
+            OnLogging("rollback");
             _transaction?.Rollback();
             DbContextState = DbContextState.Rollback;
 
@@ -314,7 +320,7 @@ namespace SqlBatis
         /// </summary>      
         private void Initialize(IDbCommand cmd, string sql, object parameter, int? commandTimeout = null, CommandType? commandType = null)
         {
-            _logger?.LogDebug(sql);
+            OnLogging(sql, parameter, commandTimeout, commandType);
             var dbParameters = new List<IDbDataParameter>();
             cmd.Transaction = _transaction;
             cmd.CommandText = sql;

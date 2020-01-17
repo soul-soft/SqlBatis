@@ -1,14 +1,10 @@
-﻿using SqlBatis.DbContexts;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq.Expressions;
-using System.Text;
 using System.Linq;
-using SqlBatis.Expressions.Resovles;
-using SqlBatis.Expressions;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 
-namespace SqlBatis.Queryables
+namespace SqlBatis
 {
     public partial class DbQuery<T>
     {

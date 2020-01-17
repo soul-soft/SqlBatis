@@ -1,14 +1,11 @@
-﻿using SqlBatis.DbContexts;
-using System;
+﻿using SqlBatis.Expressions;
+using SqlBatis.Expressions.Resovles;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
-using System.Linq;
-using SqlBatis.Expressions.Resovles;
-using SqlBatis.Expressions;
-using System.Threading.Tasks;
 
-namespace SqlBatis.Queryables
+namespace SqlBatis
 {
     public partial class DbQuery<T> : IDbQuery<T>
     {
@@ -115,7 +112,7 @@ namespace SqlBatis.Queryables
             }
             else
             {
-                var limit = _page.Index > 0 ? " LIMIT " : string.Empty;
+                var limit = _page.Index > 0 || _page.Count > 0 ? $" LIMIT {_page.Index},{_page.Count}" : string.Empty;
                 sql = $"SELECT {column} FROM {table}{where}{group}{having}{order}{limit}{_lockname}";
             }
             return sql;
@@ -196,7 +193,7 @@ namespace SqlBatis.Queryables
                 var filters = new GroupExpressionResovle(_filterExpression).Resovle().Split(',');
                 var columns = TableInfoCache.GetColumns(typeof(T))
                     .Where(a => !filters.Contains(a.ColumnName))
-                    .Select(s => $"{s.ColumnName} AS {s.PropertyName}");
+                    .Select(s => s.ColumnName != s.PropertyName ? $"{s.ColumnName} AS {s.PropertyName}" : s.PropertyName);
                 return string.Join(",", columns);
             }
             else
@@ -293,6 +290,5 @@ namespace SqlBatis.Queryables
             public Expression Expression { get; set; }
         }
         #endregion
-
     }
 }

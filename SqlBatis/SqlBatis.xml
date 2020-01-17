@@ -1,0 +1,184 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>SqlBatis</name>
+    </assembly>
+    <members>
+        <member name="T:SqlBatis.DbContext">
+            <summary>
+            Execute script
+            </summary>
+        </member>
+        <member name="M:SqlBatis.DbContext.From``1(System.String,``0)">
+            <summary>
+            xml query
+            </summary>
+        </member>
+        <member name="M:SqlBatis.DbContext.From(System.String)">
+            <summary>
+            xml query
+            </summary>
+        </member>
+        <member name="M:SqlBatis.DbContext.From``1">
+            <summary>
+            linq query
+            </summary>
+        </member>
+        <member name="M:SqlBatis.DbContext.ExecuteQuery(System.String,System.Object,System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
+            <summary>
+            Executes a query, returning the data typed as dynamic.
+            </summary>
+        </member>
+        <member name="M:SqlBatis.DbContext.ExecuteQueryAsync(System.String,System.Object,System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
+            <summary>
+            async Executes a query, returning the data typed as dynamic.
+            </summary>
+        </member>
+        <member name="M:SqlBatis.DbContext.ExecuteMultiQuery(System.String,System.Object,System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
+            <summary>
+            Executes multi query.
+            </summary>
+        </member>
+        <member name="M:SqlBatis.DbContext.ExecuteQuery``1(System.String,System.Object,System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
+            <summary>
+            Executes a query, returning the data typed as T.
+            </summary>
+        </member>
+        <member name="M:SqlBatis.DbContext.ExecuteQueryAsync``1(System.String,System.Object,System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
+            <summary>
+            Executes a query, returning the data typed as T
+            </summary>
+        </member>
+        <member name="M:SqlBatis.DbContext.ExecuteNonQuery(System.String,System.Object,System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
+            <summary>
+            Execute parameterized SQL
+            </summary>
+        </member>
+        <member name="M:SqlBatis.DbContext.ExecuteNonQueryAsync(System.String,System.Object,System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
+            <summary>
+            Execute a command asynchronously using Task.
+            </summary>
+        </member>
+        <member name="M:SqlBatis.DbContext.ExecuteScalar``1(System.String,System.Object,System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
+            <summary>
+            Execute parameterized SQL that selects a single value.
+            </summary>
+        </member>
+        <member name="M:SqlBatis.DbContext.ExecuteScalarAsync``1(System.String,System.Object,System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
+            <summary>
+            Execute parameterized SQL that selects a single value.
+            </summary>
+        </member>
+        <member name="M:SqlBatis.DbContext.BeginTransaction">
+            <summary>
+            begin transaction
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.DbContext.BeginTransaction(System.Data.IsolationLevel)">
+            <summary>
+            begin transaction
+            </summary>
+            <param name="level"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.DbContext.Close">
+            <summary>
+            close connection
+            </summary>
+        </member>
+        <member name="M:SqlBatis.DbContext.CommitTransaction">
+            <summary>
+            commit transaction
+            </summary>
+        </member>
+        <member name="M:SqlBatis.DbContext.Open">
+            <summary>
+            open connection
+            </summary>
+        </member>
+        <member name="M:SqlBatis.DbContext.OpenAsync">
+            <summary>
+            open connection
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.DbContext.RollbackTransaction">
+            <summary>
+            rollback transaction
+            </summary>
+        </member>
+        <member name="M:SqlBatis.DbContext.Initialize(System.Data.IDbCommand,System.String,System.Object,System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
+            <summary>
+            handler command
+            </summary>      
+        </member>
+        <member name="M:SqlBatis.DbContext.CreateParameter(System.Data.IDbCommand,System.String,System.Object)">
+            <summary>
+            create parameter
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:SqlBatis.DbDataInfo">
+            <summary>
+            DbColumn Information
+            </summary>
+        </member>
+        <member name="T:SqlBatis.TypeConvert">
+            <summary>
+            Type Convert
+            </summary>
+        </member>
+        <member name="M:SqlBatis.TypeConvert.GetSerializer``1(SqlBatis.ITypeMapper,System.Data.IDataRecord)">
+            <summary>
+            IDataRecord Converted to T
+            </summary>
+        </member>
+        <member name="M:SqlBatis.TypeConvert.GetSerializer">
+            <summary>
+            IDataRecord Converted to dynamic
+            </summary>
+        </member>
+        <member name="M:SqlBatis.TypeConvert.GetSerializer``1(System.Data.IDataRecord)">
+            <summary>
+            IDataRecord Converted to T
+            </summary>
+        </member>
+        <member name="M:SqlBatis.TypeConvert.GetDeserializer(System.Type)">
+            <summary>
+            Object To Dictionary&lt;tstring, object&gt;
+            </summary>
+        </member>
+        <member name="T:SqlBatis.ITypeMapper">
+            <summary>
+            TypeMapper Interface
+            </summary>
+        </member>
+        <member name="T:SqlBatis.TypeMapper">
+            <summary>
+            Default TypeMapper
+            </summary>
+        </member>
+        <member name="M:SqlBatis.TypeMapper.FindConstructor(System.Type)">
+            <summary>
+            Find parametric constructors.
+            If there is no default constructor, the constructor with the most parameters is returned.
+            </summary>
+        </member>
+        <member name="M:SqlBatis.TypeMapper.FindConstructorParameter(SqlBatis.DbDataInfo[],System.Reflection.ParameterInfo)">
+            <summary>
+            Returns field information based on parameter information
+            </summary>
+        </member>
+        <member name="M:SqlBatis.TypeMapper.FindMember(System.Reflection.MemberInfo[],SqlBatis.DbDataInfo)">
+            <summary>
+            Returns attribute information based on field information
+            </summary>
+        </member>
+        <member name="M:SqlBatis.TypeMapper.FindConvertMethod(System.Type,System.Type)">
+            <summary>
+            Return type conversion function.
+            </summary>
+        </member>
+    </members>
+</doc>

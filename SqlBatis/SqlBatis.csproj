@@ -1,20 +1,29 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <AssemblyName>SqlBatis</AssemblyName>
     <Title>SqlBatis</Title>
+    <NoWarn>$(NoWarn);1591</NoWarn>
     <PackageTags>orm;sql;micro-orm;ibatis</PackageTags>
-    <TargetFramework>netstandard2.0</TargetFramework>
-    <Version>1.0.0-beta</Version>
+    <TargetFrameworks>net45;netstandard2.0</TargetFrameworks>
+    <Version>1.0.0.1-beta</Version>
     <PackageProjectUrl>https://github.com/1448376744/SqlBatis</PackageProjectUrl>
     <RepositoryUrl>https://github.com/1448376744/SqlBatis</RepositoryUrl>
     <PackageTags>A high performance Micro-ORM supporting SQL Server, MySQL, Sqlite, Linq, Xml..</PackageTags>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DocumentationFile>SqlBatis.xml</DocumentationFile>
   </PropertyGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net45'">
+    <PackageReference Include="System.ValueTuple" Version="4.5" />
+    <Reference Include="Microsoft.CSharp" />
+  </ItemGroup>
+  
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="3.1.1" />
     <PackageReference Include="System.Reflection.Emit.Lightweight" Version="4.7.0" />
     <PackageReference Include="System.Xml.XmlDocument" Version="4.3.0" />
   </ItemGroup>
-
+ 
 </Project>

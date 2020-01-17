@@ -8,5 +8,7 @@ namespace SqlBatis
     {
         string Resolve<T>(string id, T parameter) where T : class;
         string Resolve(string id);
+        void Load(string filename);
+        void Load(string path,string pattern);
     }
 }
