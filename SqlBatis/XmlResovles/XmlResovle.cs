@@ -15,6 +15,7 @@ namespace SqlBatis
         void Load(string filename);
         void Load(string path, string pattern);
     }
+  
     public class XmlResovle : IXmlResovle
     {
         private readonly Dictionary<string, CommandNode> commands = new Dictionary<string, CommandNode>();
@@ -123,20 +124,30 @@ namespace SqlBatis
 
         public void Load(string filename)
         {
-            XmlDocument document = new XmlDocument();
-            document.Load(filename);
-            var @namespace = document.DocumentElement.GetAttribute("namespace")
-                ?? string.Empty;
-            var variables = ResolveVariables(document);
-            var elements = document.DocumentElement
-                .Cast<XmlNode>()
-                .Where(a => a.Name != "variable" && a is XmlElement);
-            foreach (XmlElement item in elements)
+            lock (this)
             {
-                var id = item.GetAttribute("id");
-                id = string.IsNullOrEmpty(@namespace) ? $"{id}" : $"{@namespace}.{id}";
-                var cmd = ResolveCommand(variables, item);
-                commands.Add(id, cmd);
+                XmlDocument document = new XmlDocument();
+                document.Load(filename);
+                var @namespace = document.DocumentElement.GetAttribute("namespace")
+                    ?? string.Empty;
+                var variables = ResolveVariables(document);
+                var elements = document.DocumentElement
+                    .Cast<XmlNode>()
+                    .Where(a => a.Name != "variable" && a is XmlElement);
+                foreach (XmlElement item in elements)
+                {
+                    var id = item.GetAttribute("id");
+                    id = string.IsNullOrEmpty(@namespace) ? $"{id}" : $"{@namespace}.{id}";
+                    var cmd = ResolveCommand(variables, item);
+                    if (commands.ContainsKey(id))
+                    {
+                        commands[id] = cmd;
+                    }
+                    else
+                    {
+                        commands.Add(id, cmd);
+                    }
+                }
             }
         }
 
