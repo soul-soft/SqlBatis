@@ -20,8 +20,6 @@ namespace SqlBatis.Test
         [SetUp]
         public void Setup()
         {
-            builder.Connection = new MySql.Data.MySqlClient.MySqlConnection("server=47.110.55.16;user id=root;password=Yangche51!1234;database=test;");
-            builder.XmlResovle = resovle;
             db.Open();
         }
 
@@ -141,7 +139,7 @@ namespace SqlBatis.Test
         public void TestSelect()
         {
             var arr = new int?[] { 1, 2, 3 };
-            
+
             var list1 = db.Students
                 .Where(a => Operator.In(a.Id, arr))
                 .Select().ToList();
@@ -152,6 +150,7 @@ namespace SqlBatis.Test
                 .Where(a => a.IsDelete == true)
                 .Select().ToList();
         }
+
         [Test]
         public void TestXml()
         {
@@ -165,6 +164,22 @@ namespace SqlBatis.Test
             var list = db.From("sutdent.list-dynamic", p)
                 .ExecuteQuery<Student>()
                 .ToList();
+        }
+
+        [Test]
+        public void TestExpression()
+        {
+
+            var expr = "(Age != null) && (Id > 0)";
+            var context = new ExpressionContext();
+            var result = context.Create<P>(expr);
+            var flag1 = result.Func(new P { Id = 2, Age = null });
+            var flag2 = result.Func(new P { Id = 2, Age = 2 });
+        }
+        class P
+        {
+            public int Id { get; set; }
+            public int? Age { get; set; }//Age type must be int?
         }
     }
 

@@ -12,11 +12,9 @@ namespace SqlBatis.Test
         private static readonly IXmlResovle resovle;
         static SqlDbContext()
         {
-            //for xml query
             resovle = new XmlResovle();
             resovle.Load(@"E:\SqlBatis\SqlBatis.Test", "*.xml");          
         }
-        //for linq
         public IDbQuery<Student> Students { get => new DbQuery<Student>(this); }
 
         protected override void OnLogging(string message, IDataParameterCollection parameter = null, int? commandTimeout = null, CommandType? commandType = null)
@@ -39,9 +37,6 @@ namespace SqlBatis.Test
             builder.DbContextType = DbContextType.SqlServer;
             return builder;
         }
-        public SqlDbContext()
-        {
-
-        }
+       
     }
 }
