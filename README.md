@@ -12,7 +12,7 @@
  
 4. ExpressionContext是一个轻量的词法分析器，用于将字符串表达式生成C#表达式，进而生成委托.
 
-5. 要想很好的掌握该项目，请阅读源码和单元测试:[document][https://github.com/1448376744/SqlBatis/wiki "example"]
+5. 要想很好的掌握该项目，请阅读源码和单元测试:[document](https://github.com/1448376744/SqlBatis/wiki "example")
  
 ## 二、ExpressionContext
  该类型的实例是线程安全的，可复用的。它的设计及其简单，功能也很有限，但是对于我们的需求足够了.
