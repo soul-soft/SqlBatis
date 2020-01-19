@@ -3,6 +3,7 @@ using NUnit.Framework;
 using SqlBatis.Attributes;
 using SqlBatis.Expressions.Resovles;
 using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
@@ -176,16 +177,38 @@ namespace SqlBatis.Test
             var flag1 = result.Func(new P { Id = 2, Age = null });
             var flag2 = result.Func(new P { Id = 2, Age = 2 });
         }
-        class P
+        [Test]
+        public void TestTypeConvert()
         {
-            public int Id { get; set; }
-            public int? Age { get; set; }//Age type must be int?
+            var deserializer = TypeConvert.GetDeserializer(typeof(Student));
+            
+            Dictionary<string,object> keyvalues = deserializer(new Student
+            {
+                Id = 10,
+                Age = 10,
+                IsDelete = true,
+                Name = "zs"
+            });
+
+            var cmd = db.Connection.CreateCommand();
+            cmd.CommandText= "select * from Student";
+            var reader = cmd.ExecuteReader();
+            var serializer = TypeConvert.GetSerializer<Student>(new TypeMapper(),reader);
+            while (reader.Read())
+            {
+                Student student = serializer(reader);
+            }
         }
+      
     }
 
 
 
-
+    class P
+    {
+        public int Id { get; set; }
+        public int? Age { get; set; }//Age type must be int?
+    }
 
     public class Student
     {
