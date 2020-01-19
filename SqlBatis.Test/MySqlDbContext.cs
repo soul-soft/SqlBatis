@@ -12,7 +12,6 @@ namespace SqlBatis.Test
         private static readonly IXmlResovle resovle;
         static MysqlDbContext()
         {
-            //for xml query
             resovle = new XmlResovle();
             resovle.Load(@"E:\SqlBatis\SqlBatis.Test", "*.xml");
         }
@@ -34,10 +33,6 @@ namespace SqlBatis.Test
             builder.Connection = new MySql.Data.MySqlClient.MySqlConnection("server=47.110.55.16;user id=root;password=Yangche51!1234;database=test;");
             builder.XmlResovle = resovle;
             return builder;
-        }
-        public MysqlDbContext()
-        {
-
         }
     }
 }

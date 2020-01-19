@@ -20,6 +20,8 @@ namespace SqlBatis.Test
         [SetUp]
         public void Setup()
         {
+            builder.Connection = new MySql.Data.MySqlClient.MySqlConnection("server=47.110.55.16;user id=root;password=Yangche51!1234;database=test;");
+            builder.XmlResovle = resovle;
             db.Open();
         }
 

@@ -48,17 +48,15 @@ namespace SqlBatis
 
         public IDbConnection Connection { get; } = null;
 
-        public DbContextType DbContextType { get; } = DbContextType.Mysql;
-
-        protected virtual DbContextBuilder OnConfiguring(DbContextBuilder builder)
-        {
-            return builder;
-        }
+        public DbContextType DbContextType { get; } = DbContextType.Mysql;   
 
         protected virtual void OnLogging(string message, IDataParameterCollection parameter = null, int? commandTimeout = null, CommandType? commandType = null)
         {
         }
-
+        protected virtual DbContextBuilder OnConfiguring(DbContextBuilder builder)
+        {
+            return builder;
+        }
         protected DbContext()
         {
             var builder = OnConfiguring(new DbContextBuilder());

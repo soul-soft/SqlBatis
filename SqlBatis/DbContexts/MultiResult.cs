@@ -27,7 +27,7 @@ namespace SqlBatis
 
         private readonly ITypeMapper _mapper = null;
 
-        public MultiResult(IDbCommand command, ITypeMapper mapper)
+        internal MultiResult(IDbCommand command, ITypeMapper mapper)
         {
             _command = command;
             _reader = command.ExecuteReader();

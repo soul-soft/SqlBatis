@@ -23,7 +23,8 @@ namespace SqlBatis
         private Dictionary<string, string> ResolveVariables(XmlDocument document)
         {
             var variables = new Dictionary<string, string>();
-            foreach (XmlElement item in document.DocumentElement.Cast<XmlNode>().Where(a => a.Name == "variable"))
+            var elements = document.DocumentElement.Cast<XmlNode>().Where(a => a.Name == "variable");
+            foreach (XmlElement item in elements)
             {
                 if (item.Name == "variable")
                 {
@@ -36,7 +37,7 @@ namespace SqlBatis
             return variables;
         }
 
-        private string ResolveVariable(Dictionary<string, string> variables, string text)
+        private string ReplaceVariable(Dictionary<string, string> variables, string text)
         {
             var matches = Regex.Matches(text, @"\${(?<key>.*?)}");
             foreach (Match item in matches)
@@ -58,7 +59,7 @@ namespace SqlBatis
             {
                 if (item.NodeType == XmlNodeType.Text)
                 {
-                    var text = ResolveVariable(variables, item.Value);
+                    var text = ReplaceVariable(variables, item.Value);
                     cmd.Nodes.Add(new TextNode
                     {
                         Value = text
@@ -71,7 +72,7 @@ namespace SqlBatis
                     {
                         if (iitem.NodeType == XmlNodeType.Text)
                         {
-                            var text = ResolveVariable(variables, iitem.Value);
+                            var text = ReplaceVariable(variables, iitem.Value);
                             whereNode.Nodes.Add(new TextNode
                             {
                                 Value = text
@@ -82,7 +83,7 @@ namespace SqlBatis
                             var test = iitem.Attributes["test"].Value;
                             var value = string.IsNullOrEmpty(iitem.InnerText) ?
                                 (iitem.Attributes["value"]?.Value ?? string.Empty) : iitem.InnerText;
-                            value = ResolveVariable(variables, value);
+                            value = ReplaceVariable(variables, value);
                             whereNode.Nodes.Add(new IfNode
                             {
                                 Test = test,
@@ -97,6 +98,7 @@ namespace SqlBatis
                     var test = item.Attributes["test"].Value;
                     var value = string.IsNullOrEmpty(item.InnerText) ?
                              (item.Attributes["value"]?.Value ?? string.Empty) : item.InnerText;
+                    value = ReplaceVariable(variables, value);
                     cmd.Nodes.Add(new IfNode
                     {
                         Test = test,
