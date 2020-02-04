@@ -1,12 +1,9 @@
-﻿using SqlBatis.Attributes;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Text;
+using SqlBatis.Attributes;
 
-namespace SqlBatis.Expressions.Resovles
+namespace SqlBatis.Expressions
 {
     public class BooleanExpressionResovle : ExpressionResovle
     {
@@ -126,8 +123,7 @@ namespace SqlBatis.Expressions.Resovles
 
         private void SetParameterName(MemberExpression expression)
         {
-            var name = TableInfoCache
-                .GetColumnName(expression.Member.DeclaringType, expression.Member.Name);
+            var name = GetColumnName(expression.Member.DeclaringType, expression.Member.Name);
             _textBuilder.Append(name);
         }
 

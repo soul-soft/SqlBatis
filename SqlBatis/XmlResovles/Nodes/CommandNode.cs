@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
+using SqlBatis.Expressions;
 
 namespace SqlBatis.XmlResovles
 {
@@ -20,7 +21,7 @@ namespace SqlBatis.XmlResovles
             {
                 lock (this)
                 {
-                    var context = new ExpressionContext();
+                    var context = new ExpressionActivator();
                     var result = context.Create<T>(node.Test);
                     node.Delegate = result.Func;
                 }

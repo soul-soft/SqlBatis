@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Data;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SqlBatis
 {
@@ -18,8 +15,9 @@ namespace SqlBatis
         DbDataInfo FindConstructorParameter(DbDataInfo[] dataInfos, ParameterInfo parameterInfo);
         ConstructorInfo FindConstructor(Type csharpType);
     }
+   
     /// <summary>
-    /// Default TypeMapper
+    /// 返回数据记录到Csharp类型的策略
     /// </summary>
     public class TypeMapper : ITypeMapper
     {
@@ -147,7 +145,11 @@ namespace SqlBatis
             MatchNamesWithUnderscores = matchNamesWithUnderscores;
         }
     }
-    public static class DataConvertMethod
+    
+    /// <summary>
+    /// 数据库类型到Csharp类型转换器
+    /// </summary>
+    static class DataConvertMethod
     {
         #region Method Field
         public static MethodInfo ToObjectMethod = typeof(DataConvertMethod).GetMethod(nameof(DataConvertMethod.ConvertToObject));

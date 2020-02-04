@@ -9,33 +9,156 @@ using System.Threading.Tasks;
 
 namespace SqlBatis
 {
+    /// <summary>
+    /// 数据库上下文
+    /// </summary>
     public interface IDbContext : IDisposable
     {
+        /// <summary>
+        /// 数据库连接
+        /// </summary>
         IDbConnection Connection { get; }
+        /// <summary>
+        /// 数据库上下文类型
+        /// </summary>
         DbContextType DbContextType { get; }
+        /// <summary>
+        /// 获取一个xml执行器
+        /// </summary>
+        /// <typeparam name="T">参数类型</typeparam>
+        /// <param name="id">命令id</param>
+        /// <param name="parameter">参数</param>
+        /// <returns></returns>
         IXmlMapper From<T>(string id, T parameter) where T : class;
+        /// <summary>
+        /// 获取一个xml执行器
+        /// </summary>
+        /// <param name="id">命令id</param>
+        /// <returns></returns>
         IXmlMapper From(string id);
+        /// <summary>
+        /// 获取一个linq执行器
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
         IDbQuery<T> From<T>();
+        /// <summary>
+        /// 开启事务会话
+        /// </summary>
         void BeginTransaction();
+        /// <summary>
+        /// 开启事务会话
+        /// </summary>
+        /// <param name="level">事务隔离级别</param>
         void BeginTransaction(IsolationLevel level);
+        /// <summary>
+        /// 关闭连接和事务
+        /// </summary>
         void Close();
+        /// <summary>
+        /// 提交当前事务会话
+        /// </summary>
         void CommitTransaction();
-        IMultiResult ExecuteMultiQuery(string sql, object param = null, int? commandTimeout = null, CommandType? commandType = null);
-        IEnumerable<dynamic> ExecuteQuery(string sql, object param = null, int? commandTimeout = null, CommandType? commandType = null);
+        /// <summary>
+        /// 执行多结果集查询，返回IMultiResult
+        /// </summary>
+        /// <param name="sql">sql命令</param>
+        /// <param name="parameter">参数</param>
+        /// <param name="commandTimeout">超时时间</param>
+        /// <param name="commandType">命令类型</param>
+        /// <returns></returns>
+        IMultiResult ExecuteMultiQuery(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null);
+        /// <summary>
+        /// 执行单结果集查询，并返回dynamic类型的结果集
+        /// </summary>
+        /// <param name="sql">sql命令</param>
+        /// <param name="parameter">参数</param>
+        /// <param name="commandTimeout">超时时间</param>
+        /// <param name="commandType">命令类型</param>
+        /// <returns></returns>
+        IEnumerable<dynamic> ExecuteQuery(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null);
+        /// <summary>
+        /// 异步执行单结果集查询，并返回dynamic类型的结果集
+        /// </summary>
+        /// <param name="sql">sql命令</param>
+        /// <param name="parameter">参数</param>
+        /// <param name="commandTimeout">超时时间</param>
+        /// <param name="commandType">命令类型</param>
+        /// <returns></returns>
         Task<IEnumerable<dynamic>> ExecuteQueryAsync(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null);
-        IEnumerable<T> ExecuteQuery<T>(string sql, object param = null, int? commandTimeout = null, CommandType? commandType = null);
-        Task<IEnumerable<T>> ExecuteQueryAsync<T>(string sql, object param = null, int? commandTimeout = null, CommandType? commandType = null);
-        int ExecuteNonQuery(string sql, object param = null, int? commandTimeout = null, CommandType? commandType = null);
-        Task<int> ExecuteNonQueryAsync(string sql, object param = null, int? commandTimeout = null, CommandType? commandType = null);
-        T ExecuteScalar<T>(string sql, object param = null, int? commandTimeout = null, CommandType? commandType = null);
-        Task<T> ExecuteScalarAsync<T>(string sql, object param = null, int? commandTimeout = null, CommandType? commandType = null);
+        /// <summary>
+        /// 执行单结果集查询，并返回T类型的结果集
+        /// </summary>
+        /// <typeparam name="T">返回类型</typeparam>
+        /// <param name="sql">sql命令</param>
+        /// <param name="parameter">参数</param>
+        /// <param name="commandTimeout">超时时间</param>
+        /// <param name="commandType">命令类型</param>
+        /// <returns></returns>
+        IEnumerable<T> ExecuteQuery<T>(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null);
+        /// <summary>
+        /// 异步执行单结果集查询，并返回T类型的结果集
+        /// </summary>
+        /// <typeparam name="T">返回类型</typeparam>
+        /// <param name="sql">sql命令</param>
+        /// <param name="parameter">参数</param>
+        /// <param name="commandTimeout">超时时间</param>
+        /// <param name="commandType">命令类型</param>
+        /// <returns></returns>
+        Task<IEnumerable<T>> ExecuteQueryAsync<T>(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null);
+        /// <summary>
+        /// 执行无结果集查询，并返回受影响的行数
+        /// </summary>
+        /// <param name="sql">sql命令</param>
+        /// <param name="parameter">参数</param>
+        /// <param name="commandTimeout">超时时间</param>
+        /// <param name="commandType">命令类型</param>
+        /// <returns></returns>
+        int ExecuteNonQuery(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null);
+        /// <summary>
+        /// 异步执行无结果集查询，并返回受影响的行数
+        /// </summary>
+        /// <param name="sql">sql命令</param>
+        /// <param name="parameter">参数</param>
+        /// <param name="commandTimeout">超时时间</param>
+        /// <param name="commandType">命令类型</param>
+        /// <returns></returns>
+        Task<int> ExecuteNonQueryAsync(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null);
+        /// <summary>
+        /// 执行无结果集查询，并返回指定类型的数据
+        /// </summary>
+        /// <typeparam name="T">返回类型</typeparam>
+        /// <param name="sql">sql命令</param>
+        /// <param name="parameter">参数</param>
+        /// <param name="commandTimeout">超时时间</param>
+        /// <param name="commandType">命令类型</param>
+        /// <returns></returns>
+        T ExecuteScalar<T>(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null);
+        /// <summary>
+        /// 异步执行无结果集查询，并返回指定类型的数据
+        /// </summary>
+        /// <typeparam name="T">返回类型</typeparam>
+        /// <param name="sql">sql命令</param>
+        /// <param name="parameter">参数</param>
+        /// <param name="commandTimeout">超时时间</param>
+        /// <param name="commandType">命令类型</param>
+        /// <returns></returns>
+        Task<T> ExecuteScalarAsync<T>(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null);
+        /// <summary>
+        /// 打开数据库连接
+        /// </summary>
         void Open();
+        /// <summary>
+        /// 异步打开数据库连接
+        /// </summary>
+        /// <returns></returns>
         Task OpenAsync();
+        /// <summary>
+        /// 回滚当前事务会话
+        /// </summary>
         void RollbackTransaction();
     }
-    /// <summary>
-    /// Execute script
-    /// </summary>
+   
     public class DbContext : IDbContext
     {
         public DbContextState DbContextState = DbContextState.Closed;
@@ -52,11 +175,14 @@ namespace SqlBatis
 
         protected virtual void OnLogging(string message, IDataParameterCollection parameter = null, int? commandTimeout = null, CommandType? commandType = null)
         {
+
         }
+       
         protected virtual DbContextBuilder OnConfiguring(DbContextBuilder builder)
         {
             return builder;
         }
+    
         protected DbContext()
         {
             var builder = OnConfiguring(new DbContextBuilder());
@@ -73,33 +199,22 @@ namespace SqlBatis
             _typeMapper = builder.TypeMapper ?? new TypeMapper();
             DbContextType = builder.DbContextType;
         }
-        /// <summary>
-        /// xml query
-        /// </summary>
         public IXmlMapper From<T>(string id, T parameter) where T : class
         {
             var sql = _xmlResovle.Resolve(id, parameter);
             return new XmlMapper(this, sql, parameter);
-        }
-        /// <summary>
-        /// xml query
-        /// </summary>
+        }      
         public IXmlMapper From(string id)
         {
             var sql = _xmlResovle.Resolve(id);
             return new XmlMapper(this, sql);
         }
-
-        /// <summary>
-        /// linq query
-        /// </summary>
+     
         public IDbQuery<T> From<T>()
         {
             return new DbQuery<T>(this);
         }
-        /// <summary>
-        /// Executes a query, returning the data typed as dynamic.
-        /// </summary>
+     
         public IEnumerable<dynamic> ExecuteQuery(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null)
         {
             using (var cmd = Connection.CreateCommand())
@@ -115,9 +230,7 @@ namespace SqlBatis
                 }
             }
         }
-        /// <summary>
-        /// async Executes a query, returning the data typed as dynamic.
-        /// </summary>
+      
         public async Task<IEnumerable<dynamic>> ExecuteQueryAsync(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null)
         {
             using (var cmd = (Connection as DbConnection).CreateCommand())
@@ -135,18 +248,14 @@ namespace SqlBatis
                 }
             }
         }
-        /// <summary>
-        /// Executes multi query.
-        /// </summary>
+      
         public IMultiResult ExecuteMultiQuery(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null)
         {
             var cmd = Connection.CreateCommand();
             Initialize(cmd, sql, parameter, commandTimeout, commandType);
             return new MultiResult(cmd, _typeMapper);
         }
-        /// <summary>
-        /// Executes a query, returning the data typed as T.
-        /// </summary>
+      
         public IEnumerable<T> ExecuteQuery<T>(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null)
         {
             using (var cmd = Connection.CreateCommand())
@@ -162,9 +271,7 @@ namespace SqlBatis
                 }
             }
         }
-        /// <summary>
-        /// Executes a query, returning the data typed as T
-        /// </summary>
+      
         public async Task<IEnumerable<T>> ExecuteQueryAsync<T>(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null)
         {
             using (var cmd = (Connection as DbConnection).CreateCommand())
@@ -182,10 +289,7 @@ namespace SqlBatis
                 }
             }
         }
-
-        /// <summary>
-        /// Execute parameterized SQL
-        /// </summary>
+     
         public int ExecuteNonQuery(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null)
         {
             using (var cmd = Connection.CreateCommand())
@@ -194,10 +298,7 @@ namespace SqlBatis
                 return cmd.ExecuteNonQuery();
             }
         }
-
-        /// <summary>
-        /// Execute a command asynchronously using Task.
-        /// </summary>
+      
         public async Task<int> ExecuteNonQueryAsync(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null)
         {
             using (var cmd = (Connection as DbConnection).CreateCommand())
@@ -207,9 +308,6 @@ namespace SqlBatis
             }
         }
 
-        /// <summary>
-        /// Execute parameterized SQL that selects a single value.
-        /// </summary>
         public T ExecuteScalar<T>(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null)
         {
             using (var cmd = Connection.CreateCommand())
@@ -224,9 +322,6 @@ namespace SqlBatis
             }
         }
 
-        /// <summary>
-        /// Execute parameterized SQL that selects a single value.
-        /// </summary>
         public async Task<T> ExecuteScalarAsync<T>(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null)
         {
             using (var cmd = (Connection as DbConnection).CreateCommand())
@@ -240,30 +335,19 @@ namespace SqlBatis
                 return (T)Convert.ChangeType(result, typeof(T));
             }
         }
-        /// <summary>
-        /// begin transaction
-        /// </summary>
-        /// <returns></returns>
+      
         public void BeginTransaction()
         {
             _transaction = Connection.BeginTransaction();
             OnLogging("begin transaction");
         }
 
-        /// <summary>
-        /// begin transaction
-        /// </summary>
-        /// <param name="level"></param>
-        /// <returns></returns>
         public void BeginTransaction(IsolationLevel level)
         {
             _transaction = Connection.BeginTransaction(level);
             OnLogging("begin transaction isolationLevel = " + level);
         }
-
-        /// <summary>
-        /// close connection
-        /// </summary>
+      
         public void Close()
         {
             _transaction?.Dispose();
@@ -271,41 +355,28 @@ namespace SqlBatis
             DbContextState = DbContextState.Closed;
             OnLogging("colse connection");
         }
-
-        /// <summary>
-        /// commit transaction
-        /// </summary>
+      
         public void CommitTransaction()
         {
             _transaction?.Commit();
             DbContextState = DbContextState.Commit;
             OnLogging("commit transaction");
         }
-
-        /// <summary>
-        /// open connection
-        /// </summary>
+      
         public void Open()
         {
             Connection?.Open();
             DbContextState = DbContextState.Open;
             OnLogging("open connection");
         }
-
-        /// <summary>
-        /// open connection
-        /// </summary>
-        /// <returns></returns>
+     
         public async Task OpenAsync()
         {
             await (Connection as DbConnection).OpenAsync();
             DbContextState = DbContextState.Open;
             OnLogging("open connection");
         }
-
-        /// <summary>
-        /// rollback transaction
-        /// </summary>
+      
         public void RollbackTransaction()
         {
             _transaction?.Rollback();
@@ -313,9 +384,7 @@ namespace SqlBatis
             OnLogging("rollback");
 
         }
-        /// <summary>
-        /// handler command
-        /// </summary>      
+      
         private void Initialize(IDbCommand cmd, string sql, object parameter, int? commandTimeout = null, CommandType? commandType = null)
         {
             var dbParameters = new List<IDbDataParameter>();
@@ -397,11 +466,7 @@ namespace SqlBatis
             }
             OnLogging(cmd.CommandText, cmd.Parameters, commandTimeout, commandType);
         }
-
-        /// <summary>
-        /// create parameter
-        /// </summary>
-        /// <returns></returns>
+       
         private IDbDataParameter CreateParameter(IDbCommand command, string name, object value)
         {
             var parameter = command.CreateParameter();

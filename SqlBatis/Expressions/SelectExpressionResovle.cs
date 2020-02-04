@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq.Expressions;
-using System.Text;
+﻿using System.Linq.Expressions;
 
-namespace SqlBatis.Expressions.Resovles
+namespace SqlBatis.Expressions
 {
     public class SelectExpressionResovle : ExpressionResovle
     {
@@ -21,8 +18,7 @@ namespace SqlBatis.Expressions.Resovles
 
                 if (item.Expression is MemberExpression member)
                 {
-                    var name = TableInfoCache
-                       .GetColumnName(member.Member.DeclaringType, member.Member.Name);
+                    var name = GetColumnName(member.Member.DeclaringType, member.Member.Name);
                     _textBuilder.Append($"{name} AS {item.Member.Name}");
                 }
                 else if (item.Expression is MethodCallExpression)
@@ -46,8 +42,7 @@ namespace SqlBatis.Expressions.Resovles
                 var column = node.Members[i].Name;
                 if (item is MemberExpression member)
                 {
-                    var name = TableInfoCache
-                        .GetColumnName(member.Member.DeclaringType, member.Member.Name);
+                    var name = GetColumnName(member.Member.DeclaringType, member.Member.Name);
                     if (name != column)
                     {
                         _textBuilder.Append($"{name} AS {column}");
@@ -72,8 +67,7 @@ namespace SqlBatis.Expressions.Resovles
 
         protected override Expression VisitMember(MemberExpression node)
         {
-            var name = TableInfoCache
-                .GetColumnName(node.Member.DeclaringType, node.Member.Name);
+            var name = GetColumnName(node.Member.DeclaringType, node.Member.Name);
             _textBuilder.Append($"{name}");
             return node;
         }

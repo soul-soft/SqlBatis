@@ -5,11 +5,14 @@ using System.Linq.Expressions;
 
 namespace SqlBatis
 {
+    /// <summary>
+    /// 同步linq查询
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public partial class DbQuery<T>
     {
-
         #region sync
-
+      
         public int Count(int? commandTimeout = null)
         {
             var sql = ResovleCount();
@@ -28,7 +31,6 @@ namespace SqlBatis
             var sql = ResovleInsert(false);
             return _context.ExecuteNonQuery(sql, _parameters);
         }
-
         public int InsertReturnId(T entity)
         {
             ResovleParameter(entity);
@@ -239,6 +241,5 @@ namespace SqlBatis
         }
 
         #endregion
-
     }
 }

@@ -1,23 +1,21 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace SqlBatis.Attributes
 {
+    /// <summary>
+    /// 字段映射
+    /// </summary>
     [AttributeUsage(AttributeTargets.Property)]
-    public class ColumnAttribute:Attribute
+    public class ColumnAttribute : Attribute
     {
-        internal string PropertyName { get; set; }
-        public string ColumnName { get; set; }
-        public ColumnKey Key { get; set; }
-        public bool IsIgnore { get; set; }
-        public bool IsIdentity { get; set; }
-        public ColumnAttribute(string name = null, ColumnKey key = ColumnKey.None, bool isIdentity = false, bool ignore = false)
+        internal string Name { get; set; }
+        /// <summary>
+        /// 属性字段映射
+        /// </summary>
+        /// <param name="name">数据库字段名</param>
+        public ColumnAttribute(string name = null)
         {
-            ColumnName = name;
-            Key = key;
-            IsIgnore = ignore;
-            IsIdentity = isIdentity;
+            Name = name;
         }
     }
 }

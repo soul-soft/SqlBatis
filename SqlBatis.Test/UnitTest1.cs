@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Logging;
 using NUnit.Framework;
 using SqlBatis.Attributes;
-using SqlBatis.Expressions.Resovles;
+using SqlBatis.Expressions;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -172,7 +172,7 @@ namespace SqlBatis.Test
         {
 
             var expr = "(Age != null) && (Id > 0)";
-            var context = new ExpressionContext();
+            var context = new ExpressionActivator();
             var result = context.Create<P>(expr);
             var flag1 = result.Func(new P { Id = 2, Age = null });
             var flag2 = result.Func(new P { Id = 2, Age = 2 });

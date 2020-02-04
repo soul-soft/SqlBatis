@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Text;
 
-namespace SqlBatis.Expressions.Resovles
+namespace SqlBatis.Expressions
 {
     public class FunctionExpressionResovle : ExpressionResovle
     {
@@ -50,7 +50,7 @@ namespace SqlBatis.Expressions.Resovles
 
         protected override Expression VisitMember(MemberExpression node)
         {
-            var name = TableInfoCache.GetColumnName(node.Member.DeclaringType, node.Member.Name);
+            var name = GetColumnName(node.Member.DeclaringType, node.Member.Name);
             _textBuilder.Append($"{name},");
             return node;
         }
@@ -72,7 +72,6 @@ namespace SqlBatis.Expressions.Resovles
             }
             return node;
         }
-
 
     }
 }

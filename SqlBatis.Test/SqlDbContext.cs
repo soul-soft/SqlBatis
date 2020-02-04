@@ -9,7 +9,7 @@ namespace SqlBatis.Test
 {
     public class SqlDbContext : DbContext
     {
-        private static readonly IXmlResovle resovle;
+        private static readonly XmlResovle resovle;
         static SqlDbContext()
         {
             resovle = new XmlResovle();

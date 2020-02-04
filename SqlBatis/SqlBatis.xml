@@ -4,119 +4,261 @@
         <name>SqlBatis</name>
     </assembly>
     <members>
-        <member name="T:SqlBatis.DbContext">
+        <member name="T:SqlBatis.Attributes.ColumnAttribute">
             <summary>
-            Execute script
+            字段映射
             </summary>
         </member>
-        <member name="M:SqlBatis.DbContext.From``1(System.String,``0)">
+        <member name="M:SqlBatis.Attributes.ColumnAttribute.#ctor(System.String)">
             <summary>
-            xml query
+            属性字段映射
+            </summary>
+            <param name="name">数据库字段名</param>
+        </member>
+        <member name="T:SqlBatis.Attributes.FunctionAttribute">
+            <summary>
+            数据库函数标识
             </summary>
         </member>
-        <member name="M:SqlBatis.DbContext.From(System.String)">
+        <member name="T:SqlBatis.Attributes.IdentityAttribute">
             <summary>
-            xml query
+            自增列标识
             </summary>
         </member>
-        <member name="M:SqlBatis.DbContext.From``1">
+        <member name="T:SqlBatis.Attributes.NotMappedAttribute">
             <summary>
-            linq query
+            忽略映射
             </summary>
         </member>
-        <member name="M:SqlBatis.DbContext.ExecuteQuery(System.String,System.Object,System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
+        <member name="T:SqlBatis.Attributes.PrimaryKeyAttribute">
             <summary>
-            Executes a query, returning the data typed as dynamic.
+            主键约束
             </summary>
         </member>
-        <member name="M:SqlBatis.DbContext.ExecuteQueryAsync(System.String,System.Object,System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
+        <member name="T:SqlBatis.Attributes.TableAttribute">
             <summary>
-            async Executes a query, returning the data typed as dynamic.
+            表名映射
             </summary>
         </member>
-        <member name="M:SqlBatis.DbContext.ExecuteMultiQuery(System.String,System.Object,System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
+        <member name="T:SqlBatis.IDbContext">
             <summary>
-            Executes multi query.
+            数据库上下文
             </summary>
         </member>
-        <member name="M:SqlBatis.DbContext.ExecuteQuery``1(System.String,System.Object,System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
+        <member name="P:SqlBatis.IDbContext.Connection">
             <summary>
-            Executes a query, returning the data typed as T.
+            数据库连接
             </summary>
         </member>
-        <member name="M:SqlBatis.DbContext.ExecuteQueryAsync``1(System.String,System.Object,System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
+        <member name="P:SqlBatis.IDbContext.DbContextType">
             <summary>
-            Executes a query, returning the data typed as T
+            数据库上下文类型
             </summary>
         </member>
-        <member name="M:SqlBatis.DbContext.ExecuteNonQuery(System.String,System.Object,System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
+        <member name="M:SqlBatis.IDbContext.From``1(System.String,``0)">
             <summary>
-            Execute parameterized SQL
+            获取一个xml执行器
+            </summary>
+            <typeparam name="T">参数类型</typeparam>
+            <param name="id">命令id</param>
+            <param name="parameter">参数</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.IDbContext.From(System.String)">
+            <summary>
+            获取一个xml执行器
+            </summary>
+            <param name="id">命令id</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.IDbContext.From``1">
+            <summary>
+            获取一个linq执行器
+            </summary>
+            <typeparam name="T"></typeparam>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.IDbContext.BeginTransaction">
+            <summary>
+            开启事务会话
             </summary>
         </member>
-        <member name="M:SqlBatis.DbContext.ExecuteNonQueryAsync(System.String,System.Object,System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
+        <member name="M:SqlBatis.IDbContext.BeginTransaction(System.Data.IsolationLevel)">
             <summary>
-            Execute a command asynchronously using Task.
+            开启事务会话
+            </summary>
+            <param name="level">事务隔离级别</param>
+        </member>
+        <member name="M:SqlBatis.IDbContext.Close">
+            <summary>
+            关闭连接和事务
             </summary>
         </member>
-        <member name="M:SqlBatis.DbContext.ExecuteScalar``1(System.String,System.Object,System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
+        <member name="M:SqlBatis.IDbContext.CommitTransaction">
             <summary>
-            Execute parameterized SQL that selects a single value.
+            提交当前事务会话
             </summary>
         </member>
-        <member name="M:SqlBatis.DbContext.ExecuteScalarAsync``1(System.String,System.Object,System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
+        <member name="M:SqlBatis.IDbContext.ExecuteMultiQuery(System.String,System.Object,System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
             <summary>
-            Execute parameterized SQL that selects a single value.
+            执行多结果集查询，返回IMultiResult
+            </summary>
+            <param name="sql">sql命令</param>
+            <param name="parameter">参数</param>
+            <param name="commandTimeout">超时时间</param>
+            <param name="commandType">命令类型</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.IDbContext.ExecuteQuery(System.String,System.Object,System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
+            <summary>
+            执行单结果集查询，并返回dynamic类型的结果集
+            </summary>
+            <param name="sql">sql命令</param>
+            <param name="parameter">参数</param>
+            <param name="commandTimeout">超时时间</param>
+            <param name="commandType">命令类型</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.IDbContext.ExecuteQueryAsync(System.String,System.Object,System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
+            <summary>
+            异步执行单结果集查询，并返回dynamic类型的结果集
+            </summary>
+            <param name="sql">sql命令</param>
+            <param name="parameter">参数</param>
+            <param name="commandTimeout">超时时间</param>
+            <param name="commandType">命令类型</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.IDbContext.ExecuteQuery``1(System.String,System.Object,System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
+            <summary>
+            执行单结果集查询，并返回T类型的结果集
+            </summary>
+            <typeparam name="T">返回类型</typeparam>
+            <param name="sql">sql命令</param>
+            <param name="parameter">参数</param>
+            <param name="commandTimeout">超时时间</param>
+            <param name="commandType">命令类型</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.IDbContext.ExecuteQueryAsync``1(System.String,System.Object,System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
+            <summary>
+            异步执行单结果集查询，并返回T类型的结果集
+            </summary>
+            <typeparam name="T">返回类型</typeparam>
+            <param name="sql">sql命令</param>
+            <param name="parameter">参数</param>
+            <param name="commandTimeout">超时时间</param>
+            <param name="commandType">命令类型</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.IDbContext.ExecuteNonQuery(System.String,System.Object,System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
+            <summary>
+            执行无结果集查询，并返回受影响的行数
+            </summary>
+            <param name="sql">sql命令</param>
+            <param name="parameter">参数</param>
+            <param name="commandTimeout">超时时间</param>
+            <param name="commandType">命令类型</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.IDbContext.ExecuteNonQueryAsync(System.String,System.Object,System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
+            <summary>
+            异步执行无结果集查询，并返回受影响的行数
+            </summary>
+            <param name="sql">sql命令</param>
+            <param name="parameter">参数</param>
+            <param name="commandTimeout">超时时间</param>
+            <param name="commandType">命令类型</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.IDbContext.ExecuteScalar``1(System.String,System.Object,System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
+            <summary>
+            执行无结果集查询，并返回指定类型的数据
+            </summary>
+            <typeparam name="T">返回类型</typeparam>
+            <param name="sql">sql命令</param>
+            <param name="parameter">参数</param>
+            <param name="commandTimeout">超时时间</param>
+            <param name="commandType">命令类型</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.IDbContext.ExecuteScalarAsync``1(System.String,System.Object,System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
+            <summary>
+            异步执行无结果集查询，并返回指定类型的数据
+            </summary>
+            <typeparam name="T">返回类型</typeparam>
+            <param name="sql">sql命令</param>
+            <param name="parameter">参数</param>
+            <param name="commandTimeout">超时时间</param>
+            <param name="commandType">命令类型</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.IDbContext.Open">
+            <summary>
+            打开数据库连接
             </summary>
         </member>
-        <member name="M:SqlBatis.DbContext.BeginTransaction">
+        <member name="M:SqlBatis.IDbContext.OpenAsync">
             <summary>
-            begin transaction
+            异步打开数据库连接
             </summary>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.DbContext.BeginTransaction(System.Data.IsolationLevel)">
+        <member name="M:SqlBatis.IDbContext.RollbackTransaction">
             <summary>
-            begin transaction
-            </summary>
-            <param name="level"></param>
-            <returns></returns>
-        </member>
-        <member name="M:SqlBatis.DbContext.Close">
-            <summary>
-            close connection
+            回滚当前事务会话
             </summary>
         </member>
-        <member name="M:SqlBatis.DbContext.CommitTransaction">
+        <member name="M:SqlBatis.IMultiResult.GetList">
             <summary>
-            commit transaction
-            </summary>
-        </member>
-        <member name="M:SqlBatis.DbContext.Open">
-            <summary>
-            open connection
-            </summary>
-        </member>
-        <member name="M:SqlBatis.DbContext.OpenAsync">
-            <summary>
-            open connection
+            返回当前dynamic类型结果集
             </summary>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.DbContext.RollbackTransaction">
+        <member name="M:SqlBatis.IMultiResult.GetListAsync">
             <summary>
-            rollback transaction
+            异步返回当前dynamic类型结果集
             </summary>
+            <returns></returns>
         </member>
-        <member name="M:SqlBatis.DbContext.Initialize(System.Data.IDbCommand,System.String,System.Object,System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
+        <member name="M:SqlBatis.IMultiResult.GetList``1">
             <summary>
-            handler command
-            </summary>      
-        </member>
-        <member name="M:SqlBatis.DbContext.CreateParameter(System.Data.IDbCommand,System.String,System.Object)">
-            <summary>
-            create parameter
+            返回当前T结果集
             </summary>
+            <typeparam name="T">结果集类型</typeparam>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.IMultiResult.GetListAsync``1">
+            <summary>
+             异步返回当前T类型结果集
+            </summary>
+            <typeparam name="T"></typeparam>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.IMultiResult.Get">
+            <summary>
+            返回当前dynamic类型结果
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.IMultiResult.GetAsync">
+            <summary>
+            异步返回当前dynamic类型结果
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.IMultiResult.Get``1">
+            <summary>
+            返回当前T类型结果
+            </summary>
+            <typeparam name="T">结果集类型</typeparam>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.IMultiResult.GetAsync``1">
+            <summary>
+            异步返回当前T类型结果
+            </summary>
+            <typeparam name="T">结果集类型</typeparam>
             <returns></returns>
         </member>
         <member name="T:SqlBatis.DbDataInfo">
@@ -156,7 +298,7 @@
         </member>
         <member name="T:SqlBatis.TypeMapper">
             <summary>
-            Default TypeMapper
+            返回数据记录到Csharp类型的策略
             </summary>
         </member>
         <member name="M:SqlBatis.TypeMapper.FindConstructor(System.Type)">
@@ -179,6 +321,656 @@
             <summary>
             Return type conversion function.
             </summary>
+        </member>
+        <member name="T:SqlBatis.DataConvertMethod">
+            <summary>
+            数据库类型到Csharp类型转换器
+            </summary>
+        </member>
+        <member name="T:SqlBatis.Expressions.ExpressionActivator">
+            <summary>
+            表达式树生成器
+            </summary>
+        </member>
+        <member name="M:SqlBatis.Expressions.ExpressionResovle.VisitConstantValue(System.Linq.Expressions.Expression)">
+            <summary>
+            解析表达式参数
+            </summary>
+            <param name="expression"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.Expressions.ExpressionResovle.GetColumnName(System.Type,System.String)">
+            <summary>
+            获取字段名
+            </summary>
+            <param name="type"></param>
+            <param name="csharpName"></param>
+            <returns></returns>
+        </member>
+        <member name="T:SqlBatis.Expressions.DbMetaCache">
+            <summary>
+            数据库元信息
+            </summary>
+        </member>
+        <member name="T:SqlBatis.Expressions.TableInfo">
+            <summary>
+            表信息
+            </summary>
+        </member>
+        <member name="T:SqlBatis.Expressions.ColumnInfo">
+            <summary>
+            字段信息
+            </summary>
+        </member>
+        <member name="T:SqlBatis.DbQuery`1">
+            <summary>
+            异步linq查询
+            </summary>
+            <typeparam name="T"></typeparam>
+            <summary>
+            同步linq查询
+            </summary>
+            <typeparam name="T"></typeparam>
+        </member>
+        <member name="T:SqlBatis.IDbQuery`1">
+            <summary>
+            linq 查询
+            </summary>
+            <typeparam name="T"></typeparam>
+        </member>
+        <member name="M:SqlBatis.IDbQuery`1.Count(System.Nullable{System.Int32})">
+            <summary>
+            count查询
+            </summary>
+            <param name="commandTimeout">超时时间</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.IDbQuery`1.CountAsync(System.Nullable{System.Int32})">
+            <summary>
+            异步count查询
+            </summary>
+            <param name="commandTimeout">超时时间</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.IDbQuery`1.Count``1(System.Linq.Expressions.Expression{System.Func{`0,``0}})">
+            <summary>
+            count查询
+            </summary>
+            <typeparam name="TResult">类型推断</typeparam>
+            <param name="expression">字段列表</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.IDbQuery`1.CountAsync``1(System.Linq.Expressions.Expression{System.Func{`0,``0}})">
+            <summary>
+            异步count查询
+            </summary>
+            <typeparam name="TResult">类型推断</typeparam>
+            <param name="expression">字段列表</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.IDbQuery`1.Delete(System.Nullable{System.Int32})">
+            <summary>
+            delete查询
+            </summary>
+            <param name="commandTimeout"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.IDbQuery`1.DeleteAsync(System.Nullable{System.Int32})">
+            <summary>
+            异步delete查询
+            </summary>
+            <param name="commandTimeout"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.IDbQuery`1.Delete(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}})">
+            <summary>
+            delete查询
+            </summary>
+            <param name="expression">查询条件</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.IDbQuery`1.DeleteAsync(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}})">
+            <summary>
+            异步delete查询
+            </summary>
+            <param name="expression">查询条件</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.IDbQuery`1.Exists(System.Nullable{System.Int32})">
+            <summary>
+            exists查询
+            </summary>
+            <param name="commandTimeout">超时时间</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.IDbQuery`1.ExistsAsync(System.Nullable{System.Int32})">
+            <summary>
+            异步exists查询
+            </summary>
+            <param name="commandTimeout">超时时间</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.IDbQuery`1.Exists(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}})">
+            <summary>
+            exists查询
+            </summary>
+            <param name="expression">查询条件</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.IDbQuery`1.ExistsAsync(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}})">
+            <summary>
+            异步exists查询
+            </summary>
+            <param name="expression">查询条件</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.IDbQuery`1.Update(System.Nullable{System.Int32})">
+            <summary>
+            update查询，如果没有指定where则应用到所有记录
+            </summary>
+            <param name="commandTimeout">超时时间</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.IDbQuery`1.UpdateAsync(System.Nullable{System.Int32})">
+            <summary>
+            异步update查询，如果没有指定where则应用到所有记录
+            </summary>
+            <param name="commandTimeout">超时时间</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.IDbQuery`1.Update(`0)">
+            <summary>
+            update查询，默认根据Primarkey更新，如果存在where则仅使用指定更新条件，
+            无法通过该接口更新主键字段和主键字段
+            </summary>
+            <param name="entity">参数</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.IDbQuery`1.UpdateAsync(`0)">
+            <summary>
+            异步update查询，默认根据Primarkey更新，如果存在where则仅使用指定更新条件，
+            无法通过该接口更新主键字段和主键字段
+            </summary>
+            <param name="entity">参数</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.IDbQuery`1.Insert(`0)">
+            <summary>
+            insert查询，该接口会忽略identity字段
+            </summary>
+            <param name="entity">参数</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.IDbQuery`1.InsertAsync(`0)">
+            <summary>
+            异步insert查询，该接口会忽略identity字段
+            </summary>
+            <param name="entity">参数</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.IDbQuery`1.InsertReturnId(`0)">
+            <summary>
+            insert查询，并返回id，该接口会忽略identity字段
+            </summary>
+            <param name="entity">参数</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.IDbQuery`1.InsertReturnIdAsync(`0)">
+            <summary>
+            异步insert查询，并返回id，该接口会忽略identity字段
+            </summary>
+            <param name="entity"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.IDbQuery`1.Insert(System.Collections.Generic.IEnumerable{`0})">
+            <summary>
+            批量insert查询，该接口会忽略identity字段
+            </summary>
+            <param name="entitys">参数集合</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.IDbQuery`1.InsertAsync(System.Collections.Generic.IEnumerable{`0})">
+            <summary>
+            异步批量insert查询，该接口会忽略identity字段
+            </summary>
+            <param name="entitys"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.IDbQuery`1.Select(System.Nullable{System.Int32})">
+            <summary>
+            select查询
+            </summary>
+            <param name="commandTimeout">超时时间</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.IDbQuery`1.SelectAsync(System.Nullable{System.Int32})">
+            <summary>
+            异步select查询
+            </summary>
+            <param name="commandTimeout">超时时间</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.IDbQuery`1.SelectMany(System.Nullable{System.Int32})">
+            <summary>
+            分页select查询
+            </summary>
+            <param name="commandTimeout">超时时间</param>
+            <returns>结果集，总记录数</returns>
+        </member>
+        <member name="M:SqlBatis.IDbQuery`1.SelectManyAsync(System.Nullable{System.Int32})">
+            <summary>
+            异步分页select查询
+            </summary>
+            <param name="commandTimeout">超时时间</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.IDbQuery`1.Select``1(System.Linq.Expressions.Expression{System.Func{`0,``0}},System.Nullable{System.Int32})">
+            <summary>
+            select查询
+            </summary>
+            <typeparam name="TResult">返回类型</typeparam>
+            <param name="expression">字段列表</param>
+            <param name="commandTimeout">超时时间</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.IDbQuery`1.SelectAsync``1(System.Linq.Expressions.Expression{System.Func{`0,``0}},System.Nullable{System.Int32})">
+            <summary>
+            异步select查询
+            </summary>
+            <typeparam name="TResult">返回类型</typeparam>
+            <param name="expression">字段列表</param>
+            <param name="commandTimeout">超时时间</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.IDbQuery`1.SelectMany``1(System.Linq.Expressions.Expression{System.Func{`0,``0}},System.Nullable{System.Int32})">
+            <summary>
+            分页select查询
+            </summary>
+            <typeparam name="TResult">返回类型</typeparam>
+            <param name="expression">字段列表</param>
+            <param name="commandTimeout">超时时间</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.IDbQuery`1.SelectManyAsync``1(System.Linq.Expressions.Expression{System.Func{`0,``0}},System.Nullable{System.Int32})">
+            <summary>
+            异步分页select查询
+            </summary>
+            <typeparam name="TResult">返回类型</typeparam>
+            <param name="expression">字段列表</param>
+            <param name="commandTimeout">超时时间</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.IDbQuery`1.Single(System.Nullable{System.Int32})">
+            <summary>
+            select查询
+            </summary>
+            <param name="commandTimeout">超时时间</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.IDbQuery`1.SingleAsync(System.Nullable{System.Int32})">
+            <summary>
+            异步select查询
+            </summary>
+            <param name="commandTimeout">超时时间</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.IDbQuery`1.Single``1(System.Linq.Expressions.Expression{System.Func{`0,``0}},System.Nullable{System.Int32})">
+            <summary>
+            select查询
+            </summary>
+            <typeparam name="TResult">返回类型</typeparam>
+            <param name="expression">字段列表</param>
+            <param name="commandTimeout">超时时间</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.IDbQuery`1.SingleAsync``1(System.Linq.Expressions.Expression{System.Func{`0,``0}},System.Nullable{System.Int32})">
+            <summary>
+            异步select查询
+            </summary>
+            <typeparam name="TResult">返回类型</typeparam>
+            <param name="expression">字段列表</param>
+            <param name="commandTimeout">超时时间</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.IDbQuery`1.Filter``1(System.Linq.Expressions.Expression{System.Func{`0,``0}})">
+            <summary>
+            在insert,update,select时过滤字段
+            </summary>
+            <typeparam name="TResult">类型推断</typeparam>
+            <param name="expression">字段列表</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.IDbQuery`1.Set``1(System.Linq.Expressions.Expression{System.Func{`0,``0}},``0,System.Boolean)">
+            <summary>
+            set查询
+            </summary>
+            <typeparam name="TResult">类型推断</typeparam>
+            <param name="column">字段</param>
+            <param name="value">参数</param>
+            <param name="condition">是否有效</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.IDbQuery`1.Set``1(System.Linq.Expressions.Expression{System.Func{`0,``0}},System.Linq.Expressions.Expression{System.Func{`0,``0}},System.Boolean)">
+            <summary>
+            set查询
+            </summary>
+            <typeparam name="TResult">类型推断</typeparam>
+            <param name="column">字段</param>
+            <param name="expression">表达式</param>
+            <param name="condition">是否有效</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.IDbQuery`1.Take(System.Int32)">
+            <summary>
+            take查询，从下标为0的行获取count条记录
+            </summary>
+            <param name="count">记录个数</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.IDbQuery`1.Skip(System.Int32,System.Int32)">
+            <summary>
+            skip，从下标为index的行获取count条记录
+            </summary>
+            <param name="index">起始下标</param>
+            <param name="count">记录个数</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.IDbQuery`1.Page(System.Int32,System.Int32)">
+            <summary>
+            page查询，从下标为(index-1)*count的行获取count条记录
+            </summary>
+            <param name="index">起始页码</param>
+            <param name="count">记录个数</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.IDbQuery`1.With(System.String)">
+            <summary>
+            指定读锁
+            </summary>
+            <param name="lockname"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.IDbQuery`1.Where(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Boolean)">
+            <summary>
+            where查询，多个where有效使用and连接
+            </summary>
+            <param name="expression">表达式</param>
+            <param name="condition">是否有效</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.IDbQuery`1.Having(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Boolean)">
+            <summary>
+            having查询，多个having查询有效使用and连接
+            </summary>
+            <param name="expression">表达式</param>
+            <param name="condition">是否有效</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.IDbQuery`1.GroupBy``1(System.Linq.Expressions.Expression{System.Func{`0,``0}})">
+            <summary>
+            group查询
+            </summary>
+            <typeparam name="TResult">类型推断</typeparam>
+            <param name="expression">字段列表</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.IDbQuery`1.OrderBy``1(System.Linq.Expressions.Expression{System.Func{`0,``0}})">
+            <summary>
+            orderby查询，升序
+            </summary>
+            <typeparam name="TResult">类型推断</typeparam>
+            <param name="expression">字段列表</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.IDbQuery`1.OrderByDescending``1(System.Linq.Expressions.Expression{System.Func{`0,``0}})">
+            <summary>
+            orderby查询，降序
+            </summary>
+            <typeparam name="TResult">类型推断</typeparam>
+            <param name="expression">字段列表</param>
+            <returns></returns>
+        </member>
+        <member name="T:SqlBatis.Operator">
+            <summary>
+            数据库操作符
+            </summary>
+        </member>
+        <member name="M:SqlBatis.Operator.In``1(``0,System.Collections.Generic.IEnumerable{``0})">
+            <summary>
+            in
+            </summary>
+            <typeparam name="T">类型推断</typeparam>
+            <param name="column">字段</param>
+            <param name="values">参数</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.Operator.In``1(``0,``0[])">
+            <summary>
+            in(低性能)
+            </summary>
+            <typeparam name="T">类型推断</typeparam>
+            <param name="column">字段</param>
+            <param name="values">参数</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.Operator.NotIn``1(``0,System.Collections.Generic.IEnumerable{``0})">
+            <summary>
+            not in
+            </summary>
+            <typeparam name="T">类型推断</typeparam>
+            <param name="column">字段</param>
+            <param name="values">参数</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.Operator.NotIn``1(``0,``0[])">
+            <summary>
+            not in(低性能)
+            </summary>
+            <typeparam name="T">类型推断</typeparam>
+            <param name="column">字段</param>
+            <param name="values">参数</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.Operator.Contains(System.String,System.String)">
+            <summary>
+            like %value%
+            </summary>
+            <param name="column">字段</param>
+            <param name="value">参数</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.Operator.NotContains(System.String,System.String)">
+            <summary>
+            not like %value%
+            </summary>
+            <param name="column">字段</param>
+            <param name="value">参数</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.Operator.StartsWith(System.String,System.String)">
+            <summary>
+            like value%
+            </summary>
+            <param name="column">字段</param>
+            <param name="value">参数</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.Operator.NotStartsWith(System.String,System.String)">
+            <summary>
+            not like value%
+            </summary>
+            <param name="column">字段</param>
+            <param name="value">参数</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.Operator.EndsWith(System.String,System.String)">
+            <summary>
+            like %value
+            </summary>
+            <param name="column">字段</param>
+            <param name="value">参数</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.Operator.NotEndsWith(System.String,System.String)">
+            <summary>
+            not like %value
+            </summary>
+            <param name="column">字段</param>
+            <param name="value">参数</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.Operator.Regexp(System.String,System.String)">
+            <summary>
+            regex value
+            </summary>
+            <param name="column">字段</param>
+            <param name="value">参数</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.Operator.NotRegexp(System.String,System.String)">
+            <summary>
+            not regex value
+            </summary>
+            <param name="column">字段</param>
+            <param name="value">参数</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.Operator.ResovleExpressionType(System.Linq.Expressions.ExpressionType)">
+            <summary>
+            解析表达式
+            </summary>
+            <param name="type"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.Operator.ResovleExpressionType(System.String)">
+            <summary>
+            解析表达式
+            </summary>
+            <param name="type"></param>
+            <returns></returns>
+        </member>
+        <member name="T:SqlBatis.IXmlMapper">
+            <summary>
+            xml命令映射器
+            </summary>
+        </member>
+        <member name="M:SqlBatis.IXmlMapper.ExecuteMultiQuery(System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
+             <summary>
+            执行多结果集查询，返回IMultiResult
+             </summary>
+             <param name="commandTimeout">超时时间</param>
+             <param name="commandType">命令类型</param>
+             <returns></returns>
+        </member>
+        <member name="M:SqlBatis.IXmlMapper.ExecuteQuery(System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
+            <summary>
+            执行单结果集查询，并返回dynamic类型的结果集
+            </summary>
+            <param name="commandTimeout">超时时间</param>
+            <param name="commandType">命令类型</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.IXmlMapper.ExecuteQueryAsync(System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
+            <summary>
+            异步执行单结果集查询，并返回dynamic类型的结果集
+            </summary>
+            <param name="commandTimeout">超时时间</param>
+            <param name="commandType">命令类型</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.IXmlMapper.ExecuteQuery``1(System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
+            <summary>
+            执行单结果集查询，并返回T类型的结果集
+            </summary>
+            <typeparam name="T">返回类型</typeparam>
+            <param name="commandTimeout">超时时间</param>
+            <param name="commandType">命令类型</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.IXmlMapper.ExecuteQueryAsync``1(System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
+            <summary>
+            异步执行单结果集查询，并返回T类型的结果集
+            </summary>
+            <typeparam name="T">返回类型</typeparam>
+            <param name="commandTimeout">超时时间</param>
+            <param name="commandType">命令类型</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.IXmlMapper.ExecuteNonQuery(System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
+            <summary>
+            执行无结果集查询，并返回受影响的行数
+            </summary>
+            <param name="commandTimeout">超时时间</param>
+            <param name="commandType">命令类型</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.IXmlMapper.ExecuteNonQueryAsync(System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
+            <summary>
+            异步执行无结果集查询，并返回受影响的行数
+            </summary>
+            <param name="commandTimeout">超时时间</param>
+            <param name="commandType">命令类型</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.IXmlMapper.ExecuteScalar``1(System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
+            <summary>
+            执行无结果集查询，并返回指定类型的数据
+            </summary>
+            <typeparam name="T">返回类型</typeparam>
+            <param name="commandTimeout">超时时间</param>
+            <param name="commandType">命令类型</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.IXmlMapper.ExecuteScalarAsync``1(System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
+            <summary>
+            异步执行无结果集查询，并返回指定类型的数据
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="commandTimeout">超时时间</param>
+            <param name="commandType">命令类型</param>
+            <returns></returns>
+        </member>
+        <member name="T:SqlBatis.XmlMapper">
+            <summary>
+            实现xml命令映射器
+            </summary>
+        </member>
+        <member name="M:SqlBatis.IXmlResovle.Resolve``1(System.String,``0)">
+            <summary>
+            解析动态sql
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="id"></param>
+            <param name="parameter"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.IXmlResovle.Resolve(System.String)">
+            <summary>
+            解析sql
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.XmlResovle.Load(System.String)">
+            <summary>
+            加载配置文件
+            </summary>
+            <param name="filename"></param>
+        </member>
+        <member name="M:SqlBatis.XmlResovle.Load(System.String,System.String)">
+            <summary>
+            从指定路径加载所有匹配的文件
+            </summary>
+            <param name="path">路径</param>
+            <param name="pattern">通配符</param>
+        </member>
+        <member name="M:SqlBatis.XmlResovle.Load(System.String,System.String,System.IO.SearchOption)">
+            <summary>
+            从指定路径加载所有匹配的文件
+            </summary>
+            <param name="path">路径</param>
+            <param name="pattern">通配符</param>
+            <param name="options">查找选项</param>
         </member>
     </members>
 </doc>

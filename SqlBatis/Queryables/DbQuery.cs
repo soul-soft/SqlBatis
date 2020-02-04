@@ -1,9 +1,8 @@
-﻿using SqlBatis.Expressions;
-using SqlBatis.Expressions.Resovles;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
+using SqlBatis.Expressions;
 
 namespace SqlBatis
 {
@@ -43,7 +42,7 @@ namespace SqlBatis
 
         #endregion
 
-        #region resovle
+        #region resovles
         private void ResovleParameter(T entity)
         {
             var serializer = TypeConvert.GetDeserializer(typeof(T));
@@ -56,7 +55,7 @@ namespace SqlBatis
 
         private string ResovleCount()
         {
-            var table = TableInfoCache.GetTable(typeof(T)).Name;
+            var table = DbMetaCache.GetTable(typeof(T)).TableName;
             var column = "COUNT(1)";
             var where = ResolveWhere();
             var group = ResolveGroup();
@@ -79,7 +78,7 @@ namespace SqlBatis
 
         private string ResolveSelect()
         {
-            var table = TableInfoCache.GetTable(typeof(T)).Name;
+            var table = DbMetaCache.GetTable(typeof(T)).TableName;
             var column = ResolveColumns();
             var where = ResolveWhere();
             var group = ResolveGroup();
@@ -120,15 +119,14 @@ namespace SqlBatis
 
         private string ResovleInsert(bool identity)
         {
-            var table = TableInfoCache.GetTable(typeof(T)).Name;
+            var table = DbMetaCache.GetTable(typeof(T)).TableName;
             var filters = new GroupExpressionResovle(_filterExpression).Resovle().Split(',');
-            var columns = TableInfoCache.GetColumns(typeof(T));
+            var columns = DbMetaCache.GetColumns(typeof(T));
             var intcolumns = columns
-                .Where(a => !filters.Contains(a.ColumnName))
-                .Where(a => !a.IsIdentity);
-            var intcolumnNames = string.Join(",", intcolumns.Select(s => s.ColumnName));
-            var intcolumnParameters = string.Join(",", intcolumns.Select(s => $"@{s.PropertyName}"));
-            var sql = $"INSERT INTO {table}({intcolumnNames}) VALUES ({intcolumnParameters})";
+                .Where(a => !filters.Contains(a.ColumnName) && !a.IsNotMapped && !a.IsIdentity);
+            var columnNames = string.Join(",", intcolumns.Select(s => s.ColumnName));
+            var parameterNames = string.Join(",", intcolumns.Select(s => $"@{s.CsharpName}"));
+            var sql = $"INSERT INTO {table}({columnNames}) VALUES ({parameterNames})";
             if (identity)
             {
                 sql = $"{sql};SELECT @@IDENTITY";
@@ -138,7 +136,7 @@ namespace SqlBatis
 
         private string ResolveUpdate()
         {
-            var table = TableInfoCache.GetTable(typeof(T)).Name;
+            var table = DbMetaCache.GetTable(typeof(T)).TableName;
             var builder = new StringBuilder();
             if (_setExpressions.Count > 0)
             {
@@ -156,16 +154,16 @@ namespace SqlBatis
             {
                 var filters = new GroupExpressionResovle(_filterExpression).Resovle().Split(',');
                 var where = ResolveWhere();
-                var columns = TableInfoCache.GetColumns(typeof(T));
+                var columns = DbMetaCache.GetColumns(typeof(T));
                 var updcolumns = columns
-                    .Where(a => !a.IsIdentity && a.Key != Attributes.ColumnKey.Primary)
                     .Where(a => !filters.Contains(a.ColumnName))
-                    .Select(s => $"{s.ColumnName} = @{s.PropertyName}");
+                    .Where(a => !a.IsIdentity && !a.IsPrimaryKey && !a.IsNotMapped)
+                    .Select(s => $"{s.ColumnName} = @{s.CsharpName}");
                 if (string.IsNullOrEmpty(where))
                 {
-                    var key = (columns.Where(a => a.Key == Attributes.ColumnKey.Primary).FirstOrDefault()
-                        ?? columns.First());
-                    where = $" WHERE {key.ColumnName} = @{key.PropertyName}";
+                    var primaryKey = columns.Where(a => a.IsPrimaryKey).FirstOrDefault()
+                        ?? columns.First();
+                    where = $" WHERE {primaryKey.ColumnName} = @{primaryKey.CsharpName}";
                 }
                 var sql = $"UPDATE {table} SET {string.Join(",", updcolumns)}{where}";
                 return sql;
@@ -174,7 +172,7 @@ namespace SqlBatis
 
         private string ResovleDelete()
         {
-            var table = TableInfoCache.GetTable(typeof(T)).Name;
+            var table = DbMetaCache.GetTable(typeof(T)).TableName;
             var where = ResolveWhere();
             var sql = $"DELETE FROM {table}{where}";
             return sql;
@@ -182,7 +180,7 @@ namespace SqlBatis
 
         private string ResovleExists()
         {
-            var table = TableInfoCache.GetTable(typeof(T)).Name;
+            var table = DbMetaCache.GetTable(typeof(T)).TableName;
             var where = ResolveWhere();
             var group = ResolveGroup();
             var having = ResolveHaving();
@@ -194,10 +192,11 @@ namespace SqlBatis
         {
             if (_selectExpression == null)
             {
-                var filters = new GroupExpressionResovle(_filterExpression).Resovle().Split(',');
-                var columns = TableInfoCache.GetColumns(typeof(T))
-                    .Where(a => !filters.Contains(a.ColumnName))
-                    .Select(s => s.ColumnName != s.PropertyName ? $"{s.ColumnName} AS {s.PropertyName}" : s.PropertyName);
+                var filters = new GroupExpressionResovle(_filterExpression)
+                    .Resovle().Split(',');
+                var columns = DbMetaCache.GetColumns(typeof(T))
+                    .Where(a => !filters.Contains(a.ColumnName) && !a.IsNotMapped)
+                    .Select(s => s.ColumnName != s.CsharpName ? $"{s.ColumnName} AS {s.CsharpName}" : s.CsharpName);
                 return string.Join(",", columns);
             }
             else

@@ -4,9 +4,12 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text.RegularExpressions;
 
-namespace SqlBatis
+namespace SqlBatis.Expressions
 {
-    public class ExpressionContext
+    /// <summary>
+    /// 表达式树生成器
+    /// </summary>
+    public class ExpressionActivator
     {
         private Dictionary<string, string> Factorization(string expression)
         {

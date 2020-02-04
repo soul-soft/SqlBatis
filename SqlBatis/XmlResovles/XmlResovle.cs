@@ -1,29 +1,41 @@
-﻿using SqlBatis.XmlResovles;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml;
+using SqlBatis.XmlResovles;
 
 namespace SqlBatis
 {
     public interface IXmlResovle
     {
+        /// <summary>
+        /// 解析动态sql
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="id"></param>
+        /// <param name="parameter"></param>
+        /// <returns></returns>
         string Resolve<T>(string id, T parameter) where T : class;
+        /// <summary>
+        /// 解析sql
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         string Resolve(string id);
-        void Load(string filename);
-        void Load(string path, string pattern);
     }
   
     public class XmlResovle : IXmlResovle
     {
-        private readonly Dictionary<string, CommandNode> commands = new Dictionary<string, CommandNode>();
+        private readonly Dictionary<string, CommandNode> _commands 
+            = new Dictionary<string, CommandNode>();
 
         private Dictionary<string, string> ResolveVariables(XmlDocument document)
         {
             var variables = new Dictionary<string, string>();
-            var elements = document.DocumentElement.Cast<XmlNode>().Where(a => a.Name == "variable");
+            var elements = document.DocumentElement
+                .Cast<XmlNode>()
+                .Where(a => a.Name == "variable");
             foreach (XmlElement item in elements)
             {
                 if (item.Name == "variable")
@@ -111,11 +123,11 @@ namespace SqlBatis
 
         public string Resolve<T>(string id, T parameter) where T : class
         {
-            if (!commands.ContainsKey(id))
+            if (!_commands.ContainsKey(id))
             {
                 return null;
             }
-            var cmd = commands[id];
+            var cmd = _commands[id];
             return cmd.Resolve(cmd, parameter);
         }
 
@@ -124,14 +136,18 @@ namespace SqlBatis
             return Resolve(id, (object)null);
         }
 
+        /// <summary>
+        /// 加载配置文件
+        /// </summary>
+        /// <param name="filename"></param>
         public void Load(string filename)
         {
             lock (this)
             {
                 XmlDocument document = new XmlDocument();
                 document.Load(filename);
-                var @namespace = document.DocumentElement.GetAttribute("namespace")
-                    ?? string.Empty;
+                var @namespace = document.DocumentElement
+                    .GetAttribute("namespace") ?? string.Empty;
                 var variables = ResolveVariables(document);
                 var elements = document.DocumentElement
                     .Cast<XmlNode>()
@@ -141,21 +157,41 @@ namespace SqlBatis
                     var id = item.GetAttribute("id");
                     id = string.IsNullOrEmpty(@namespace) ? $"{id}" : $"{@namespace}.{id}";
                     var cmd = ResolveCommand(variables, item);
-                    if (commands.ContainsKey(id))
+                    if (_commands.ContainsKey(id))
                     {
-                        commands[id] = cmd;
+                        _commands[id] = cmd;
                     }
                     else
                     {
-                        commands.Add(id, cmd);
+                        _commands.Add(id, cmd);
                     }
                 }
             }
         }
 
+        /// <summary>
+        /// 从指定路径加载所有匹配的文件
+        /// </summary>
+        /// <param name="path">路径</param>
+        /// <param name="pattern">通配符</param>
         public void Load(string path, string pattern)
         {
             var files = System.IO.Directory.GetFiles(path, pattern);
+            foreach (var item in files)
+            {
+                Load(item);
+            }
+        }
+
+        /// <summary>
+        /// 从指定路径加载所有匹配的文件
+        /// </summary>
+        /// <param name="path">路径</param>
+        /// <param name="pattern">通配符</param>
+        /// <param name="options">查找选项</param>
+        public void Load(string path, string pattern, SearchOption options)
+        {
+            var files = System.IO.Directory.GetFiles(path, pattern, options);
             foreach (var item in files)
             {
                 Load(item);

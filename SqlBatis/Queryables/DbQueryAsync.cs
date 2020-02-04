@@ -6,6 +6,10 @@ using System.Threading.Tasks;
 
 namespace SqlBatis
 {
+    /// <summary>
+    /// 异步linq查询
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public partial class DbQuery<T>
     {
 

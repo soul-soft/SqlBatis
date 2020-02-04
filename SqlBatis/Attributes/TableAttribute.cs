@@ -1,13 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace SqlBatis.Attributes
 {
+    /// <summary>
+    /// 表名映射
+    /// </summary>
     [AttributeUsage(AttributeTargets.Class)]
     public class TableAttribute : Attribute
     {
-        public string Name { get; set; }
+        internal string Name { get; set; }
         public TableAttribute(string name = null)
         {
             Name = name;

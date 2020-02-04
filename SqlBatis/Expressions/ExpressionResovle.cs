@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 
-namespace SqlBatis.Expressions.Resovles
+namespace SqlBatis.Expressions
 {
     public abstract class ExpressionResovle : ExpressionVisitor
     {
@@ -17,6 +18,11 @@ namespace SqlBatis.Expressions.Resovles
 
         protected readonly StringBuilder _textBuilder = new StringBuilder();
 
+        /// <summary>
+        /// 解析表达式参数
+        /// </summary>
+        /// <param name="expression"></param>
+        /// <returns></returns>
         public object VisitConstantValue(Expression expression)
         {
             var names = new Stack<string>();
@@ -52,6 +58,19 @@ namespace SqlBatis.Expressions.Resovles
             {
                 return Expression.Lambda(expression).Compile().DynamicInvoke();
             }
+        }
+
+        /// <summary>
+        /// 获取字段名
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="csharpName"></param>
+        /// <returns></returns>
+        protected string GetColumnName(Type type,string csharpName)
+        {
+            var columns = DbMetaCache.GetColumns(type);
+            return columns.Where(a => a.CsharpName == csharpName)
+                .FirstOrDefault().ColumnName;
         }
 
         public virtual string Resovle()

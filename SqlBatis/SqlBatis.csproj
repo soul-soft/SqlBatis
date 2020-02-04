@@ -5,7 +5,7 @@
     <NoWarn>$(NoWarn);1591</NoWarn>
     <PackageTags>orm;sql;micro-orm;ibatis</PackageTags>
     <TargetFrameworks>net45;netstandard2.0</TargetFrameworks>
-    <Version>1.0.0</Version>
+    <Version>1.0.1-bate1</Version>
     <PackageProjectUrl>https://github.com/1448376744/SqlBatis</PackageProjectUrl>
     <RepositoryUrl>https://github.com/1448376744/SqlBatis</RepositoryUrl>
     <PackageTags>orm;sql;micro-orm;mybatis</PackageTags>
@@ -14,6 +14,9 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DocumentationFile>SqlBatis.xml</DocumentationFile>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net45|AnyCPU'">
+    <DocumentationFile>E:\SqlBatis\SqlBatis\SqlBatis.xml</DocumentationFile>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net45'">
