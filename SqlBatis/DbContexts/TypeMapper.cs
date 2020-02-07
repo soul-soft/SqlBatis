@@ -22,7 +22,6 @@ namespace SqlBatis
     /// </summary>
     public class TypeMapper : ITypeMapper
     {
-        public JsonSerializerOptions JsonSerializerOptions { get; set; }
         public bool MatchNamesWithUnderscores { get; set; }
         /// <summary>
         /// Find parametric constructors.
@@ -79,7 +78,7 @@ namespace SqlBatis
         /// </summary>
         public MethodInfo FindConvertMethod(Type csharpType, Type dbType)
         {
-            if (csharpType == typeof(System.Text.Json.JsonElement) || GetUnderlyingType(csharpType) == typeof(System.Text.Json.JsonElement))
+            if (csharpType == typeof(JsonElement) || GetUnderlyingType(csharpType) == typeof(JsonElement))
             {
                 return !IsNullableType(csharpType) ? DataConvertMethod.ToJsonElementMethod : DataConvertMethod.ToJsonElementNullableMethod;
             }
@@ -146,10 +145,9 @@ namespace SqlBatis
         {
             return Nullable.GetUnderlyingType(type) != null;
         }
-        public TypeMapper(bool matchNamesWithUnderscores = false, JsonSerializerOptions jsonSerializerOptions = null)
+        public TypeMapper(bool matchNamesWithUnderscores = false)
         {
             MatchNamesWithUnderscores = matchNamesWithUnderscores;
-            JsonSerializerOptions = jsonSerializerOptions;
         }
     }
 
@@ -315,7 +313,7 @@ namespace SqlBatis
             }
             var json = dr.GetString(i);
             var bytes = System.Text.Encoding.UTF8.GetBytes(json);
-            return System.Text.Json.JsonDocument.Parse(bytes).RootElement;
+            return JsonDocument.Parse(bytes).RootElement;
         }
         public static DateTime ConvertToDateTime(IDataRecord dr, int i)
         {
