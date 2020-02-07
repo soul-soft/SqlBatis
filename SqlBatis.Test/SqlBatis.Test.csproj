@@ -22,6 +22,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="MySqlTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+    </None>
     <None Update="Student.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

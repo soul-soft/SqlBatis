@@ -9,7 +9,7 @@ namespace SqlBatis.Test
     public class MysqlDbContext : DbContext
     {
         public IDbQuery<Student> Students { get => new DbQuery<Student>(this); }
-        private static readonly IXmlResovle resovle;
+        private static readonly XmlResovle resovle;
         static MysqlDbContext()
         {
             resovle = new XmlResovle();

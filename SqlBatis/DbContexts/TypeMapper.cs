@@ -2,6 +2,7 @@
 using System.Data;
 using System.Linq;
 using System.Reflection;
+using System.Text.Json;
 
 namespace SqlBatis
 {
@@ -15,12 +16,13 @@ namespace SqlBatis
         DbDataInfo FindConstructorParameter(DbDataInfo[] dataInfos, ParameterInfo parameterInfo);
         ConstructorInfo FindConstructor(Type csharpType);
     }
-   
+
     /// <summary>
     /// 返回数据记录到Csharp类型的策略
     /// </summary>
     public class TypeMapper : ITypeMapper
     {
+        public JsonSerializerOptions JsonSerializerOptions { get; set; }
         public bool MatchNamesWithUnderscores { get; set; }
         /// <summary>
         /// Find parametric constructors.
@@ -77,6 +79,10 @@ namespace SqlBatis
         /// </summary>
         public MethodInfo FindConvertMethod(Type csharpType, Type dbType)
         {
+            if (csharpType == typeof(System.Text.Json.JsonElement) || GetUnderlyingType(csharpType) == typeof(System.Text.Json.JsonElement))
+            {
+                return !IsNullableType(csharpType) ? DataConvertMethod.ToJsonElementMethod : DataConvertMethod.ToJsonElementNullableMethod;
+            }
             if (GetUnderlyingType(dbType) == typeof(bool) || GetUnderlyingType(csharpType) == typeof(bool))
             {
                 return !IsNullableType(csharpType) ? DataConvertMethod.ToBooleanMethod : DataConvertMethod.ToBooleanNullableMethod;
@@ -89,7 +95,7 @@ namespace SqlBatis
             {
                 return !IsNullableType(csharpType) ? DataConvertMethod.ToCharMethod : DataConvertMethod.ToCharNullableMethod;
             }
-            if (GetUnderlyingType(dbType) == typeof(string) && (csharpType == typeof(string)))
+            if (csharpType == typeof(string))
             {
                 return DataConvertMethod.ToStringMethod;
             }
@@ -140,12 +146,13 @@ namespace SqlBatis
         {
             return Nullable.GetUnderlyingType(type) != null;
         }
-        public TypeMapper(bool matchNamesWithUnderscores = false)
+        public TypeMapper(bool matchNamesWithUnderscores = false, JsonSerializerOptions jsonSerializerOptions = null)
         {
             MatchNamesWithUnderscores = matchNamesWithUnderscores;
+            JsonSerializerOptions = jsonSerializerOptions;
         }
     }
-    
+
     /// <summary>
     /// 数据库类型到Csharp类型转换器
     /// </summary>
@@ -163,6 +170,7 @@ namespace SqlBatis
         public static MethodInfo ToBooleanMethod = typeof(DataConvertMethod).GetMethod(nameof(DataConvertMethod.ConvertToBoolean));
         public static MethodInfo ToCharMethod = typeof(DataConvertMethod).GetMethod(nameof(DataConvertMethod.ConvertToChar));
         public static MethodInfo ToStringMethod = typeof(DataConvertMethod).GetMethod(nameof(DataConvertMethod.ConvertToString));
+        public static MethodInfo ToJsonElementMethod = typeof(DataConvertMethod).GetMethod(nameof(DataConvertMethod.ConvertJsonElement));
         public static MethodInfo ToDateTimeMethod = typeof(DataConvertMethod).GetMethod(nameof(DataConvertMethod.ConvertToDateTime));
         public static MethodInfo ToEnumMethod = typeof(DataConvertMethod).GetMethod(nameof(DataConvertMethod.ConvertToEnum));
         public static MethodInfo ToGuidMethod = typeof(DataConvertMethod).GetMethod(nameof(DataConvertMethod.ConvertToGuid));
@@ -179,6 +187,7 @@ namespace SqlBatis
         public static MethodInfo ToBooleanNullableMethod = typeof(DataConvertMethod).GetMethod(nameof(DataConvertMethod.ConvertToBooleanNullable));
         public static MethodInfo ToDecimalNullableMethod = typeof(DataConvertMethod).GetMethod(nameof(DataConvertMethod.ConvertToDecimalNullable));
         public static MethodInfo ToCharNullableMethod = typeof(DataConvertMethod).GetMethod(nameof(DataConvertMethod.ConvertToCharNullable));
+        public static MethodInfo ToJsonElementNullableMethod = typeof(DataConvertMethod).GetMethod(nameof(DataConvertMethod.ConvertJsonElementNullable));
         public static MethodInfo ToDateTimeNullableMethod = typeof(DataConvertMethod).GetMethod(nameof(DataConvertMethod.ConvertToDateTimeNullable));
         public static MethodInfo ToEnumNullableMethod = typeof(DataConvertMethod).GetMethod(nameof(DataConvertMethod.ConvertToEnumNullable));
         public static MethodInfo ToGuidNullableMethod = typeof(DataConvertMethod).GetMethod(nameof(DataConvertMethod.ConvertToGuidNullable));
@@ -287,8 +296,26 @@ namespace SqlBatis
             {
                 return default;
             }
-            var result = dr.GetString(i);
-            return result;
+            if (dr.GetFieldType(i) == typeof(string))
+            {
+                var result = dr.GetString(i);
+                return result;
+            }
+            else
+            {
+                var result = dr.GetValue(i);
+                return Convert.ToString(result);
+            }
+        }
+        public static JsonElement ConvertJsonElement(IDataRecord dr, int i)
+        {
+            if (dr.IsDBNull(i))
+            {
+                return default;
+            }
+            var json = dr.GetString(i);
+            var bytes = System.Text.Encoding.UTF8.GetBytes(json);
+            return System.Text.Json.JsonDocument.Parse(bytes).RootElement;
         }
         public static DateTime ConvertToDateTime(IDataRecord dr, int i)
         {
@@ -327,8 +354,7 @@ namespace SqlBatis
             {
                 return default;
             }
-            var data = dr.GetValue(i);
-            return (T)Convert.ChangeType(data, typeof(T));
+            return ConvertToObject<T>(dr, i);
         }
         public static byte? ConvertToByteNullable(IDataRecord dr, int i)
         {
@@ -336,8 +362,7 @@ namespace SqlBatis
             {
                 return default;
             }
-            var result = dr.GetByte(i);
-            return result;
+            return ConvertToByte(dr, i);
         }
         public static short? ConvertToInt16Nullable(IDataRecord dr, int i)
         {
@@ -345,8 +370,7 @@ namespace SqlBatis
             {
                 return default;
             }
-            var result = dr.GetInt16(i);
-            return result;
+            return ConvertToInt16(dr, i);
         }
         public static int? ConvertToInt32Nullable(IDataRecord dr, int i)
         {
@@ -354,8 +378,7 @@ namespace SqlBatis
             {
                 return default;
             }
-            var result = dr.GetInt32(i);
-            return result;
+            return ConvertToInt32(dr, i);
         }
         public static long? ConvertToInt64Nullable(IDataRecord dr, int i)
         {
@@ -363,8 +386,7 @@ namespace SqlBatis
             {
                 return default;
             }
-            var result = dr.GetInt64(i);
-            return result;
+            return ConvertToInt64(dr, i);
         }
         public static float? ConvertToFloatNullable(IDataRecord dr, int i)
         {
@@ -372,8 +394,7 @@ namespace SqlBatis
             {
                 return default;
             }
-            var result = dr.GetFloat(i);
-            return result;
+            return ConvertToFloat(dr, i);
         }
         public static double? ConvertToDoubleNullable(IDataRecord dr, int i)
         {
@@ -381,8 +402,7 @@ namespace SqlBatis
             {
                 return default;
             }
-            var result = dr.GetDouble(i);
-            return result;
+            return ConvertToDouble(dr, i);
         }
         public static bool? ConvertToBooleanNullable(IDataRecord dr, int i)
         {
@@ -390,16 +410,7 @@ namespace SqlBatis
             {
                 return default;
             }
-            if (dr.GetFieldType(i) == typeof(bool))
-            {
-                var result = dr.GetBoolean(i);
-                return result;
-            }
-            else
-            {
-                var result = dr.GetValue(i);
-                return Convert.ToBoolean(result);
-            }
+            return ConvertToBoolean(dr, i);
         }
         public static decimal? ConvertToDecimalNullable(IDataRecord dr, int i)
         {
@@ -407,8 +418,7 @@ namespace SqlBatis
             {
                 return default;
             }
-            var result = dr.GetDecimal(i);
-            return result;
+            return ConvertToDecimal(dr, i);
         }
         public static char? ConvertToCharNullable(IDataRecord dr, int i)
         {
@@ -416,8 +426,15 @@ namespace SqlBatis
             {
                 return default;
             }
-            var result = dr.GetChar(i);
-            return result;
+            return ConvertToChar(dr, i);
+        }
+        public static JsonElement? ConvertJsonElementNullable(IDataRecord dr, int i)
+        {
+            if (dr.IsDBNull(i))
+            {
+                return default;
+            }
+            return ConvertJsonElement(dr, i);
         }
         public static DateTime? ConvertToDateTimeNullable(IDataRecord dr, int i)
         {
@@ -425,8 +442,7 @@ namespace SqlBatis
             {
                 return default;
             }
-            var result = dr.GetDateTime(i);
-            return result;
+            return ConvertToDateTime(dr, i);
         }
         public static T? ConvertToEnumNullable<T>(IDataRecord dr, int i) where T : struct
         {
@@ -434,9 +450,7 @@ namespace SqlBatis
             {
                 return default;
             }
-            var value = dr.GetValue(i);
-            if (Enum.TryParse(value.ToString(), out T result)) return result;
-            return default;
+            return ConvertToEnum<T>(dr, i);
         }
         public static Guid? ConvertToGuidNullable(IDataRecord dr, int i)
         {
@@ -444,8 +458,7 @@ namespace SqlBatis
             {
                 return default;
             }
-            var result = dr.GetGuid(i);
-            return result;
+            return ConvertToGuid(dr, i);
         }
         #endregion
     }

@@ -146,13 +146,13 @@ namespace SqlBatis.Expressions
         private Expression ResovleConstantExpression(string expression, Type type)
         {
             //生成指定类型的表达式
-            if (type == typeof(string))
-            {
-                return Expression.Constant(expression.Trim('\'', '\''), type);
-            }
-            else if (expression == "null")
+            if (expression == "null")
             {
                 return Expression.Constant(null, type);
+            }
+            else if (type == typeof(string))
+            {
+                return Expression.Constant(expression.Trim('\'', '\''), type);
             }
             else
             {
