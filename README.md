@@ -1,209 +1,255 @@
 # SqlBatis
 
-## 一、项目介绍
- 
- 该项目内置单表linq操作，xml动态sql解析，词法分析，类型映射等功能。
+## 几大核心对象说明
 
-1. SqlMapper,用来处理sql与数据库操作，它设计的目标是支持mysql,sqlserver,sqllite,pgsql等.
- 
-2. TypeMapper用于完成将数据库的字段类型映射到C#类型，内部定义了类型转换函数和转换规则.
- 
-3. TypeConvert用于完成数据库记录到C#类型的转换。通过IL动态创建IDataReader对象到C#实体类的转换函数和将C#对象解构成Key-value的函数.
- 
-4. ExpressionContext是一个轻量的词法分析器，用于将字符串表达式生成C#表达式，进而生成委托.
+### ExpressionActivator
 
-5. 要想很好的掌握该项目，请阅读源码和单元测试:[document](https://github.com/1448376744/SqlBatis/wiki "example")
- 
-## 二、ExpressionContext
- 该类型的实例是线程安全的，可复用的。它的设计及其简单，功能也很有限，但是对于我们的需求足够了.
- 它的实现逻辑如下：
- ``` C#
-var expr = "(Age!=null) && (Name=='zs')";
- /**
- 
-1.通过正则匹配出每一个括号，因此你必须手动的给每个二元表达式加括号，它无法识别运算符的优先级.
- $1 = (Age!=null)
- $2 = (Name=='zs')
- $3 = $1 && $2
-
-2.创建参数类型
- Expression.Parameter(typeof(T), "p");
-
-3.逐个创建二元表达式
- Expression.MakeUnary(ExpressionType.Convert, expr, type)
- ...
- */
- ```
+该对象用于完成字符串表达式到C#委托的创建，是xml执行器的核心，他是一个超级词法分析器，虽然功能有限，但是满足级别使用
+缺陷
+1. 该词法分析器不能识别运算符的优先级，你必须手动的添加括号来完成，最外层的扩号可以省略
+2. 该词法分析器目前还不支持函数
+3. 参数必须的class类型，参数名必须和属性名保持一致
 
 ``` C#
-var context = new ExpressionContext();
-//Age必须是可以为null的类型:int?
-var result = context.Create<Student>("(Age != null) && (Name=='zs')");
-var flag= result.Func(new Student { Age = 1, Name = "zs" });
-/**
-常见错误:
-1. (Age != null) && Name=='zs'
-
-2. public class Student{ public int Age{get;set;} public string Name {get;set;}}
-*/
+ //创建一个表达式生成器
+ var activator = new ExpressionActivator();
+ //生成参数为P类型的表达式，返回表达式委托，和表达式树
+ //过程：（字符串->Lambda表达式->函数）
+ var result = activator.Create<P>("(Age>20) && (Name=='zs')");
+ //执行表达式
+ var flag = result.Func(new P() 
+ {
+     Age=50,
+     Name="zs"
+ });
+ //查看生成的LambdaExpression
+ var expression = result.LambdaExpression;
 ```
-## 配置DbContext
-1. 第一种方式
+### TypeMapper和TypeConverty
+
+TypeMapper中定义了如果映射数据库记录到CSharp类型的映射规则，其中定义了一下几种行为：
+
+1. 选择适合的类型转换函数，比如db(bit)->csharp(bool)
+2. 选择映射的属性，比如db(age)->csharp(Age)
+3. 选择时候的构造器，自定义类型必须包含无参数构造器
+
+TypeConvert更具TyperMaper定义的规则，动态生成DataReader到csharp类型转换函数（IL）,并缓存该函数
+假设有表student(id,age,name)到csharp类型Student(Id,Age,Name),则自动采用IL技术生成以下代码
 
 ``` C#
-public class SqlDbContext : DbContext
+
+//创建委托
+public Student StudentSerializerafgjvvn385gjh(IDataReader reader)
 {
-    private static readonly IXmlResovle resovle;
-    static SqlDbContext()
-    {
-        //for xml query
-        resovle = new XmlResovle();
-        resovle.Load(@"E:\SqlBatis\SqlBatis.Test", "*.xml");
-    }
-    //for linq
-    public readonly IDbQuery<Student> Students;
-
-    protected override void OnLogging(string message, object parameter = null, int? commandTimeout = null, CommandType? commandType = null)
-    {
-        //logger
-    }
-    protected override DbContextBuilder OnConfiguring(DbContextBuilder builder)
-    {
-        builder.Connection = new SqlConnection("Data Source=192.168.31.33;Initial Catalog=test;User ID=sa;Password=yangche!1234;Pooling=true");
-        builder.XmlResovle = null;
-        builder.DbContextType = DbContextType.SqlServer;
-        return builder;
-    }
-    public SqlDbContext()
-    {
-        Students = new DbQuery<Student>(this);
-    }
+    var student = new Student();
+    student.Id = reader.GetInt32(0);
+    student.Age = reader.GetInt32(1);
+    student.Name = reader.GetString(2);
 }
+
+//使用示例
+var connection = new SqlConnection("connectionString");
+connection.Open();
+var cmd = connection.CreateCommand();
+cmd.CommandText = "select id,age,name from student";
+var reader = cmd.ExecuteReader();
+//使用IL创建IDataReader到Student类型的委托
+var handler = TypeConvert.GetSerializer<Student>(reader);
+while (reader.Read())
+{
+    Student student = handler(reader);
+}
+
 ```
-2. 第二种
+
+## Linq查询语法糖
+
+### Attributes
+
+1. TableAttribute("student")，该注解用于注解类型到表名
+2. ColumnAttribute("id")，该注解用于注解字段到属性名
+3. PrimaryKeyAttribute()，该注解用于注解字段为主键，在修改时更具该字段为更新条件
+4. IdentityAttribute()，该注解用于注解字段为自增列，在新增时不向该字段设置值（sqlserver不能向该字段显示设置值）
+5. NotMappedAttribute()，该注解用于移除该字段映射
+
+### Querybale
+
+### 基本示例
 
 ``` C#
-var db = new DbContext(new DbContextBuilder()
-{ 
-    DbContextType=DbContextType.Mysql,
-    ...
+1. insert
+//如果使用注解了indentity(mysql无碍)
+context.From<Student>().Insert(new Student()
+{
+    Age = 20,
+    Name = "zs"
 });
-
+//如果没有使用注解Identity,可以使用filter,表示不向该列设置值(sqlserver)
+context.From<Student>()
+.Filter(a=>a.Id)
+.Insert(new Student()
+{
+    Age = 20,
+    Name = "zs"
+});
+2. update
+//如果使用PrimaryKey注解Id，则更具Id为条件更新
+context.From<Student>().Update(new Student()
+{
+    Id = 1,
+    Age = 20,
+    Name = "zs"
+});
+//如果没有使用PrimaryKey注解Id,可以强制指定更新条件
+context.From<Student>
+.Where(a=>a.Id==1)
+.Update(new Student()
+{
+    Age = 20,
+    Name = "zs"
+});
+3. select
+//动态查询，多个where成立则使用And连接每一个where条件
+var p = new Student()
+{
+    Id = 2,
+    Name = "zs"
+};
+//select Id,Name,Age from student where Id=@Id and Name=@Name
+var list = context.From<Student>()
+    .Where(a=>a.Id==p.Id,p.Id!=null)
+    .Where(a=>a.Name==p.Name,p.Name!=null)
+    .Select();
+//分页
+var (list,count) = context.From<Student>()
+    .Page(1,10)
+    .SelectMany();
 ```
-
-3.asp.net core
+### 并发更新
 ``` C#
-//SqlDbContext.cs
- public class SqlDbContext : DbContext
-    {
-        private ILogger<SqlDbContext> _logger = null;
-        protected override void OnLogging(string message, IDataParameterCollection parameter = null, int? commandTimeout = null, CommandType? commandType = null)
-        {
-            _logger.LogInformation(message);
-            if (parameter != null)
-            {
-                foreach (IDataParameter item in parameter)
-                {
-                    _logger.LogInformation($"{item.ParameterName} = {item.Value ?? "NULL"}");
-                }
-            }
-        }
-
-        public SqlDbContext(DbContextBuilder builder, ILogger<SqlDbContext> logger) :
-            base(builder)
-        {
-            _logger = logger;
-        }
-    }
-//Startup.cs
- public void ConfigureServices(IServiceCollection services)
-        {
-            services.AddSingleton<IXmlResovle>(s =>
-            {
-                var resovle = new XmlResovle();
-                resovle.Load("./Mappers", "*.xml");
-                return resovle;
-            });
-            services.AddScoped(s =>
-            {
-                var logger = s.GetService<ILogger<SqlDbContext>>();
-                var resovle = s.GetService<IXmlResovle>();
-                return new SqlDbContext(new DbContextBuilder()
-                {
-                    Connection = new SqlConnection(Configuration.GetConnectionString("sqlserver")),
-                    DbContextType = DbContextType.SqlServer,
-                    XmlResovle = resovle,
-                }, logger);
-            });
-            services.AddControllers();
-        }
+//非并非安全
+var student = context.From<Student>().Where(a=>a.Id==1).Single();
+//update student balance=@P_1 where id=1
+context.From<Student>()
+    .Set(a=>a.Balance,student+1)
+    .Where(a=>a.Id==1)
+    .Update();
+//并发安全的
+//update student balance=balace+1 where id=1
+context.From<Student>()
+   .Set(a=>a.Balance,a=>a.Balance+1)
+   .Where(a=>a.Id==1)
+   .Update();
+//并发安全的,更新多个字段
+//添加一个版本号字段，进行并发控制
+student.Balance+=1;
+student.Version = Guid.NewGuid().ToString();
+context.From<Student>()
+   .Where(a=>a.Id==1&&a.Version==student.Version)
+   .Update(student);
 ```
-3. 基本使用
+
+## XmlResovle
+
+1. 该实例用于管理整个应用的xml配置，应该采用单例模式
+2. 解析器会忽略所有text片段中的空格
+3. 如果是动态命令，则只能使用第一次获取的参数类型来获取，不能变化，因为XmlResovle会缓存动态表达式的委托，如果在多个地方获取则不能使用匿名类型
+
+### xml语法格式说明
 
 ``` xml
 <?xml version="1.0" encoding="utf-8" ?>
+<!--根节点(必须的)，可以指定namespace-->
 <commands namespace="sutdent">
+
+  <!--
+    框架只定义了if,variable,where等标签
+    insert,select可以随意，并没有实际意义,但是都必须指定id
+    除了根节点其他都不是必须的
+  -->
+  <!--定义变量,插入语法：${id}-->
   <variable id="columns">
     Id,Age,Name
   </variable>
+  
+  <variable id="offset">
+    ORDER BY (SELECT 1) OFFSET @Index ROWS FETCH NEXT @Count ROWS ONLY
+  </variable>
 
+ <!--你可以不用select来包裹，select并没有实际意义-->
   <select id="list-dynamic">
-    select ${columns} from student 
+    select ${columns} from student
+    <!--动态where必须用where包裹，试想如果if标签一个都不成立的时候，它能智能的不向sql写where-->
     <where>
-     <if test="Id!=null" value="Id=@Id"/>
-     <if test="Age!=null" value="Age>@Age"/>
-     </where>
-    limit 0,1   
+        <!--if两种写法-->
+        <!--注意Id必须是可以为null的类型-->
+        <if test="Id!=null" value="Id>@Id"/>
+        <if test="Age!=null">
+          Age=@Age
+        </if>
+    </where>
+    <!--使用变量-->
+    ${offset}
   </select>
-
+  
+  <select id="getbyid">
+    select Id,Name,Age form student where Id=@id limit 0,1
+  </select>
+  
   <insert id="add">
     insert into student(name,age)values(@Name,@age)
   </insert>
 
 </commands>
 ```
+### 代码示例
 
 ``` C#
-//new 
-var db = new SqlContext();
-db.Open();
-//linq1
-db.From<Student>()
- .Select();
-//linq2
-db.Students.Select();
-//xml
- var list = db.From("student.list-dynamic",new {Age=1,Id=(int?)null})
-             .ExecuteQuery<Student>();
+var xmlresovle = new XmlResovle();
+//加载配置
+xmlresovle.Load("student.xml");
+//普通sql,id=(namespace+id)
+var sql1 = xmlresovle.Resolve("student.getbyid");
+//动态sql
+var sql2 = xmlresovle.Resolve("student.list-dynamic",new Student()
+{ 
+    Id=1,
+    Age=9
+});
+
 ```
-## sql查询
+### XmlMapper
+
+使用之前必须配置context的XmlResovle
 
 ``` C#
-var db = new SqlDbContext();
-//只演示一个多结果集查询
-using(var mutil = db.ExecuteMultiQuery("select * from student limit 0,1;selct count(1) from student"))
+//sql+参数，来获取一个执行器，参数可以是字典
+var executer = context.From("student.getbyid",new {Id = 1});
+//执行该sql
+var row = executer.ExecuteNonQuery();
+
+//执行动态sql,传入sql所需要的所有参数，动态sql参数不能是字典，只能是class类型
+//Id,Age必须是可以为空的类型，因为你的动态表达式中做了非空判断
+//如果你的参数是匿名类型，则不能在其他位置编写多次下面的查询，出非你能保证每次都使用同一个匿名类型声明
+//解决方案：不使用匿名类型就好了，原因是第一获取时会编译动态表达式生成委托会缓存（性能考虑），
+//比如你第一次的匿名类型名是C，则生成的委托为Func<C,bool>参数类型是C，反会bool
+var list = context.From("student.list-dynamic",new 
 {
-  var list = mutil.GetList<Student>();
-  var count = mutil.Get<int>();
-}
+    Id = (int?)1,
+    Age = (int?)90
+}).ExecuteQuery();
 ```
-
-## linq查询
+### SqlMapper
 
 ``` C#
-var db = new SqlDbContext();
-var flag = db.Student.Exists(a=>a.Id==2);
-var count = db.Student.Where(a=>a.Id>2).Count();
-var rows = db.Student.Where(a=>a.Id>=1).Delete();
-//分页查询
-var (list,count) = db.Students
-                .Page(1,2)
-                .SelectMany();
-var parameter = new {Id=(int?)null,Age=20};
-//动态查询
-var list = db.Students
-       .Where(a=>a.Id=parameter.Id,parameter.Id!=null)//当第二个条件成立，表达式有效，多个成立采用and连接
-       .Where(a=>a.Id=parameter.Id,parameter.Id!=null)
-       .Select();
+//参数类型可以是匿名类型，类类型，字典类型，DbParameter类型
+var list = context.ExecuteQuery("select * from student Id=>@Id",new 
+{
+    Id=80
+});
+var row = context.ExecuteNonQuery("insert student(age,name)values(Age,Name)",new Student() 
+{
+    Age = 90,
+    Name = "zs"
+});
 ```
-
