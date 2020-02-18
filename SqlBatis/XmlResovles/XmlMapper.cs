@@ -85,7 +85,7 @@ namespace SqlBatis
     {
         private readonly string _sql = null;
 
-        private readonly object _param = null;
+        private readonly object _parameter = null;
 
         private readonly IDbContext _mapper = null;
 
@@ -93,52 +93,52 @@ namespace SqlBatis
         {
             _mapper = mapper;
             _sql = sql;
-            _param = param;
+            _parameter = param;
         }
 
         public IMultiResult ExecuteMultiQuery(int? commandTimeout = null, CommandType? commandType = null)
         {
-            return _mapper.ExecuteMultiQuery(_sql,_param,commandTimeout,commandType);
+            return _mapper.ExecuteMultiQuery(_sql,_parameter,commandTimeout,commandType);
         }
 
         public int ExecuteNonQuery(int? commandTimeout = null, CommandType? commandType = null)
         {
-            return _mapper.ExecuteNonQuery(_sql, _param, commandTimeout, commandType);
+            return _mapper.ExecuteNonQuery(_sql, _parameter, commandTimeout, commandType);
         }
 
         public Task<int> ExecuteNonQueryAsync(int? commandTimeout = null, CommandType? commandType = null)
         {
-            return _mapper.ExecuteNonQueryAsync(_sql, _param, commandTimeout, commandType);
+            return _mapper.ExecuteNonQueryAsync(_sql, _parameter, commandTimeout, commandType);
         }
 
         public IEnumerable<T> ExecuteQuery<T>(int? commandTimeout = null, CommandType? commandType = null)
         {
-            return _mapper.ExecuteQuery<T>(_sql, _param, commandTimeout, commandType);
+            return _mapper.ExecuteQuery<T>(_sql, _parameter, commandTimeout, commandType);
         }
 
         public IEnumerable<dynamic> ExecuteQuery(int? commandTimeout = null, CommandType? commandType = null)
         {
-            return _mapper.ExecuteQuery(_sql, _param, commandTimeout, commandType);
+            return _mapper.ExecuteQuery(_sql, _parameter, commandTimeout, commandType);
         }
 
         public Task<IEnumerable<T>> ExecuteQueryAsync<T>(int? commandTimeout = null, CommandType? commandType = null)
         {
-            return _mapper.ExecuteQueryAsync<T>(_sql, _param, commandTimeout, commandType);
+            return _mapper.ExecuteQueryAsync<T>(_sql, _parameter, commandTimeout, commandType);
         }
 
         public Task<IEnumerable<dynamic>> ExecuteQueryAsync(int? commandTimeout = null, CommandType? commandType = null)
         {
-            return _mapper.ExecuteQueryAsync(_sql, _param, commandTimeout, commandType);
+            return _mapper.ExecuteQueryAsync(_sql, _parameter, commandTimeout, commandType);
         }
 
         public T ExecuteScalar<T>(int? commandTimeout = null, CommandType? commandType = null)
         {
-            return _mapper.ExecuteScalar<T>(_sql, _param, commandTimeout, commandType);
+            return _mapper.ExecuteScalar<T>(_sql, _parameter, commandTimeout, commandType);
         }
 
         public Task<T> ExecuteScalarAsync<T>(int? commandTimeout = null, CommandType? commandType = null)
         {
-            return _mapper.ExecuteScalarAsync<T>(_sql, _param, commandTimeout, commandType);
+            return _mapper.ExecuteScalarAsync<T>(_sql, _parameter, commandTimeout, commandType);
         }
     }
 }

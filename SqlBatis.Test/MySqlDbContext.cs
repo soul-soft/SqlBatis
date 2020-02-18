@@ -30,7 +30,7 @@ namespace SqlBatis.Test
         }
         protected override DbContextBuilder OnConfiguring(DbContextBuilder builder)
         {
-            builder.Connection = new MySql.Data.MySqlClient.MySqlConnection("server=47.110.55.16;user id=root;password=Yangche51!1234;database=test;");
+            builder.Connection = new MySql.Data.MySqlClient.MySqlConnection("server=47.110.55.16;user id=root;password=1234;database=test;");
             builder.XmlResovle = resovle;
             return builder;
         }
