@@ -191,6 +191,10 @@ context.From<Student>()
     </where>
     <!--使用变量-->
     ${offset}
+   <!--同时生成计数语句-->
+   <count>
+    SELECT COUNT(1) FROM student
+   </count>
   </select>
   
   <select id="getbyid">
