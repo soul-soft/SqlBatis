@@ -257,4 +257,13 @@ var row = context.ExecuteNonQuery("insert student(age,name)values(Age,Name)",new
     Age = 90,
     Name = "zs"
 });
+//返回多个结果集
+var sql = "SELECT * FROM student;SELECT COUNT(1) FROM student";
+using(var multi = context.ExecuteMultiQuery(sql))
+{
+     //获取第一个结果集
+     var list = multi.GetList<Student>();
+     //获取第二个结果集
+     var count = multi.Get<long>();
+}
 ```
