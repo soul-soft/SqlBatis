@@ -71,7 +71,8 @@ while (reader.Read())
 3. PrimaryKeyAttribute()，该注解用于注解字段为主键，在修改时更具该字段为更新条件
 4. IdentityAttribute()，该注解用于注解字段为自增列，在新增时不向该字段设置值（sqlserver不能向该字段显示设置值）
 5. NotMappedAttribute()，该注解用于移除该字段映射
-
+6. ComplexTypeAttribute()计算列，新增和修改时自动忽略该字段
+7. DefaultAttribute()默认值，新增时如果字段为null则忽略字段，否则使用指定的字段值
 ### Querybale
 
 ### 基本示例
