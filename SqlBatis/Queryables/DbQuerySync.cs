@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using SqlBatis.Expressions;
 
 namespace SqlBatis
 {
@@ -31,6 +32,7 @@ namespace SqlBatis
             var sql = ResovleInsert(false);
             return _context.ExecuteNonQuery(sql, _parameters);
         }
+     
         public int InsertReturnId(T entity)
         {
             ResovleParameter(entity);
@@ -38,14 +40,14 @@ namespace SqlBatis
             return _context.ExecuteScalar<int>(sql, _parameters);
         }
 
-        public int Insert(IEnumerable<T> entitys)
+        public int Insert(IEnumerable<T> entitys, int? commandTimeout = null)
         {
-            var count = 0;
-            foreach (var item in entitys)
+            if (entitys==null || entitys.Count()==0)
             {
-                count += Insert(item);
+                return 0;
             }
-            return count;
+            var sql = ResovleBatchInsert(entitys);
+            return _context.ExecuteNonQuery(sql, _parameters, commandTimeout); 
         }
 
         public int Update(int? commandTimeout = null)
@@ -62,7 +64,12 @@ namespace SqlBatis
         {
             ResovleParameter(entity);
             var sql = ResolveUpdate();
-            return _context.ExecuteNonQuery(sql, _parameters);
+            var row = _context.ExecuteNonQuery(sql, _parameters);
+            if (DbMetaInfoCache.GetColumns(typeof(T)).Exists(a => a.IsConcurrencyCheck) && row == 0)
+            {
+                throw new DbUpdateConcurrencyException("更新失败：数据版本不一致");
+            }
+            return row;
         }
 
         public int Delete(int? commandTimeout = null)
@@ -156,9 +163,12 @@ namespace SqlBatis
             return this;
         }
 
-        public IDbQuery<T> Page(int index, int count)
+        public IDbQuery<T> Page(int index, int count, bool condition = true)
         {
-            Skip((index - 1) * count, count);
+            if (condition)
+            {
+                Skip((index - 1) * count, count);
+            }
             return this;
         }
 
@@ -185,7 +195,12 @@ namespace SqlBatis
                 return (list, count);
             }
         }
-
+        public TResult Sum<TResult>(Expression<Func<T, TResult>> expression, int? commandTimeout = null)
+        {
+            _selectExpression = expression;
+            var sql = ResovleSum();
+            return _context.ExecuteScalar<TResult>(sql, _parameters, commandTimeout);
+        }
         public IEnumerable<TResult> Select<TResult>(Expression<Func<T, TResult>> expression, int? commandTimeout = null)
         {
             _selectExpression = expression;
@@ -218,16 +233,22 @@ namespace SqlBatis
             return Select(expression, commandTimeout).FirstOrDefault();
         }
 
-        public IDbQuery<T> Skip(int index, int count)
+        public IDbQuery<T> Skip(int index, int count, bool condition = true)
         {
-            _page.Index = index;
-            _page.Count = count;
+            if (condition)
+            {
+                _page.Index = index;
+                _page.Count = count;
+            }
             return this;
         }
 
-        public IDbQuery<T> Take(int count)
+        public IDbQuery<T> Take(int count,bool condition=true)
         {
-            Skip(0, count);
+            if (condition)
+            {
+                Skip(0, count);
+            }
             return this;
         }
 

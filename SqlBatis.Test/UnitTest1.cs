@@ -124,6 +124,7 @@ namespace SqlBatis.Test
               .Take(10)
               .Select();
         }
+
         [Test]
         public void TestPage()
         {
@@ -181,8 +182,8 @@ namespace SqlBatis.Test
         public void TestTypeConvert()
         {
             var deserializer = TypeConvert.GetDeserializer(typeof(Student));
-            
-            Dictionary<string,object> keyvalues = deserializer(new Student
+
+            Dictionary<string, object> keyvalues = deserializer(new Student
             {
                 Id = 10,
                 Age = 10,
@@ -191,15 +192,14 @@ namespace SqlBatis.Test
             });
 
             var cmd = db.Connection.CreateCommand();
-            cmd.CommandText= "select * from Student";
+            cmd.CommandText = "select * from Student";
             var reader = cmd.ExecuteReader();
-            var serializer = TypeConvert.GetSerializer<Student>(new TypeMapper(),reader);
+            var serializer = TypeConvert.GetSerializer<Student>(new TypeMapper(), reader);
             while (reader.Read())
             {
                 Student student = serializer(reader);
             }
-        }
-      
+        }      
     }
 
 

@@ -139,14 +139,16 @@ namespace SqlBatis
         /// 批量insert查询，该接口会忽略identity字段
         /// </summary>
         /// <param name="entitys">参数集合</param>
+        /// <param name="commandTimeout">超时时间</param>
         /// <returns></returns>
-        int Insert(IEnumerable<T> entitys);
+        int Insert(IEnumerable<T> entitys,int? commandTimeout = null);
         /// <summary>
         /// 异步批量insert查询，该接口会忽略identity字段
         /// </summary>
         /// <param name="entitys"></param>
+        /// <param name="commandTimeout">超时时间</param>
         /// <returns></returns>
-        Task<int> InsertAsync(IEnumerable<T> entitys);
+        Task<int> InsertAsync(IEnumerable<T> entitys, int? commandTimeout = null);
         /// <summary>
         /// select查询
         /// </summary>
@@ -260,22 +262,25 @@ namespace SqlBatis
         /// take查询，从下标为0的行获取count条记录
         /// </summary>
         /// <param name="count">记录个数</param>
+        /// <param name="condition">条件</param>
         /// <returns></returns>
-        IDbQuery<T> Take(int count);
+        IDbQuery<T> Take(int count, bool condition = true);
         /// <summary>
         /// skip，从下标为index的行获取count条记录
         /// </summary>
         /// <param name="index">起始下标</param>
         /// <param name="count">记录个数</param>
+        /// <param name="condition">条件</param>
         /// <returns></returns>
-        IDbQuery<T> Skip(int index, int count);
+        IDbQuery<T> Skip(int index, int count, bool condition = true);
         /// <summary>
         /// page查询，从下标为(index-1)*count的行获取count条记录
         /// </summary>
         /// <param name="index">起始页码</param>
         /// <param name="count">记录个数</param>
+        /// <param name="condition">条件</param>
         /// <returns></returns>
-        IDbQuery<T> Page(int index, int count);
+        IDbQuery<T> Page(int index, int count, bool condition = true);
         /// <summary>
         /// 指定读锁
         /// </summary>
@@ -317,5 +322,21 @@ namespace SqlBatis
         /// <param name="expression">字段列表</param>
         /// <returns></returns>
         IDbQuery<T> OrderByDescending<TResult>(Expression<Func<T, TResult>> expression);
+        /// <summary>
+        /// 求和
+        /// </summary>
+        /// <typeparam name="TResult">返回类型</typeparam>
+        /// <param name="expression">字段列表</param>
+        /// <param name="commandTimeout">超时时间</param>
+        /// <returns></returns>
+        TResult Sum<TResult>(Expression<Func<T, TResult>> expression, int? commandTimeout = null);
+        /// <summary>
+        /// 异步求和
+        /// </summary>
+        /// <typeparam name="TResult">返回类型</typeparam>
+        /// <param name="expression">字段列表</param>
+        /// <param name="commandTimeout">超时时间</param>
+        /// <returns></returns>
+        Task<TResult> SumAsync<TResult>(Expression<Func<T, TResult>> expression, int? commandTimeout = null);
     }
 }

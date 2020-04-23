@@ -68,7 +68,7 @@ namespace SqlBatis.Expressions
         /// <returns></returns>
         protected string GetColumnName(Type type,string csharpName)
         {
-            var columns = DbMetaCache.GetColumns(type);
+            var columns = DbMetaInfoCache.GetColumns(type);
             return columns.Where(a => a.CsharpName == csharpName)
                 .FirstOrDefault().ColumnName;
         }

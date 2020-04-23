@@ -23,11 +23,29 @@ namespace SqlBatis
         /// <param name="id"></param>
         /// <returns></returns>
         string Resolve(string id);
+        /// <summary>
+        /// 加载配置文件
+        /// </summary>
+        /// <param name="filename">文件名</param>
+        void Load(string filename);
+        /// <summary>
+        /// 从指定路径加载所有匹配的文件
+        /// </summary>
+        /// <param name="path">路径</param>
+        /// <param name="pattern">文件通配符</param>
+        void Load(string path, string pattern);
+        /// <summary>
+        /// 从指定路径加载所有匹配的文件
+        /// </summary>
+        /// <param name="path">路径</param>
+        /// <param name="pattern">文件通配符</param>
+        /// <param name="options">查找选项</param>
+        void Load(string path, string pattern, SearchOption options);
     }
-  
+
     public class XmlResovle : IXmlResovle
     {
-        private readonly Dictionary<string, CommandNode> _commands 
+        private readonly Dictionary<string, CommandNode> _commands
             = new Dictionary<string, CommandNode>();
 
         private Dictionary<string, string> ResolveVariables(XmlDocument document)
@@ -104,6 +122,15 @@ namespace SqlBatis
                         }
                     }
                     cmd.Nodes.Add(whereNode);
+                }
+                else if (item.NodeType == XmlNodeType.Element && item.Name == "count")
+                {
+                    var text = item.InnerText;
+                    text = ReplaceVariable(variables, text);
+                    cmd.Nodes.Add(new CountNode()
+                    {
+                        Value = text
+                    });
                 }
                 else if (item.NodeType == XmlNodeType.Element && item.Name == "if")
                 {

@@ -109,6 +109,7 @@ namespace SqlBatis.Expressions
 
         public ExpressionContextResult<T> Create<T>(string expression)
         {
+            expression = Initialization(expression);
             var parameter = Expression.Parameter(typeof(T), "p");
             var body = CreateExpression(parameter, expression);
             var lambda = Expression.Lambda(body, parameter);
@@ -118,6 +119,14 @@ namespace SqlBatis.Expressions
                 Func = func,
                 LambdaExpression = lambda
             };
+        }
+
+        private string Initialization(string expression)
+        {
+            expression = Regex.Replace(expression, @"(?<=[^\'][\s]+)and(?=\s+[^\'])","&&",RegexOptions.IgnoreCase);
+            expression = Regex.Replace(expression, @"(?<=[^\'][\s]+)or(?=\s+[^\'])", "||", RegexOptions.IgnoreCase);
+            expression = Regex.Replace(expression, @"(?<=[^\'][\s]+)not(?=\s+[^\'])", "!", RegexOptions.IgnoreCase);
+            return expression;
         }
 
         private ExpressionType GetExpressionType(string text)

@@ -2,7 +2,6 @@
 using System.Data;
 using System.Linq;
 using System.Reflection;
-using System.Text.Json;
 
 namespace SqlBatis
 {
@@ -23,6 +22,7 @@ namespace SqlBatis
     public class TypeMapper : ITypeMapper
     {
         public bool MatchNamesWithUnderscores { get; set; }
+
         /// <summary>
         /// Find parametric constructors.
         /// If there is no default constructor, the constructor with the most parameters is returned.
@@ -37,6 +37,7 @@ namespace SqlBatis
             }
             return constructor;
         }
+
         /// <summary>
         /// Returns field information based on parameter information
         /// </summary>
@@ -55,6 +56,7 @@ namespace SqlBatis
             }
             return null;
         }
+
         /// <summary>
         /// Returns attribute information based on field information
         /// </summary>
@@ -73,12 +75,13 @@ namespace SqlBatis
             }
             return null;
         }
+
         /// <summary>
         /// Return type conversion function.
         /// </summary>
         public MethodInfo FindConvertMethod(Type csharpType, Type dbType)
         {
-            if (csharpType == typeof(JsonElement) || GetUnderlyingType(csharpType) == typeof(JsonElement))
+            if (csharpType == typeof(System.Text.Json.JsonElement) || GetUnderlyingType(csharpType) == typeof(System.Text.Json.JsonElement))
             {
                 return !IsNullableType(csharpType) ? DataConvertMethod.ToJsonElementMethod : DataConvertMethod.ToJsonElementNullableMethod;
             }
@@ -136,15 +139,18 @@ namespace SqlBatis
             }
             return !IsNullableType(csharpType) ? DataConvertMethod.ToObjectMethod.MakeGenericMethod(csharpType) : DataConvertMethod.ToObjectNullableMethod.MakeGenericMethod(Nullable.GetUnderlyingType(GetUnderlyingType(csharpType)));
         }
+
         private Type GetUnderlyingType(Type type)
         {
             var underlyingType = Nullable.GetUnderlyingType(type);
             return underlyingType ?? type;
         }
+
         private bool IsNullableType(Type type)
         {
             return Nullable.GetUnderlyingType(type) != null;
         }
+
         public TypeMapper(bool matchNamesWithUnderscores = false)
         {
             MatchNamesWithUnderscores = matchNamesWithUnderscores;
@@ -194,154 +200,298 @@ namespace SqlBatis
         #region Define Convert
         public static T ConvertToObject<T>(IDataRecord dr, int i)
         {
-            if (dr.IsDBNull(i))
+            try
             {
-                return default;
+                if (dr.IsDBNull(i))
+                {
+                    return default;
+                }
+                var data = dr.GetValue(i);
+                return (T)Convert.ChangeType(data, typeof(T));
             }
-            var data = dr.GetValue(i);
-            return (T)Convert.ChangeType(data, typeof(T));
+            catch
+            {
+                throw ThrowException<T>(dr, i);
+            }
         }
+
         public static byte ConvertToByte(IDataRecord dr, int i)
         {
-            if (dr.IsDBNull(i))
+            try
             {
-                return default;
+                if (dr.IsDBNull(i))
+                {
+                    return default;
+                }
+                var result = dr.GetByte(i);
+                return result;
             }
-            var result = dr.GetByte(i);
-            return result;
+            catch
+            {
+                throw ThrowException<byte>(dr, i);
+            }
         }
+
         public static short ConvertToInt16(IDataRecord dr, int i)
         {
-            if (dr.IsDBNull(i))
+            try
             {
-                return default;
+                if (dr.IsDBNull(i))
+                {
+                    return default;
+                }
+                else if (dr.GetFieldType(i) == typeof(short))
+                {
+                    return dr.GetInt16(i);
+                }
+                return Convert.ToInt16(dr.GetValue(i));
             }
-            var result = dr.GetInt16(i);
-            return result;
+            catch
+            {
+                throw ThrowException<short>(dr, i);
+            }
         }
+
         public static int ConvertToInt32(IDataRecord dr, int i)
         {
-            if (dr.IsDBNull(i))
+            try
             {
-                return default;
+                if (dr.IsDBNull(i))
+                {
+                    return default;
+                }
+                else if (dr.GetFieldType(i) == typeof(int))
+                {
+                    return dr.GetInt32(i);
+                }
+                return Convert.ToInt32(dr.GetValue(i));
             }
-            return dr.GetInt32(i);
+            catch
+            {
+                throw ThrowException<int>(dr, i);
+            }
         }
+
         public static long ConvertToInt64(IDataRecord dr, int i)
         {
-            if (dr.IsDBNull(i))
+            try
             {
-                return default;
+                if (dr.IsDBNull(i))
+                {
+                    return default;
+                }
+                else if (dr.GetFieldType(i) == typeof(long))
+                {
+                    return dr.GetInt64(i);
+                }
+                return Convert.ToInt64(dr.GetValue(i));
             }
-            return dr.GetInt64(i);
+            catch
+            {
+                throw ThrowException<long>(dr, i);
+            }
         }
+
         public static float ConvertToFloat(IDataRecord dr, int i)
         {
-            if (dr.IsDBNull(i))
+            try
             {
-                return default;
+                if (dr.IsDBNull(i))
+                {
+                    return default;
+                }
+                else if (dr.GetFieldType(i) == typeof(float))
+                {
+                    return dr.GetFloat(i);
+                }
+                return Convert.ToSingle(dr.GetValue(i));
             }
-            var result = dr.GetFloat(i);
-            return result;
+            catch
+            {
+                throw ThrowException<float>(dr, i);
+            }
         }
+
         public static double ConvertToDouble(IDataRecord dr, int i)
         {
-            if (dr.IsDBNull(i))
+            try
             {
-                return default;
+                if (dr.IsDBNull(i))
+                {
+                    return default;
+                }
+                else if (dr.GetFieldType(i) == typeof(double))
+                {
+                    return dr.GetDouble(i);
+                }
+                return Convert.ToDouble(dr.GetValue(i));
             }
-            var result = dr.GetDouble(i);
-            return result;
+            catch
+            {
+                throw ThrowException<double>(dr, i);
+            }
         }
+
         public static bool ConvertToBoolean(IDataRecord dr, int i)
         {
-            if (dr.IsDBNull(i))
+            try
             {
-                return default;
+                if (dr.IsDBNull(i))
+                {
+                    return default;
+                }
+                if (dr.GetFieldType(i) == typeof(bool))
+                {
+                    var result = dr.GetBoolean(i);
+                    return result;
+                }
+                else if (int.TryParse(dr.GetValue(i).ToString(), out int value))
+                {
+                    return !(value == 0);
+                }
+                return Convert.ToBoolean(dr.GetValue(i));
             }
-            if (dr.GetFieldType(i) == typeof(bool))
+            catch
             {
-                var result = dr.GetBoolean(i);
-                return result;
-            }
-            else
-            {
-                var result = dr.GetValue(i);
-                return Convert.ToBoolean(result);
+                throw ThrowException<bool>(dr, i);
             }
         }
+
         public static decimal ConvertToDecimal(IDataRecord dr, int i)
         {
-            if (dr.IsDBNull(i))
+            try
             {
-                return default;
+                if (dr.IsDBNull(i))
+                {
+                    return default;
+                }
+                else if (dr.GetFieldType(i) == typeof(decimal))
+                {
+                    return dr.GetDecimal(i);
+                }
+                return Convert.ToDecimal(dr.GetValue(i));
             }
-            var result = dr.GetDecimal(i);
-            return result;
+            catch
+            {
+                throw ThrowException<bool>(dr, i);
+            }
         }
+
         public static char ConvertToChar(this IDataRecord dr, int i)
         {
-            if (dr.IsDBNull(i))
+            try
             {
-                return default;
-            }
-            var result = dr.GetChar(i);
-            return result;
-        }
-        public static string ConvertToString(IDataRecord dr, int i)
-        {
-            if (dr.IsDBNull(i))
-            {
-                return default;
-            }
-            if (dr.GetFieldType(i) == typeof(string))
-            {
-                var result = dr.GetString(i);
+                if (dr.IsDBNull(i))
+                {
+                    return default;
+                }
+                var result = dr.GetChar(i);
                 return result;
             }
-            else
+            catch
             {
+                throw ThrowException<char>(dr, i);
+            }
+        }
+
+        public static string ConvertToString(IDataRecord dr, int i)
+        {
+            try
+            {
+                if (dr.IsDBNull(i))
+                {
+                    return default;
+                }
+                else if (dr.GetFieldType(i) == typeof(string))
+                {
+                    return dr.GetString(i);
+                }
                 var result = dr.GetValue(i);
                 return Convert.ToString(result);
             }
-        }
-        public static JsonElement ConvertJsonElement(IDataRecord dr, int i)
-        {
-            if (dr.IsDBNull(i))
+            catch
             {
-                return default;
+                throw ThrowException<string>(dr, i);
             }
-            var json = dr.GetString(i);
-            var bytes = System.Text.Encoding.UTF8.GetBytes(json);
-            return JsonDocument.Parse(bytes).RootElement;
         }
+
+        public static System.Text.Json.JsonElement ConvertJsonElement(IDataRecord dr, int i)
+        {
+            try
+            {
+                if (dr.IsDBNull(i))
+                {
+                    return default;
+                }
+                var json = dr.GetString(i);
+                var bytes = System.Text.Encoding.UTF8.GetBytes(json);
+                return System.Text.Json.JsonDocument.Parse(bytes).RootElement;
+            }
+            catch
+            {
+                throw ThrowException<System.Text.Json.JsonElement>(dr, i);
+            }
+        }
+
         public static DateTime ConvertToDateTime(IDataRecord dr, int i)
         {
-            if (dr.IsDBNull(i))
+            try
             {
-                return default;
+                if (dr.IsDBNull(i))
+                {
+                    return default;
+                }
+                else if (dr.GetFieldType(i) == typeof(DateTime))
+                {
+                    return dr.GetDateTime(i);
+                }
+                return DateTime.Parse(dr.GetValue(i).ToString());
             }
-            var result = dr.GetDateTime(i);
-            return result;
+            catch
+            {
+                throw ThrowException<DateTime>(dr, i);
+            }
         }
+
         public static T ConvertToEnum<T>(IDataRecord dr, int i) where T : struct
         {
-            if (dr.IsDBNull(i))
+            try
             {
+                if (dr.IsDBNull(i))
+                {
+                    return default;
+                }
+                var value = dr.GetValue(i);
+                if (Enum.TryParse(value.ToString(), out T result)) return result;
                 return default;
             }
-            var value = dr.GetValue(i);
-            if (Enum.TryParse(value.ToString(), out T result)) return result;
-            return default;
+            catch
+            {
+                throw ThrowException<T>(dr, i);
+            }
         }
+
         public static Guid ConvertToGuid(IDataRecord dr, int i)
         {
-            if (dr.IsDBNull(i))
+            try
             {
-                return default;
+                if (dr.IsDBNull(i))
+                {
+                    return default;
+                }
+                var result = dr.GetGuid(i);
+                return result;
             }
-            var result = dr.GetGuid(i);
-            return result;
+            catch
+            {
+                throw ThrowException<Guid>(dr, i);
+            }
+        }
+
+        private static Exception ThrowException<T>(IDataRecord dr, int i)
+        {
+            var inner = new FormatException($"Column of {dr.GetName(i)} {dr.GetFieldType(i)} '{dr.GetValue(i)}' was not recognized as a valid {typeof(T).Name}.");
+            return new InvalidCastException($"Unable to cast object of type '{dr.GetFieldType(i).Name}' to type '{typeof(int).Name}'.", inner);
         }
         #endregion
 
@@ -426,7 +576,7 @@ namespace SqlBatis
             }
             return ConvertToChar(dr, i);
         }
-        public static JsonElement? ConvertJsonElementNullable(IDataRecord dr, int i)
+        public static System.Text.Json.JsonElement? ConvertJsonElementNullable(IDataRecord dr, int i)
         {
             if (dr.IsDBNull(i))
             {

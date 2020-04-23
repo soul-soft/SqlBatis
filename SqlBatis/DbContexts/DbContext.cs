@@ -29,13 +29,13 @@ namespace SqlBatis
         /// <param name="id">命令id</param>
         /// <param name="parameter">参数</param>
         /// <returns></returns>
-        IXmlMapper From<T>(string id, T parameter) where T : class;
+        IXmlCommand From<T>(string id, T parameter) where T : class;
         /// <summary>
         /// 获取一个xml执行器
         /// </summary>
         /// <param name="id">命令id</param>
         /// <returns></returns>
-        IXmlMapper From(string id);
+        IXmlCommand From(string id);
         /// <summary>
         /// 获取一个linq执行器
         /// </summary>
@@ -158,7 +158,7 @@ namespace SqlBatis
         /// </summary>
         void RollbackTransaction();
     }
-   
+
     public class DbContext : IDbContext
     {
         public DbContextState DbContextState = DbContextState.Closed;
@@ -171,18 +171,18 @@ namespace SqlBatis
 
         public IDbConnection Connection { get; } = null;
 
-        public DbContextType DbContextType { get; } = DbContextType.Mysql;   
+        public DbContextType DbContextType { get; } = DbContextType.Mysql;
 
         protected virtual void OnLogging(string message, IDataParameterCollection parameter = null, int? commandTimeout = null, CommandType? commandType = null)
         {
 
         }
-       
+
         protected virtual DbContextBuilder OnConfiguring(DbContextBuilder builder)
         {
             return builder;
         }
-    
+
         protected DbContext()
         {
             var builder = OnConfiguring(new DbContextBuilder());
@@ -199,38 +199,42 @@ namespace SqlBatis
             _typeMapper = builder.TypeMapper ?? new TypeMapper();
             DbContextType = builder.DbContextType;
         }
-        public IXmlMapper From<T>(string id, T parameter) where T : class
+        public IXmlCommand From<T>(string id, T parameter) where T : class
         {
             var sql = _xmlResovle.Resolve(id, parameter);
-            return new XmlMapper(this, sql, parameter);
-        }      
-        public IXmlMapper From(string id)
+            var deserializer = TypeConvert.GetDeserializer(typeof(T));
+            var values = deserializer(parameter);
+            return new XmlCommand(this, sql, values);
+        }
+        public IXmlCommand From(string id)
         {
             var sql = _xmlResovle.Resolve(id);
-            return new XmlMapper(this, sql);
+            return new XmlCommand(this, sql);
         }
-     
+
         public IDbQuery<T> From<T>()
         {
             return new DbQuery<T>(this);
         }
-     
+
         public IEnumerable<dynamic> ExecuteQuery(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null)
         {
             using (var cmd = Connection.CreateCommand())
             {
                 Initialize(cmd, sql, parameter, commandTimeout, commandType);
+                var list = new List<dynamic>();
                 using (var reader = cmd.ExecuteReader())
                 {
                     var handler = TypeConvert.GetSerializer();
                     while (reader.Read())
                     {
-                        yield return handler(reader);
+                        list.Add(handler(reader));
                     }
+                    return list;
                 }
             }
         }
-      
+
         public async Task<IEnumerable<dynamic>> ExecuteQueryAsync(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null)
         {
             using (var cmd = (Connection as DbConnection).CreateCommand())
@@ -248,30 +252,32 @@ namespace SqlBatis
                 }
             }
         }
-      
+
         public IMultiResult ExecuteMultiQuery(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null)
         {
             var cmd = Connection.CreateCommand();
             Initialize(cmd, sql, parameter, commandTimeout, commandType);
             return new MultiResult(cmd, _typeMapper);
         }
-      
+
         public IEnumerable<T> ExecuteQuery<T>(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null)
         {
             using (var cmd = Connection.CreateCommand())
             {
+                var list = new List<T>();
                 Initialize(cmd, sql, parameter, commandTimeout, commandType);
                 using (var reader = cmd.ExecuteReader())
                 {
                     var handler = TypeConvert.GetSerializer<T>(_typeMapper, reader);
                     while (reader.Read())
                     {
-                        yield return handler(reader);
+                        list.Add(handler(reader));
                     }
+                    return list;
                 }
             }
         }
-      
+
         public async Task<IEnumerable<T>> ExecuteQueryAsync<T>(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null)
         {
             using (var cmd = (Connection as DbConnection).CreateCommand())
@@ -289,7 +295,7 @@ namespace SqlBatis
                 }
             }
         }
-     
+
         public int ExecuteNonQuery(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null)
         {
             using (var cmd = Connection.CreateCommand())
@@ -298,7 +304,7 @@ namespace SqlBatis
                 return cmd.ExecuteNonQuery();
             }
         }
-      
+
         public async Task<int> ExecuteNonQueryAsync(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null)
         {
             using (var cmd = (Connection as DbConnection).CreateCommand())
@@ -335,48 +341,48 @@ namespace SqlBatis
                 return (T)Convert.ChangeType(result, typeof(T));
             }
         }
-      
+
         public void BeginTransaction()
         {
             _transaction = Connection.BeginTransaction();
-            OnLogging("begin transaction");
+            OnLogging("Begin transaction");
         }
 
         public void BeginTransaction(IsolationLevel level)
         {
             _transaction = Connection.BeginTransaction(level);
-            OnLogging("begin transaction isolationLevel = " + level);
+            OnLogging("Begin transaction isolationLevel = " + level);
         }
-      
+
         public void Close()
         {
             _transaction?.Dispose();
             Connection?.Dispose();
             DbContextState = DbContextState.Closed;
-            OnLogging("colse connection");
+            OnLogging("Colsed connection");
         }
-      
+
         public void CommitTransaction()
         {
             _transaction?.Commit();
             DbContextState = DbContextState.Commit;
-            OnLogging("commit transaction");
+            OnLogging("Commit transaction");
         }
-      
+
         public void Open()
         {
             Connection?.Open();
             DbContextState = DbContextState.Open;
-            OnLogging("open connection");
+            OnLogging("Open connection");
         }
-     
+
         public async Task OpenAsync()
         {
             await (Connection as DbConnection).OpenAsync();
             DbContextState = DbContextState.Open;
-            OnLogging("open connection");
+            OnLogging("Open connection");
         }
-      
+
         public void RollbackTransaction()
         {
             _transaction?.Rollback();
@@ -384,7 +390,7 @@ namespace SqlBatis
             OnLogging("rollback");
 
         }
-      
+
         private void Initialize(IDbCommand cmd, string sql, object parameter, int? commandTimeout = null, CommandType? commandType = null)
         {
             var dbParameters = new List<IDbDataParameter>();
@@ -428,7 +434,15 @@ namespace SqlBatis
             {
                 foreach (IDataParameter item in dbParameters)
                 {
-                    item.Value = item.Value ?? DBNull.Value;
+                    if (item.Value != null && item.Value.GetType() == typeof(System.Text.Json.JsonElement))
+                    {
+                        item.DbType = DbType.String;
+                        item.Value = item.Value.ToString();
+                    }
+                    else if (item.Value == null)
+                    {
+                        item.Value = DBNull.Value;
+                    }
                     var pattern = $@"in\s+([\@,\:,\?]?{item.ParameterName})";
                     var options = RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Multiline;
                     if (cmd.CommandText.IndexOf("in", StringComparison.OrdinalIgnoreCase) != -1 && Regex.IsMatch(cmd.CommandText, pattern, options))
@@ -466,7 +480,7 @@ namespace SqlBatis
             }
             OnLogging(cmd.CommandText, cmd.Parameters, commandTimeout, commandType);
         }
-       
+
         private IDbDataParameter CreateParameter(IDbCommand command, string name, object value)
         {
             var parameter = command.CreateParameter();

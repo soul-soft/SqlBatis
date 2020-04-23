@@ -1,7 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
+using System.Text.Json;
 using SqlBatis.Expressions;
 
 namespace SqlBatis
@@ -49,13 +51,20 @@ namespace SqlBatis
             var values = serializer(entity);
             foreach (var item in values)
             {
-                _parameters.Add(item.Key, item.Value);
+                if (_parameters.ContainsKey(item.Key))
+                {
+                    _parameters[item.Key] = item.Value;
+                }
+                else
+                {
+                    _parameters.Add(item.Key, item.Value);
+                }
             }
         }
 
         private string ResovleCount()
         {
-            var table = DbMetaCache.GetTable(typeof(T)).TableName;
+            var table = DbMetaInfoCache.GetTable(typeof(T)).TableName;
             var column = "COUNT(1)";
             var where = ResolveWhere();
             var group = ResolveGroup();
@@ -75,10 +84,19 @@ namespace SqlBatis
             }
             return sql;
         }
+       
+        private string ResovleSum()
+        {
+            var table = DbMetaInfoCache.GetTable(typeof(T)).TableName;
+            var column = $"SUM({ResolveColumns()})";
+            var where = ResolveWhere();
+            var sql = $"SELECT {column} FROM {table}{where}";
+            return sql;
+        }
 
         private string ResolveSelect()
         {
-            var table = DbMetaCache.GetTable(typeof(T)).TableName;
+            var table = DbMetaInfoCache.GetTable(typeof(T)).TableName;
             var column = ResolveColumns();
             var where = ResolveWhere();
             var group = ResolveGroup();
@@ -119,11 +137,13 @@ namespace SqlBatis
 
         private string ResovleInsert(bool identity)
         {
-            var table = DbMetaCache.GetTable(typeof(T)).TableName;
+            var table = DbMetaInfoCache.GetTable(typeof(T)).TableName;
             var filters = new GroupExpressionResovle(_filterExpression).Resovle().Split(',');
-            var columns = DbMetaCache.GetColumns(typeof(T));
+            var columns = DbMetaInfoCache.GetColumns(typeof(T));
             var intcolumns = columns
-                .Where(a => !filters.Contains(a.ColumnName) && !a.IsNotMapped && !a.IsIdentity);
+                .Where(a => !filters.Contains(a.ColumnName) && !a.IsNotMapped && !a.IsIdentity)
+                .Where(a=> !a.IsComplexType)
+                .Where(a => !a.IsDefault || (_parameters.ContainsKey(a.CsharpName) && _parameters[a.CsharpName] != null));//如果是默认字段
             var columnNames = string.Join(",", intcolumns.Select(s => s.ColumnName));
             var parameterNames = string.Join(",", intcolumns.Select(s => $"@{s.CsharpName}"));
             var sql = $"INSERT INTO {table}({columnNames}) VALUES ({parameterNames})";
@@ -134,9 +154,75 @@ namespace SqlBatis
             return sql;
         }
 
+        private string ResovleBatchInsert(IEnumerable<T> entitys)
+        {
+            var table = DbMetaInfoCache.GetTable(typeof(T)).TableName;
+            var filters = new GroupExpressionResovle(_filterExpression).Resovle().Split(',');
+            var columns = DbMetaInfoCache.GetColumns(typeof(T))
+                .Where(a=>!a.IsComplexType).ToList();
+            var intcolumns = columns
+                .Where(a => !filters.Contains(a.ColumnName) && !a.IsNotMapped && !a.IsIdentity)
+                .ToList();
+            var columnNames = string.Join(",", intcolumns.Select(s => s.ColumnName));
+            if (_context.DbContextType == DbContextType.Mysql)
+            {
+                var buffer = new StringBuilder();
+                buffer.Append($"INSERT INTO {table}({columnNames}) VALUES ");
+                var serializer = TypeConvert.GetDeserializer(typeof(T));
+                var list = entitys.ToList();
+                for (var i = 0; i < list.Count; i++)
+                {
+                    var item = list[i];
+                    var values = serializer(item);
+                    buffer.Append("(");
+                    for (var j = 0; j < intcolumns.Count; j++)
+                    {
+                        var column = intcolumns[j];
+                        var value = values[column.CsharpName];
+                        if (value == null)
+                        {
+                            buffer.Append(column.IsDefault ? "DEFAULT" : "NULL");
+                        }
+                        else if (column.CsharpType == typeof(bool) || column.CsharpType == typeof(bool?))
+                        {
+                            buffer.Append(Convert.ToBoolean(value) == true ? 1 : 0);
+                        }
+                        else if (column.CsharpType == typeof(DateTime) || column.CsharpType == typeof(DateTime?))
+                        {
+                            buffer.Append($"'{value}'");
+                        }
+                        else if (column.CsharpType == typeof(JsonElement) || column.CsharpType == typeof(JsonElement?))
+                        {
+                            buffer.Append($"'{value}'");
+                        }
+                        else if (column.CsharpType.IsValueType || (Nullable.GetUnderlyingType(column.CsharpType)?.IsValueType == true))
+                        {
+                            buffer.Append(value);
+                        }
+                        else 
+                        {
+                            var str = SqlEncoding(value.ToString());
+                            buffer.Append($"'{str}'");
+                        }
+                        if (j + 1 < intcolumns.Count)
+                        {
+                            buffer.Append(",");
+                        }
+                    }
+                    buffer.Append(")");
+                    if (i + 1 < list.Count)
+                    {
+                        buffer.Append(",");
+                    }
+                }
+                return buffer.Remove(buffer.Length - 1, 0).ToString();
+            }
+            throw new NotImplementedException();
+        }
+
         private string ResolveUpdate()
         {
-            var table = DbMetaCache.GetTable(typeof(T)).TableName;
+            var table = DbMetaInfoCache.GetTable(typeof(T)).TableName;
             var builder = new StringBuilder();
             if (_setExpressions.Count > 0)
             {
@@ -154,33 +240,71 @@ namespace SqlBatis
             {
                 var filters = new GroupExpressionResovle(_filterExpression).Resovle().Split(',');
                 var where = ResolveWhere();
-                var columns = DbMetaCache.GetColumns(typeof(T));
+                var columns = DbMetaInfoCache.GetColumns(typeof(T));
                 var updcolumns = columns
                     .Where(a => !filters.Contains(a.ColumnName))
+                    .Where(a => !a.IsComplexType)
                     .Where(a => !a.IsIdentity && !a.IsPrimaryKey && !a.IsNotMapped)
+                    .Where(a => !a.IsConcurrencyCheck)
                     .Select(s => $"{s.ColumnName} = @{s.CsharpName}");
                 if (string.IsNullOrEmpty(where))
                 {
                     var primaryKey = columns.Where(a => a.IsPrimaryKey).FirstOrDefault()
                         ?? columns.First();
                     where = $" WHERE {primaryKey.ColumnName} = @{primaryKey.CsharpName}";
+                    if (columns.Exists(a => a.IsConcurrencyCheck))
+                    {
+                        var checkColumn = columns.Where(a => a.IsConcurrencyCheck).FirstOrDefault();
+                        where += $" AND {checkColumn.ColumnName} = @{checkColumn.CsharpName}";
+                    }
                 }
-                var sql = $"UPDATE {table} SET {string.Join(",", updcolumns)}{where}";
+                var sql = $"UPDATE {table} SET {string.Join(",", updcolumns)}";
+                if (columns.Exists(a => a.IsConcurrencyCheck))
+                {
+                    var checkColumn = columns.Where(a => a.IsConcurrencyCheck).FirstOrDefault();
+                    sql += $",{checkColumn.ColumnName} = @New{checkColumn.CsharpName}";
+                    if (checkColumn.CsharpType.IsValueType)
+                    {
+                        var version = Convert.ToInt32((DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0, 0)).TotalSeconds);
+                        _parameters.Add($"New{checkColumn.CsharpName}", version);
+                    }
+                    else
+                    {
+                        var version = Guid.NewGuid().ToString("N");
+                        _parameters.Add($"New{checkColumn.CsharpName}", version);
+                    }
+                }
+                sql += where;
                 return sql;
             }
         }
 
         private string ResovleDelete()
         {
-            var table = DbMetaCache.GetTable(typeof(T)).TableName;
+            var table = DbMetaInfoCache.GetTable(typeof(T)).TableName;
             var where = ResolveWhere();
             var sql = $"DELETE FROM {table}{where}";
             return sql;
         }
+        
+        private string SqlEncoding(string sql)
+        {
+            var buffer = new StringBuilder();
+            for (int i = 0; i < sql.Length; i++)
+            {
+                var ch = sql[i];
+                if (ch=='\''||ch=='-'||ch=='\\'||ch=='*'||ch=='@')
+                {
+                    buffer.Append('\\');
+                }
+                buffer.Append(ch);
+            }
+            return buffer.ToString();
+        }
 
         private string ResovleExists()
         {
-            var table = DbMetaCache.GetTable(typeof(T)).TableName;
+            var table = DbMetaInfoCache.GetTable(typeof(T)).TableName;
             var where = ResolveWhere();
             var group = ResolveGroup();
             var having = ResolveHaving();
@@ -194,7 +318,7 @@ namespace SqlBatis
             {
                 var filters = new GroupExpressionResovle(_filterExpression)
                     .Resovle().Split(',');
-                var columns = DbMetaCache.GetColumns(typeof(T))
+                var columns = DbMetaInfoCache.GetColumns(typeof(T))
                     .Where(a => !filters.Contains(a.ColumnName) && !a.IsNotMapped)
                     .Select(s => s.ColumnName != s.CsharpName ? $"{s.ColumnName} AS {s.CsharpName}" : s.CsharpName);
                 return string.Join(",", columns);

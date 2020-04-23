@@ -34,6 +34,7 @@ namespace SqlBatis
             = new ConcurrentDictionary<SerializerKey, object>();      
         private readonly static ConcurrentDictionary<Type, Func<object, Dictionary<string, object>>> _deserializers 
             = new ConcurrentDictionary<Type, Func<object, Dictionary<string, object>>>();
+      
         private struct SerializerKey : IEquatable<SerializerKey>
         {
             private string[] Names { get; set; }
@@ -137,7 +138,7 @@ namespace SqlBatis
         private static Func<object, Dictionary<string, object>> CreateTypeDeserializerHandler(Type type)
         {
             var properties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
-            var methodName = $"{type.Name}Deserializer{Guid.NewGuid().ToString("N")}";
+            var methodName = $"{type.Name}Deserializer{Guid.NewGuid()}";
             var dynamicMethod = new DynamicMethod(methodName, typeof(Dictionary<string, object>), new Type[] { typeof(object) }, type, true);
             var generator = dynamicMethod.GetILGenerator();
             LocalBuilder entityLocal1 = generator.DeclareLocal(typeof(Dictionary<string, object>));
@@ -167,7 +168,7 @@ namespace SqlBatis
         private static Func<IDataRecord, T> CreateTypeSerializerHandler<T>(ITypeMapper mapper, IDataRecord record)
         {
             var type = typeof(T);
-            var methodName = $"{type.Name}Serializer{Guid.NewGuid().ToString("N")}";
+            var methodName = $"{type.Name}Serializer{Guid.NewGuid()}";
             var dynamicMethod = new DynamicMethod(methodName, type, new Type[] { typeof(IDataRecord) }, type, true);
             var generator = dynamicMethod.GetILGenerator();
             LocalBuilder local = generator.DeclareLocal(type);

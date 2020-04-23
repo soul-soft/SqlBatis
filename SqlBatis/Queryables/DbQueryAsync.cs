@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
+using SqlBatis.Expressions;
 
 namespace SqlBatis
 {
     /// <summary>
     /// 异步linq查询
     /// </summary>
-    /// <typeparam name="T"></typeparam>
     public partial class DbQuery<T>
     {
 
@@ -60,11 +60,16 @@ namespace SqlBatis
             return default;
         }
 
-        public Task<int> UpdateAsync(T entity)
+        public async Task<int> UpdateAsync(T entity)
         {
             ResovleParameter(entity);
             var sql = ResolveUpdate();
-            return _context.ExecuteNonQueryAsync(sql, _parameters);
+            var row = await _context.ExecuteNonQueryAsync(sql, _parameters);
+            if (DbMetaInfoCache.GetColumns(typeof(T)).Exists(a => a.IsConcurrencyCheck) && row == 0)
+            {
+                throw new DbUpdateConcurrencyException("更新失败：数据版本不一致");
+            }
+            return row;
         }
 
         public Task<int> InsertAsync(T entity)
@@ -74,14 +79,14 @@ namespace SqlBatis
             return _context.ExecuteNonQueryAsync(sql, _parameters);
         }
 
-        public async Task<int> InsertAsync(IEnumerable<T> entitys)
+        public async Task<int> InsertAsync(IEnumerable<T> entitys, int? commandTimeout = null)
         {
-            var count = 0;
-            foreach (var item in entitys)
+            if (entitys == null || entitys.Count() == 0)
             {
-                count += await InsertAsync(item);
+                return 0;
             }
-            return count;
+            var sql = ResovleBatchInsert(entitys);
+            return await _context.ExecuteNonQueryAsync(sql, _parameters, commandTimeout);
         }
 
         public Task<int> InsertReturnIdAsync(T entity)
@@ -90,7 +95,14 @@ namespace SqlBatis
             var sql = ResovleInsert(true);
             return _context.ExecuteScalarAsync<int>(sql, _parameters);
         }
-
+      
+        public async Task<TResult> SumAsync<TResult>(Expression<Func<T, TResult>> expression, int? commandTimeout = null)
+        {
+            _selectExpression = expression;
+            var sql = ResovleSum();
+            return await _context.ExecuteScalarAsync<TResult>(sql, _parameters, commandTimeout);
+        }
+       
         public Task<IEnumerable<T>> SelectAsync(int? commandTimeout = null)
         {
             var sql = ResolveSelect();
@@ -115,7 +127,7 @@ namespace SqlBatis
             var sql = ResolveSelect();
             return _context.ExecuteQueryAsync<TResult>(sql, _parameters, commandTimeout);
         }
-      
+
         public async Task<(IEnumerable<TResult>, int)> SelectManyAsync<TResult>(Expression<Func<T, TResult>> expression, int? commandTimeout = null)
         {
             _selectExpression = expression;
@@ -128,7 +140,7 @@ namespace SqlBatis
                 return (list, count);
             }
         }
-       
+
         public async Task<T> SingleAsync(int? commandTimeout = null)
         {
             Take(1);

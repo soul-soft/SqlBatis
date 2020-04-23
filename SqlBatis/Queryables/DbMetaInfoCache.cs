@@ -11,7 +11,7 @@ namespace SqlBatis.Expressions
     /// <summary>
     /// 数据库元信息
     /// </summary>
-    public static class DbMetaCache
+    public static class DbMetaInfoCache
     {
         private static readonly ConcurrentDictionary<Type, TableInfo> _tables
             = new ConcurrentDictionary<Type, TableInfo>();
@@ -28,7 +28,7 @@ namespace SqlBatis.Expressions
                 {
                     var attribute = t.GetCustomAttributes(typeof(TableAttribute), true)
                         .FirstOrDefault() as TableAttribute;
-                    name = attribute.Name;                  
+                    name = attribute.Name;
                 }
                 var table = new TableInfo()
                 {
@@ -49,9 +49,12 @@ namespace SqlBatis.Expressions
                 {
                     var columnName = item.Name;
                     var isPrimaryKey = false;
+                    var isDefault = false;
                     var isIdentity = false;
                     var isNotMapped = false;
-                    if (item.GetCustomAttributes(typeof(ColumnAttribute), true).FirstOrDefault()!=null)
+                    var isConcurrencyCheck = false;
+                    var isComplexType = false;
+                    if (item.GetCustomAttributes(typeof(ColumnAttribute), true).FirstOrDefault() != null)
                     {
                         var attribute = item.GetCustomAttributes(typeof(ColumnAttribute), true)
                             .FirstOrDefault() as ColumnAttribute;
@@ -65,17 +68,33 @@ namespace SqlBatis.Expressions
                     {
                         isIdentity = true;
                     }
+                    if (item.GetCustomAttributes(typeof(DefaultAttribute), true).FirstOrDefault() != null)
+                    {
+                        isDefault = true;
+                    }
+                    if (item.GetCustomAttributes(typeof(ConcurrencyCheckAttribute), true).FirstOrDefault() != null)
+                    {
+                        isConcurrencyCheck = true;
+                    }
                     if (item.GetCustomAttributes(typeof(NotMappedAttribute), true).FirstOrDefault() != null)
                     {
                         isNotMapped = true;
                     }
+                    if (item.GetCustomAttributes(typeof(ComplexTypeAttribute), true).FirstOrDefault() != null)
+                    {
+                        isComplexType = true;
+                    }
                     list.Add(new ColumnInfo()
                     {
+                        CsharpType = item.PropertyType,
+                        IsDefault = isDefault,
                         ColumnName = columnName,
                         CsharpName = item.Name,
                         IsPrimaryKey = isPrimaryKey,
                         IsIdentity = isIdentity,
                         IsNotMapped = isNotMapped,
+                        IsConcurrencyCheck = isConcurrencyCheck,
+                        IsComplexType = isComplexType
                     });
                 }
                 return list;
@@ -98,10 +117,14 @@ namespace SqlBatis.Expressions
     /// </summary>
     public class ColumnInfo
     {
+        public bool IsConcurrencyCheck { get; set; }
+        public bool IsDefault { get; set; }
         public bool IsNotMapped { get; set; }
         public string ColumnName { get; set; }
         public string CsharpName { get; set; }
+        public Type CsharpType { get; set; }
         public bool IsPrimaryKey { get; set; }
         public bool IsIdentity { get; set; }
+        public bool IsComplexType { get; set; }
     }
 }

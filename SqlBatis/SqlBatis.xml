@@ -15,6 +15,21 @@
             </summary>
             <param name="name">数据库字段名</param>
         </member>
+        <member name="T:SqlBatis.Attributes.ComplexTypeAttribute">
+            <summary>
+            计算列，如果字段一个是计算列则新增和修改的时候不会处理
+            </summary>
+        </member>
+        <member name="T:SqlBatis.Attributes.ConcurrencyCheckAttribute">
+            <summary>
+            并发检查，如果字段属性是number类型则用时间戳，否则使用GUID
+            </summary>
+        </member>
+        <member name="T:SqlBatis.Attributes.DefaultAttribute">
+            <summary>
+            默认值约束
+            </summary>
+        </member>
         <member name="T:SqlBatis.Attributes.FunctionAttribute">
             <summary>
             数据库函数标识
@@ -327,6 +342,11 @@
             数据库类型到Csharp类型转换器
             </summary>
         </member>
+        <member name="T:SqlBatis.Expressions.DbUpdateConcurrencyException">
+            <summary>
+            修改数据时并发冲突
+            </summary>
+        </member>
         <member name="T:SqlBatis.Expressions.ExpressionActivator">
             <summary>
             表达式树生成器
@@ -347,7 +367,7 @@
             <param name="csharpName"></param>
             <returns></returns>
         </member>
-        <member name="T:SqlBatis.Expressions.DbMetaCache">
+        <member name="T:SqlBatis.Expressions.DbMetaInfoCache">
             <summary>
             数据库元信息
             </summary>
@@ -366,7 +386,6 @@
             <summary>
             异步linq查询
             </summary>
-            <typeparam name="T"></typeparam>
             <summary>
             同步linq查询
             </summary>
@@ -522,18 +541,20 @@
             <param name="entity"></param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQuery`1.Insert(System.Collections.Generic.IEnumerable{`0})">
+        <member name="M:SqlBatis.IDbQuery`1.Insert(System.Collections.Generic.IEnumerable{`0},System.Nullable{System.Int32})">
             <summary>
             批量insert查询，该接口会忽略identity字段
             </summary>
             <param name="entitys">参数集合</param>
+            <param name="commandTimeout">超时时间</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQuery`1.InsertAsync(System.Collections.Generic.IEnumerable{`0})">
+        <member name="M:SqlBatis.IDbQuery`1.InsertAsync(System.Collections.Generic.IEnumerable{`0},System.Nullable{System.Int32})">
             <summary>
             异步批量insert查询，该接口会忽略identity字段
             </summary>
             <param name="entitys"></param>
+            <param name="commandTimeout">超时时间</param>
             <returns></returns>
         </member>
         <member name="M:SqlBatis.IDbQuery`1.Select(System.Nullable{System.Int32})">
@@ -660,27 +681,30 @@
             <param name="condition">是否有效</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQuery`1.Take(System.Int32)">
+        <member name="M:SqlBatis.IDbQuery`1.Take(System.Int32,System.Boolean)">
             <summary>
             take查询，从下标为0的行获取count条记录
             </summary>
             <param name="count">记录个数</param>
+            <param name="condition">条件</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQuery`1.Skip(System.Int32,System.Int32)">
+        <member name="M:SqlBatis.IDbQuery`1.Skip(System.Int32,System.Int32,System.Boolean)">
             <summary>
             skip，从下标为index的行获取count条记录
             </summary>
             <param name="index">起始下标</param>
             <param name="count">记录个数</param>
+            <param name="condition">条件</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQuery`1.Page(System.Int32,System.Int32)">
+        <member name="M:SqlBatis.IDbQuery`1.Page(System.Int32,System.Int32,System.Boolean)">
             <summary>
             page查询，从下标为(index-1)*count的行获取count条记录
             </summary>
             <param name="index">起始页码</param>
             <param name="count">记录个数</param>
+            <param name="condition">条件</param>
             <returns></returns>
         </member>
         <member name="M:SqlBatis.IDbQuery`1.With(System.String)">
@@ -728,6 +752,24 @@
             </summary>
             <typeparam name="TResult">类型推断</typeparam>
             <param name="expression">字段列表</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.IDbQuery`1.Sum``1(System.Linq.Expressions.Expression{System.Func{`0,``0}},System.Nullable{System.Int32})">
+            <summary>
+            求和
+            </summary>
+            <typeparam name="TResult">返回类型</typeparam>
+            <param name="expression">字段列表</param>
+            <param name="commandTimeout">超时时间</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.IDbQuery`1.SumAsync``1(System.Linq.Expressions.Expression{System.Func{`0,``0}},System.Nullable{System.Int32})">
+            <summary>
+            异步求和
+            </summary>
+            <typeparam name="TResult">返回类型</typeparam>
+            <param name="expression">字段列表</param>
+            <param name="commandTimeout">超时时间</param>
             <returns></returns>
         </member>
         <member name="T:SqlBatis.Operator">
@@ -849,12 +891,12 @@
             <param name="type"></param>
             <returns></returns>
         </member>
-        <member name="T:SqlBatis.IXmlMapper">
+        <member name="T:SqlBatis.IXmlCommand">
             <summary>
             xml命令映射器
             </summary>
         </member>
-        <member name="M:SqlBatis.IXmlMapper.ExecuteMultiQuery(System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
+        <member name="M:SqlBatis.IXmlCommand.ExecuteMultiQuery(System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
              <summary>
             执行多结果集查询，返回IMultiResult
              </summary>
@@ -862,7 +904,7 @@
              <param name="commandType">命令类型</param>
              <returns></returns>
         </member>
-        <member name="M:SqlBatis.IXmlMapper.ExecuteQuery(System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
+        <member name="M:SqlBatis.IXmlCommand.ExecuteQuery(System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
             <summary>
             执行单结果集查询，并返回dynamic类型的结果集
             </summary>
@@ -870,7 +912,7 @@
             <param name="commandType">命令类型</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IXmlMapper.ExecuteQueryAsync(System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
+        <member name="M:SqlBatis.IXmlCommand.ExecuteQueryAsync(System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
             <summary>
             异步执行单结果集查询，并返回dynamic类型的结果集
             </summary>
@@ -878,7 +920,7 @@
             <param name="commandType">命令类型</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IXmlMapper.ExecuteQuery``1(System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
+        <member name="M:SqlBatis.IXmlCommand.ExecuteQuery``1(System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
             <summary>
             执行单结果集查询，并返回T类型的结果集
             </summary>
@@ -887,7 +929,7 @@
             <param name="commandType">命令类型</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IXmlMapper.ExecuteQueryAsync``1(System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
+        <member name="M:SqlBatis.IXmlCommand.ExecuteQueryAsync``1(System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
             <summary>
             异步执行单结果集查询，并返回T类型的结果集
             </summary>
@@ -896,7 +938,7 @@
             <param name="commandType">命令类型</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IXmlMapper.ExecuteNonQuery(System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
+        <member name="M:SqlBatis.IXmlCommand.ExecuteNonQuery(System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
             <summary>
             执行无结果集查询，并返回受影响的行数
             </summary>
@@ -904,7 +946,7 @@
             <param name="commandType">命令类型</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IXmlMapper.ExecuteNonQueryAsync(System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
+        <member name="M:SqlBatis.IXmlCommand.ExecuteNonQueryAsync(System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
             <summary>
             异步执行无结果集查询，并返回受影响的行数
             </summary>
@@ -912,7 +954,7 @@
             <param name="commandType">命令类型</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IXmlMapper.ExecuteScalar``1(System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
+        <member name="M:SqlBatis.IXmlCommand.ExecuteScalar``1(System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
             <summary>
             执行无结果集查询，并返回指定类型的数据
             </summary>
@@ -921,7 +963,7 @@
             <param name="commandType">命令类型</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IXmlMapper.ExecuteScalarAsync``1(System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
+        <member name="M:SqlBatis.IXmlCommand.ExecuteScalarAsync``1(System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
             <summary>
             异步执行无结果集查询，并返回指定类型的数据
             </summary>
@@ -930,7 +972,14 @@
             <param name="commandType">命令类型</param>
             <returns></returns>
         </member>
-        <member name="T:SqlBatis.XmlMapper">
+        <member name="M:SqlBatis.IXmlCommand.AddDbParameter(System.String,System.Object)">
+            <summary>
+            添加数据库参数
+            </summary>
+            <param name="name"></param>
+            <param name="value"></param>
+        </member>
+        <member name="T:SqlBatis.XmlCommand">
             <summary>
             实现xml命令映射器
             </summary>
@@ -950,6 +999,27 @@
             </summary>
             <param name="id"></param>
             <returns></returns>
+        </member>
+        <member name="M:SqlBatis.IXmlResovle.Load(System.String)">
+            <summary>
+            加载配置文件
+            </summary>
+            <param name="filename">文件名</param>
+        </member>
+        <member name="M:SqlBatis.IXmlResovle.Load(System.String,System.String)">
+            <summary>
+            从指定路径加载所有匹配的文件
+            </summary>
+            <param name="path">路径</param>
+            <param name="pattern">文件通配符</param>
+        </member>
+        <member name="M:SqlBatis.IXmlResovle.Load(System.String,System.String,System.IO.SearchOption)">
+            <summary>
+            从指定路径加载所有匹配的文件
+            </summary>
+            <param name="path">路径</param>
+            <param name="pattern">文件通配符</param>
+            <param name="options">查找选项</param>
         </member>
         <member name="M:SqlBatis.XmlResovle.Load(System.String)">
             <summary>
