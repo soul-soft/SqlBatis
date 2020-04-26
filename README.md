@@ -131,6 +131,7 @@ var (list,count) = context.From<Student>()
 ``` C#
 //非并非安全
 var student = context.From<Student>().Where(a=>a.Id==1).Single();
+//因为student的余额随时可能被其它线程修改
 //update student balance=@P_1 where id=1
 context.From<Student>()
     .Set(a=>a.Balance,student+1)
