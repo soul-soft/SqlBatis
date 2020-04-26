@@ -28,7 +28,7 @@
 ```
 ### TypeMapper和TypeConverty
 
-TypeMapper中定义了如果映射数据库记录到CSharp类型的映射规则，其中定义了一下几种行为：
+TypeMapper 用于完成数据库对象到C#对象的映射，底层才有EMIT创建委托，而非反射，性能极高（无反射）极小的减少拆装箱。中定义了如果映射数据库记录到CSharp类型的映射规则，其中定义了一下几种行为：
 
 1. 选择适合的类型转换函数，比如db(bit)->csharp(bool)
 2. 选择映射的属性，比如db(age)->csharp(Age)
