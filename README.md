@@ -230,6 +230,10 @@ var sql2 = xmlresovle.Resolve("student.list-dynamic",new Student()
 
 ``` C#
 //sql+参数，来获取一个执行器，参数可以是字典
+//xmlresvle建议只创建一个，然后给所有的content都设置这个xmlresovle实例
+var xmlresovle = new XmlResovle();
+xmlresovle.Load("D:/xml","*.xml");
+context.XmlResult = xmlresovle;
 var executer = context.From("student.getbyid",new {Id = 1});
 //执行该sql
 var row = executer.ExecuteNonQuery();
