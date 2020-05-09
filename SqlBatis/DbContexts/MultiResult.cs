@@ -104,7 +104,7 @@ namespace SqlBatis
             {
                 list.Add(handler(_reader));
             }
-            _reader.NextResult();
+            NextResult();
             return list;
         }
       
@@ -116,7 +116,7 @@ namespace SqlBatis
             {
                 list.Add(handler(_reader));
             }
-            _reader.NextResult();
+            NextResult();
             return list;
         }
       
@@ -128,7 +128,7 @@ namespace SqlBatis
             {
                 list.Add(handler(_reader));
             }
-            _reader.NextResult();
+            NextResult();
             return list;
         }
 
@@ -140,8 +140,16 @@ namespace SqlBatis
             {
                 list.Add(handler(_reader));
             }
-            _reader.NextResult();
+            NextResult();
             return list;
+        }
+
+        public void NextResult()
+        {
+            if (!_reader.NextResult())
+            {
+                Dispose();
+            }
         }
     }
 }
