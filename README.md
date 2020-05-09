@@ -4,12 +4,6 @@
 
 ### ExpressionActivator
 
-该对象用于完成字符串表达式到C#委托的创建，是xml执行器的核心，他是一个超级词法分析器，虽然功能有限，但是满足级别使用
-
-缺陷
-1. 该词法分析器不能识别运算符的优先级，你必须手动的添加括号来完成，最外层的扩号可以省略
-2. 该词法分析器目前还不支持函数
-3. 参数必须的class类型，参数名必须和属性名保持一致
 
 ``` C#
  //创建一个表达式生成器
@@ -26,15 +20,15 @@
  //查看生成的LambdaExpression
  var expression = result.LambdaExpression;
 ```
-### TypeMapper和TypeConverty
+### EntityMapper和EmitConverty
 
-TypeMapper 用于完成数据库对象到C#对象的映射，底层才有EMIT创建委托，而非反射，性能极高（无反射）极小的减少拆装箱。中定义了如果映射数据库记录到CSharp类型的映射规则，其中定义了一下几种行为：
+EntityMapper 用于完成数据库对象到C#对象的映射，底层才有EMIT创建委托，而非反射，性能极高（无反射）极小的减少拆装箱。中定义了如果映射数据库记录到CSharp类型的映射规则，其中定义了一下几种行为：
 
 1. 选择适合的类型转换函数，比如db(bit)->csharp(bool)
 2. 选择映射的属性，比如db(age)->csharp(Age)
 3. 选择时候的构造器，自定义类型必须包含无参数构造器
 
-TypeConvert更具TyperMaper定义的规则，动态生成DataReader到csharp类型转换函数（IL）,并缓存该函数
+EmitConverty根据EntityMapper定义的规则，动态生成DataReader到csharp类型转换函数（IL）,并缓存该函数
 假设有表student(id,age,name)到csharp类型Student(Id,Age,Name),则自动采用IL技术生成以下代码
 
 ``` C#
@@ -55,7 +49,7 @@ var cmd = connection.CreateCommand();
 cmd.CommandText = "select id,age,name from student";
 var reader = cmd.ExecuteReader();
 //使用IL创建IDataReader到Student类型的委托
-var handler = TypeConvert.GetSerializer<Student>(reader);
+var handler = EmitConvert.GetSerializer<Student>(reader);
 while (reader.Read())
 {
     Student student = handler(reader);
@@ -171,26 +165,28 @@ context.From<Student>()
     除了根节点其他都不是必须的
   -->
   <!--定义变量,插入语法：${id}-->
-  <variable id="columns">
+  <var id="columns">
     Id,Age,Name
-  </variable>
+  </var>
   
-  <variable id="offset">
+  <var id="offset">
     ORDER BY (SELECT 1) OFFSET @Index ROWS FETCH NEXT @Count ROWS ONLY
-  </variable>
+  </var>
 
  <!--你可以不用select来包裹，select并没有实际意义-->
   <select id="list-dynamic">
-    select ${columns} from student
     <!--动态where必须用where包裹，试想如果if标签一个都不成立的时候，它能智能的不向sql写where-->
-    <where>
-        <!--if两种写法-->
-        <!--注意Id必须是可以为null的类型-->
-        <if test="Id!=null" value="Id>@Id"/>
-        <if test="Age!=null">
-          Age=@Age
-        </if>
-    </where>
+    <var id=local>
+      <where>
+          <!--if两种写法-->
+          <!--注意Id必须是可以为null的类型-->
+          <if test="Id!=null" value="Id>@Id"/>
+          <if test="Age!=null">
+            Age=@Age
+          </if>
+      </where>
+     </var>
+    select ${columns} from student ${local}   
     <!--使用变量-->
     ${offset}
    <!--同时生成计数语句-->
@@ -225,7 +221,7 @@ var sql2 = xmlresovle.Resolve("student.list-dynamic",new Student()
 });
 
 ```
-### XmlMapper
+### XmlQuery
 
 使用之前必须配置context的XmlResovle
 
@@ -250,7 +246,7 @@ var list = context.From("student.list-dynamic",new
     Age = (int?)90
 }).ExecuteQuery();
 ```
-### SqlMapper
+### SqlQuery
 
 ``` C#
 //参数类型可以是匿名类型，类类型，字典类型，DbParameter类型
