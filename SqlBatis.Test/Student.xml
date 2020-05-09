@@ -1,25 +1,27 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 
-<commands namespace="sutdent">
+<commands namespace="student">
 
   <!--
-    框架只定义了if,variable,where等标签
+    框架只定义了if,var,where等标签
     insert,select可以随意，并没有实际意义
   -->
-  <variable id="columns">
-    Id,Age,Name
-  </variable>
   
-  <variable id="offset">
-    ORDER BY (SELECT 1) OFFSET @Index ROWS FETCH NEXT @Count ROWS ONLY
-  </variable>
+  <var id="offset">
+    LIMIT 0,10
+  </var>
 
-  <select id="list-dynamic">
-    select ${columns} from student
-    <where>
-      <if test="Id!=null" value="Id>@Id"/>
-    </where>
-    ${offset}
+  <select id="list">   
+    <!-- 定义局部变量 -->
+     <var id="where">
+      <where>
+        <if test="Id!=null" value="Id=@Id"/>
+      </where>
+    </var>
+    
+    select * from student ${where}${offset};
+    select count(1) from student ${where}
+
   </select>
 
   <insert id="add">

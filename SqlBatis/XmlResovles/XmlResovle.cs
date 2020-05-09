@@ -48,19 +48,18 @@ namespace SqlBatis
         private readonly Dictionary<string, CommandNode> _commands
             = new Dictionary<string, CommandNode>();
 
-        private Dictionary<string, string> ResolveVariables(XmlDocument document)
+        private Dictionary<string, string> ResolveVariables(XmlElement element)
         {
             var variables = new Dictionary<string, string>();
-            var elements = document.DocumentElement
-                .Cast<XmlNode>()
-                .Where(a => a.Name == "variable");
+            var elements = element.Cast<XmlNode>()
+                .Where(a => a.Name == "var");
             foreach (XmlElement item in elements)
             {
-                if (item.Name == "variable")
+                if (item.Name == "var")
                 {
                     var id = item.GetAttribute("id");
-                    var value = string.IsNullOrEmpty(item.InnerText)
-                         ? item.GetAttribute("value") : item.InnerText;
+                    var value = string.IsNullOrEmpty(item.InnerXml)
+                         ? item.GetAttribute("value") : item.InnerXml;
                     variables.Add(id, value);
                 }
             }
@@ -82,17 +81,20 @@ namespace SqlBatis
             return Regex.Replace(text, @"\s+", " ").Trim(' ');
         }
 
-        private CommandNode ResolveCommand(Dictionary<string, string> variables, XmlElement element)
+        private CommandNode ResolveCommand(XmlElement element)
         {
             var cmd = new CommandNode();
             foreach (XmlNode item in element.ChildNodes)
             {
+                if (item.Name == "var" || item.NodeType == XmlNodeType.Comment)
+                {
+                    continue;
+                }
                 if (item.NodeType == XmlNodeType.Text)
                 {
-                    var text = ReplaceVariable(variables, item.Value);
                     cmd.Nodes.Add(new TextNode
                     {
-                        Value = text
+                        Value = item.Value
                     });
                 }
                 else if (item.NodeType == XmlNodeType.Element && item.Name == "where")
@@ -102,10 +104,9 @@ namespace SqlBatis
                     {
                         if (iitem.NodeType == XmlNodeType.Text)
                         {
-                            var text = ReplaceVariable(variables, iitem.Value);
                             whereNode.Nodes.Add(new TextNode
                             {
-                                Value = text
+                                Value = iitem.Value
                             });
                         }
                         else if (iitem.NodeType == XmlNodeType.Element && iitem.Name == "if")
@@ -113,7 +114,6 @@ namespace SqlBatis
                             var test = iitem.Attributes["test"].Value;
                             var value = string.IsNullOrEmpty(iitem.InnerText) ?
                                 (iitem.Attributes["value"]?.Value ?? string.Empty) : iitem.InnerText;
-                            value = ReplaceVariable(variables, value);
                             whereNode.Nodes.Add(new IfNode
                             {
                                 Test = test,
@@ -123,21 +123,11 @@ namespace SqlBatis
                     }
                     cmd.Nodes.Add(whereNode);
                 }
-                else if (item.NodeType == XmlNodeType.Element && item.Name == "count")
-                {
-                    var text = item.InnerText;
-                    text = ReplaceVariable(variables, text);
-                    cmd.Nodes.Add(new CountNode()
-                    {
-                        Value = text
-                    });
-                }
                 else if (item.NodeType == XmlNodeType.Element && item.Name == "if")
                 {
                     var test = item.Attributes["test"].Value;
                     var value = string.IsNullOrEmpty(item.InnerText) ?
                              (item.Attributes["value"]?.Value ?? string.Empty) : item.InnerText;
-                    value = ReplaceVariable(variables, value);
                     cmd.Nodes.Add(new IfNode
                     {
                         Test = test,
@@ -175,15 +165,37 @@ namespace SqlBatis
                 document.Load(filename);
                 var @namespace = document.DocumentElement
                     .GetAttribute("namespace") ?? string.Empty;
-                var variables = ResolveVariables(document);
+                //解析全局变量
+                var globalVariables = ResolveVariables(document.DocumentElement);
+                //获取命令节点
                 var elements = document.DocumentElement
                     .Cast<XmlNode>()
-                    .Where(a => a.Name != "variable" && a is XmlElement);
+                    .Where(a => a.Name != "var" && a is XmlElement);
                 foreach (XmlElement item in elements)
                 {
                     var id = item.GetAttribute("id");
                     id = string.IsNullOrEmpty(@namespace) ? $"{id}" : $"{@namespace}.{id}";
-                    var cmd = ResolveCommand(variables, item);
+                    //解析局部变量
+                    var localVariables = ResolveVariables(item);
+                    //合并局部和全局变量，局部变量可以覆盖全局变量
+                    var variables = new Dictionary<string, string>(globalVariables);
+                    foreach (var ariable in localVariables)
+                    {
+                        if (variables.ContainsKey(ariable.Key))
+                        {
+                            variables[ariable.Key] = ariable.Value;
+                        }
+                        else
+                        {
+                            variables.Add(ariable.Key, ariable.Value);
+                        }
+                    }
+                    //替换变量
+                    var xml = ReplaceVariable(variables, item.OuterXml);
+                    var doc = new XmlDocument();
+                    doc.LoadXml(xml);
+                    //通过变量解析命令
+                    var cmd = ResolveCommand(doc.DocumentElement);
                     if (_commands.ContainsKey(id))
                     {
                         _commands[id] = cmd;

@@ -26,15 +26,15 @@ namespace SqlBatis
         }
     }
     /// <summary>
-    /// Type Convert
+    /// IL Convert
     /// </summary>
-    public class TypeConvert
+    public class EmitConvert
     {
-        private readonly static ConcurrentDictionary<SerializerKey, object> _serializers 
-            = new ConcurrentDictionary<SerializerKey, object>();      
-        private readonly static ConcurrentDictionary<Type, Func<object, Dictionary<string, object>>> _deserializers 
+        private readonly static ConcurrentDictionary<SerializerKey, object> _serializers
+            = new ConcurrentDictionary<SerializerKey, object>();
+        private readonly static ConcurrentDictionary<Type, Func<object, Dictionary<string, object>>> _deserializers
             = new ConcurrentDictionary<Type, Func<object, Dictionary<string, object>>>();
-      
+
         private struct SerializerKey : IEquatable<SerializerKey>
         {
             private string[] Names { get; set; }
@@ -82,7 +82,7 @@ namespace SqlBatis
         /// <summary>
         /// IDataRecord Converted to T
         /// </summary>
-        public static Func<IDataRecord, T> GetSerializer<T>(ITypeMapper mapper, IDataRecord record)
+        public static Func<IDataRecord, T> GetSerializer<T>(IEntityMapper mapper, IDataRecord record)
         {
             string[] names = new string[record.FieldCount];
             for (int i = 0; i < record.FieldCount; i++)
@@ -90,10 +90,10 @@ namespace SqlBatis
                 names[i] = record.GetName(i);
             }
             var key = new SerializerKey(typeof(T), names.Length == 1 ? null : names);
-            var handler = _serializers.GetOrAdd(key,k=> 
-            {
-                return CreateTypeSerializerHandler<T>(mapper, record);
-            });
+            var handler = _serializers.GetOrAdd(key, k =>
+             {
+                 return CreateTypeSerializerHandler<T>(mapper, record);
+             });
             return handler as Func<IDataRecord, T>;
         }
         /// <summary>
@@ -118,7 +118,7 @@ namespace SqlBatis
         /// </summary>
         public static Func<IDataRecord, T> GetSerializer<T>(IDataRecord record)
         {
-            return GetSerializer<T>(new TypeMapper(), record);
+            return GetSerializer<T>(new EntityMapper(), record);
         }
         /// <summary>
         /// Object To Dictionary&lt;tstring, object&gt;
@@ -129,7 +129,7 @@ namespace SqlBatis
             {
                 return (object param) => param as Dictionary<string, object>;
             }
-            var handler = _deserializers.GetOrAdd(type, t=>
+            var handler = _deserializers.GetOrAdd(type, t =>
             {
                 return CreateTypeDeserializerHandler(type) as Func<object, Dictionary<string, object>>;
             });
@@ -138,7 +138,7 @@ namespace SqlBatis
         private static Func<object, Dictionary<string, object>> CreateTypeDeserializerHandler(Type type)
         {
             var properties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
-            var methodName = $"{type.Name}Deserializer{Guid.NewGuid()}";
+            var methodName = $"{type.Name}Deserializer{Guid.NewGuid():N}";
             var dynamicMethod = new DynamicMethod(methodName, typeof(Dictionary<string, object>), new Type[] { typeof(object) }, type, true);
             var generator = dynamicMethod.GetILGenerator();
             LocalBuilder entityLocal1 = generator.DeclareLocal(typeof(Dictionary<string, object>));
@@ -165,10 +165,11 @@ namespace SqlBatis
             generator.Emit(OpCodes.Ret);
             return dynamicMethod.CreateDelegate(typeof(Func<object, Dictionary<string, object>>)) as Func<object, Dictionary<string, object>>;
         }
-        private static Func<IDataRecord, T> CreateTypeSerializerHandler<T>(ITypeMapper mapper, IDataRecord record)
+
+        private static Func<IDataRecord, T> CreateTypeSerializerHandler<T>(IEntityMapper mapper, IDataRecord record)
         {
             var type = typeof(T);
-            var methodName = $"{type.Name}Serializer{Guid.NewGuid()}";
+            var methodName = $"{type.Name}Serializer{Guid.NewGuid():N}";
             var dynamicMethod = new DynamicMethod(methodName, type, new Type[] { typeof(IDataRecord) }, type, true);
             var generator = dynamicMethod.GetILGenerator();
             LocalBuilder local = generator.DeclareLocal(type);
@@ -180,6 +181,11 @@ namespace SqlBatis
                 var typename = record.GetDataTypeName(i);
                 dataInfos[i] = new DbDataInfo(i, typename, datatype, dataname);
             }
+            /*
+             * T t;
+             * t = ConvertTo***(reader,i);
+             * return t;
+             */
             if (dataInfos.Length == 1 && (type.IsValueType || type == typeof(string) || type == typeof(object)))
             {
                 var dataInfo = dataInfos.First();
@@ -190,12 +196,25 @@ namespace SqlBatis
                     generator.Emit(OpCodes.Callvirt, convertMethod);
                 else
                     generator.Emit(OpCodes.Call, convertMethod);
+                if (type == typeof(object) && convertMethod.ReturnType.IsValueType)
+                {
+                    generator.Emit(OpCodes.Box, convertMethod.ReturnType);
+                }
                 generator.Emit(OpCodes.Stloc, local);
                 generator.Emit(OpCodes.Ldloc, local);
                 generator.Emit(OpCodes.Ret);
                 return dynamicMethod.CreateDelegate(typeof(Func<IDataRecord, T>)) as Func<IDataRecord, T>;
             }
             var constructor = mapper.FindConstructor(type);
+            /*
+            * T t;
+            * int a;
+            * int b;
+            * a = ConvertTo**(reader,i);
+            * b = ConvertTo***(reader,i);
+            * t = new T(a,b);
+            * return t;
+            */
             if (constructor.GetParameters().Length > 0)
             {
                 var parameters = constructor.GetParameters();
@@ -230,6 +249,13 @@ namespace SqlBatis
                 generator.Emit(OpCodes.Ret);
                 return dynamicMethod.CreateDelegate(typeof(Func<IDataRecord, T>)) as Func<IDataRecord, T>;
             }
+            /*
+             * T t;
+             * t = new T();
+             * t.A = ConvertTo**(reader,i);
+             * t.B = = ConvertTo***(reader,i);
+             * return t;
+             */
             else
             {
                 var properties = type.GetProperties();

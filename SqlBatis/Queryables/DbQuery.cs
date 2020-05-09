@@ -47,7 +47,7 @@ namespace SqlBatis
         #region resovles
         private void ResovleParameter(T entity)
         {
-            var serializer = TypeConvert.GetDeserializer(typeof(T));
+            var serializer = EmitConvert.GetDeserializer(typeof(T));
             var values = serializer(entity);
             foreach (var item in values)
             {
@@ -88,16 +88,34 @@ namespace SqlBatis
         private string ResovleSum()
         {
             var table = DbMetaInfoCache.GetTable(typeof(T)).TableName;
-            var column = $"SUM({ResolveColumns()})";
+            var column = $"SUM({ResovleColumns()})";
             var where = ResolveWhere();
             var sql = $"SELECT {column} FROM {table}{where}";
+            return sql;
+        }
+
+        private string ResolveGet()
+        {
+            var table = DbMetaInfoCache.GetTable(typeof(T)).TableName;
+            var columns = DbMetaInfoCache.GetColumns(typeof(T));
+            var column = ResovleColumns();
+            var where = $" WHERE {columns.Where(a => a.IsPrimaryKey == true).First().ColumnName}=@id";
+            string sql;
+            if (_context.DbContextType == DbContextType.SqlServer)
+            {
+                sql = $"SELECT TOP 1 {column} FROM {table}{where}";
+            }
+            else
+            {
+                sql = $"SELECT {column} FROM {table}{where} LIMIT 0,1";
+            }
             return sql;
         }
 
         private string ResolveSelect()
         {
             var table = DbMetaInfoCache.GetTable(typeof(T)).TableName;
-            var column = ResolveColumns();
+            var column = ResovleColumns();
             var where = ResolveWhere();
             var group = ResolveGroup();
             var having = ResolveHaving();
@@ -168,7 +186,7 @@ namespace SqlBatis
             {
                 var buffer = new StringBuilder();
                 buffer.Append($"INSERT INTO {table}({columnNames}) VALUES ");
-                var serializer = TypeConvert.GetDeserializer(typeof(T));
+                var serializer = EmitConvert.GetDeserializer(typeof(T));
                 var list = entitys.ToList();
                 for (var i = 0; i < list.Count; i++)
                 {
@@ -312,7 +330,7 @@ namespace SqlBatis
             return sql;
         }
 
-        private string ResolveColumns()
+        private string ResovleColumns()
         {
             if (_selectExpression == null)
             {

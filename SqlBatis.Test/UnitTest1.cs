@@ -1,5 +1,7 @@
 using Microsoft.Extensions.Logging;
+using MySql.Data.MySqlClient;
 using NUnit.Framework;
+using Org.BouncyCastle.Math.Field;
 using SqlBatis.Attributes;
 using SqlBatis.Expressions;
 using System;
@@ -21,7 +23,7 @@ namespace SqlBatis.Test
         [SetUp]
         public void Setup()
         {
-            db.Open();
+            //db.Open();
         }
 
         [Test]
@@ -29,13 +31,13 @@ namespace SqlBatis.Test
         {
             var row = db.Students
                 .Filter(a => a.Id)
-                .Insert(new Student()
+                .Insert(new StudentDto()
                 {
                     Name = "zs"
                 });
             var id = db.Students
                 .Filter(a => a.Id)
-                .InsertReturnId(new Student()
+                .InsertReturnId(new StudentDto()
                 {
                     Name = "zs"
                 });
@@ -48,7 +50,7 @@ namespace SqlBatis.Test
             var row = db.Students
                 .Filter(a => a.Id)
                 .Where(a => a.Id == 1)
-                .Update(new Student()
+                .Update(new StudentDto()
                 {
                     Age = 90,
                     IsDelete = false,
@@ -156,7 +158,7 @@ namespace SqlBatis.Test
         [Test]
         public void TestXml()
         {
-            var row = db.From("sutdent.add", new Student()
+            var row = db.From("sutdent.add", new StudentDto()
             {
                 Name = "xml",
                 Age = 90
@@ -164,7 +166,7 @@ namespace SqlBatis.Test
 
             var p = new { Id = (int?)1, Index = 1, Count = 10 };
             var list = db.From("sutdent.list-dynamic", p)
-                .ExecuteQuery<Student>()
+                .ExecuteQuery<StudentDto>()
                 .ToList();
         }
 
@@ -178,12 +180,13 @@ namespace SqlBatis.Test
             var flag1 = result.Func(new P { Id = 2, Age = null });
             var flag2 = result.Func(new P { Id = 2, Age = 2 });
         }
+
         [Test]
         public void TestTypeConvert()
         {
-            var deserializer = TypeConvert.GetDeserializer(typeof(Student));
+            var deserializer = EmitConvert.GetDeserializer(typeof(StudentDto));
 
-            Dictionary<string, object> keyvalues = deserializer(new Student
+            Dictionary<string, object> keyvalues = deserializer(new StudentDto
             {
                 Id = 10,
                 Age = 10,
@@ -194,12 +197,50 @@ namespace SqlBatis.Test
             var cmd = db.Connection.CreateCommand();
             cmd.CommandText = "select * from Student";
             var reader = cmd.ExecuteReader();
-            var serializer = TypeConvert.GetSerializer<Student>(new TypeMapper(), reader);
+            var serializer = EmitConvert.GetSerializer<StudentDto>(new EntityMapper(), reader);
             while (reader.Read())
             {
-                Student student = serializer(reader);
+                StudentDto student = serializer(reader);
             }
-        }      
+        }
+
+        [Test]
+        public void TestXmlresolve()
+        {
+            object c = 10;
+            var xmlresovle = new XmlResovle();
+            xmlresovle.Load(@"E:\SqlBatis\SqlBatis.Test\Student.xml");
+            var db = new DbContext(new DbContextBuilder
+            {
+                Connection = new MySql.Data.MySqlClient.MySqlConnection("server=127.0.0.1;port=3306;user id=root;password=1024;database=test;"),
+                XmlResovle = xmlresovle,
+            });
+            db.Open();
+            try
+            {
+                //var count = db.From<Student>().Get(1);
+                var multi = db.From("student.list",new { Id=(int?)null})
+                    .ExecuteMultiQuery();
+                var list = multi.GetList();
+                var count = multi.Get();
+            }
+            catch (Exception e)
+            {
+
+                throw;
+            }
+           
+        }
+        public object Funcff()
+        {
+            var reader = new MySqlCommand().ExecuteReader();
+            return FiniteFields(reader,0);
+        }
+        static long? FiniteFields(IDataRecord record,int i)
+        {
+            return 90;
+        }
+
     }
 
 
@@ -212,7 +253,20 @@ namespace SqlBatis.Test
 
     public class Student
     {
+        [Column("id")]
+        [PrimaryKey]
+        public int Id { get; set; }
+        [Column("stu_name")]
+        public string Name { get; set; }
+        [Column("create_time")]
+        [Default]
+        public DateTime CreateTime { get; set; }
+    }
+
+    public class StudentDto
+    {
         public int? Id { get; set; }
+        [Column("stu_name")]
         public string Name { get; set; }
         public int? Age { get; set; }
         public bool? IsDelete { get; set; }

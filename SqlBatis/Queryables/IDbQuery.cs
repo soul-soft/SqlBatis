@@ -12,6 +12,18 @@ namespace SqlBatis
     public interface IDbQuery<T>
     {
         /// <summary>
+        /// 通过主键检索数据
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        T Get(object id);
+        /// <summary>
+        /// 异步通过主键检索数据
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        Task<T> GetAsync(object id);
+        /// <summary>
         /// count查询
         /// </summary>
         /// <param name="commandTimeout">超时时间</param>

@@ -8,7 +8,7 @@ namespace SqlBatis
     /// <summary>
     /// TypeMapper Interface
     /// </summary>
-    public interface ITypeMapper
+    public interface IEntityMapper
     {
         MemberInfo FindMember(MemberInfo[] properties, DbDataInfo dataInfo);
         MethodInfo FindConvertMethod(Type csharpType, Type dbType);
@@ -19,7 +19,7 @@ namespace SqlBatis
     /// <summary>
     /// 返回数据记录到Csharp类型的策略
     /// </summary>
-    public class TypeMapper : ITypeMapper
+    public class EntityMapper : IEntityMapper
     {
         public bool MatchNamesWithUnderscores { get; set; }
 
@@ -148,10 +148,14 @@ namespace SqlBatis
 
         private bool IsNullableType(Type type)
         {
-            return Nullable.GetUnderlyingType(type) != null;
+            if (type.IsValueType && Nullable.GetUnderlyingType(type) == null)
+            {
+                return false;
+            }
+            return true;
         }
 
-        public TypeMapper(bool matchNamesWithUnderscores = false)
+        public EntityMapper(bool matchNamesWithUnderscores = false)
         {
             MatchNamesWithUnderscores = matchNamesWithUnderscores;
         }
@@ -182,7 +186,7 @@ namespace SqlBatis
 
         #region NullableMethod Field
         public static MethodInfo ToObjectNullableMethod = typeof(DataConvertMethod).GetMethod(nameof(DataConvertMethod.ConvertObjectNullable));
-        public static MethodInfo ToByteNullableMethod = typeof(DataConvertMethod).GetMethod(nameof(DataConvertMethod.ConvertToInt16Nullable));
+        public static MethodInfo ToByteNullableMethod = typeof(DataConvertMethod).GetMethod(nameof(DataConvertMethod.ConvertToByteNullable));
         public static MethodInfo ToIn16NullableMethod = typeof(DataConvertMethod).GetMethod(nameof(DataConvertMethod.ConvertToInt16Nullable));
         public static MethodInfo ToIn32NullableMethod = typeof(DataConvertMethod).GetMethod(nameof(DataConvertMethod.ConvertToInt32Nullable));
         public static MethodInfo ToIn64NullableMethod = typeof(DataConvertMethod).GetMethod(nameof(DataConvertMethod.ConvertToInt64Nullable));

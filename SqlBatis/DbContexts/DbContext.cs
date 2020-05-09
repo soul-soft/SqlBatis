@@ -29,13 +29,13 @@ namespace SqlBatis
         /// <param name="id">命令id</param>
         /// <param name="parameter">参数</param>
         /// <returns></returns>
-        IXmlCommand From<T>(string id, T parameter) where T : class;
+        IXmlQuery From<T>(string id, T parameter) where T : class;
         /// <summary>
         /// 获取一个xml执行器
         /// </summary>
         /// <param name="id">命令id</param>
         /// <returns></returns>
-        IXmlCommand From(string id);
+        IXmlQuery From(string id);
         /// <summary>
         /// 获取一个linq执行器
         /// </summary>
@@ -167,7 +167,7 @@ namespace SqlBatis
 
         private IDbTransaction _transaction = null;
 
-        private readonly ITypeMapper _typeMapper = null;
+        private readonly IEntityMapper _typeMapper = null;
 
         public IDbConnection Connection { get; } = null;
 
@@ -188,7 +188,7 @@ namespace SqlBatis
             var builder = OnConfiguring(new DbContextBuilder());
             Connection = builder.Connection;
             _xmlResovle = builder.XmlResovle;
-            _typeMapper = builder.TypeMapper ?? new TypeMapper();
+            _typeMapper = builder.TypeMapper ?? new EntityMapper();
             DbContextType = builder.DbContextType;
         }
 
@@ -196,20 +196,20 @@ namespace SqlBatis
         {
             Connection = builder.Connection;
             _xmlResovle = builder.XmlResovle;
-            _typeMapper = builder.TypeMapper ?? new TypeMapper();
+            _typeMapper = builder.TypeMapper ?? new EntityMapper();
             DbContextType = builder.DbContextType;
         }
-        public IXmlCommand From<T>(string id, T parameter) where T : class
+        public IXmlQuery From<T>(string id, T parameter) where T : class
         {
             var sql = _xmlResovle.Resolve(id, parameter);
-            var deserializer = TypeConvert.GetDeserializer(typeof(T));
+            var deserializer = EmitConvert.GetDeserializer(typeof(T));
             var values = deserializer(parameter);
-            return new XmlCommand(this, sql, values);
+            return new XmlQuery(this, sql, values);
         }
-        public IXmlCommand From(string id)
+        public IXmlQuery From(string id)
         {
             var sql = _xmlResovle.Resolve(id);
-            return new XmlCommand(this, sql);
+            return new XmlQuery(this, sql);
         }
 
         public IDbQuery<T> From<T>()
@@ -225,7 +225,7 @@ namespace SqlBatis
                 var list = new List<dynamic>();
                 using (var reader = cmd.ExecuteReader())
                 {
-                    var handler = TypeConvert.GetSerializer();
+                    var handler = EmitConvert.GetSerializer();
                     while (reader.Read())
                     {
                         list.Add(handler(reader));
@@ -243,7 +243,7 @@ namespace SqlBatis
                 using (var reader = await cmd.ExecuteReaderAsync())
                 {
                     var list = new List<dynamic>();
-                    var handler = TypeConvert.GetSerializer();
+                    var handler = EmitConvert.GetSerializer();
                     while (reader.Read())
                     {
                         list.Add(handler(reader));
@@ -268,7 +268,7 @@ namespace SqlBatis
                 Initialize(cmd, sql, parameter, commandTimeout, commandType);
                 using (var reader = cmd.ExecuteReader())
                 {
-                    var handler = TypeConvert.GetSerializer<T>(_typeMapper, reader);
+                    var handler = EmitConvert.GetSerializer<T>(_typeMapper, reader);
                     while (reader.Read())
                     {
                         list.Add(handler(reader));
@@ -286,7 +286,7 @@ namespace SqlBatis
                 using (var reader = await cmd.ExecuteReaderAsync())
                 {
                     var list = new List<T>();
-                    var handler = TypeConvert.GetSerializer<T>(_typeMapper, reader);
+                    var handler = EmitConvert.GetSerializer<T>(_typeMapper, reader);
                     while (await reader.ReadAsync())
                     {
                         list.Add(handler(reader));
@@ -422,7 +422,7 @@ namespace SqlBatis
             }
             else if (parameter != null)
             {
-                var handler = TypeConvert.GetDeserializer(parameter.GetType());
+                var handler = EmitConvert.GetDeserializer(parameter.GetType());
                 var values = handler(parameter);
                 foreach (var item in values)
                 {

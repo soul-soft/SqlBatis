@@ -66,7 +66,6 @@ namespace SqlBatis.XmlResovles
         public string Resolve<T>(CommandNode command, T parameter) where T : class
         {
             var buffer = new StringBuilder();
-            var wheresql = string.Empty;
             foreach (var item in command.Nodes)
             {
                 if (item is TextNode)
@@ -79,7 +78,7 @@ namespace SqlBatis.XmlResovles
                 }
                 else if (item is WhereNode)
                 {
-                    wheresql = ResolveWhereNode(item as WhereNode, parameter);
+                    var wheresql = ResolveWhereNode(item as WhereNode, parameter);
                     if (wheresql.Length > 0)
                     {
                         buffer.AppendFormat($" {wheresql}");
@@ -93,15 +92,6 @@ namespace SqlBatis.XmlResovles
                         buffer.AppendFormat($" {txt}");
                     }
                 }
-            }
-            if (command.Nodes.Any(a=>a is CountNode))
-            {
-                var countsql = (command.Nodes.Where(a => a is CountNode).First() as CountNode).Value;
-                if (wheresql.Length>0)
-                {
-                    countsql = $"{countsql} {wheresql}";
-                }
-                buffer.Append($";{countsql}");
             }
             return buffer.ToString().Trim(' ');
         }

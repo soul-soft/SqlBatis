@@ -13,7 +13,16 @@ namespace SqlBatis
     public partial class DbQuery<T>
     {
         #region sync
-      
+        public T Get(object id)
+        {
+            var sql = ResolveGet();
+            var values = new Dictionary<string, object>
+            {
+                { "id", id }
+            };
+            return _context.ExecuteQuery<T>(sql, values).FirstOrDefault();
+        }
+
         public int Count(int? commandTimeout = null)
         {
             var sql = ResovleCount();

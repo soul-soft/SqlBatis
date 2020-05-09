@@ -15,7 +15,7 @@ namespace SqlBatis.Test
             resovle = new XmlResovle();
             resovle.Load(@"E:\SqlBatis\SqlBatis.Test", "*.xml");          
         }
-        public IDbQuery<Student> Students { get => new DbQuery<Student>(this); }
+        public IDbQuery<StudentDto> Students { get => new DbQuery<StudentDto>(this); }
 
         protected override void OnLogging(string message, IDataParameterCollection parameter = null, int? commandTimeout = null, CommandType? commandType = null)
         {

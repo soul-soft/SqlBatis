@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using SqlBatis.Attributes;
@@ -8,6 +9,8 @@ namespace SqlBatis.Expressions
     public class BooleanExpressionResovle : ExpressionResovle
     {
         private readonly string _prefix = "@";
+
+        private bool _isNotExpression = false;
 
         private readonly Dictionary<string, object> _parameters = new Dictionary<string, object>();
 
@@ -25,7 +28,7 @@ namespace SqlBatis.Expressions
 
         protected override Expression VisitMember(MemberExpression node)
         {
-            if (node.Expression?.NodeType == ExpressionType.Parameter)
+            if (IsParameterExpression(node))
             {
                 SetParameterName(node);
             }
@@ -66,6 +69,59 @@ namespace SqlBatis.Expressions
                     _textBuilder.Append(")");
                 }
             }
+            else if (IsLikeExpression(node))
+            {
+                _textBuilder.Append("(");
+                object value = null;
+                if (IsParameterExpression(node.Object))
+                {
+                    SetParameterName(node.Object as MemberExpression);
+                    value = VisitConstantValue(node.Arguments[0]);
+                }
+                else
+                {
+                    SetParameterName(node.Arguments[0] as MemberExpression);
+                    value = VisitConstantValue(node.Object);
+                }
+                if (_isNotExpression)
+                {
+                    _isNotExpression = false;
+                    _textBuilder.Append(" NOT LIKE ");
+                }
+                else
+                {
+                    _textBuilder.Append(" LIKE ");
+                }
+                if (node.Method.Name == nameof(string.Contains))
+                {
+                    SetParameterValue(Expression.Constant($"%{value}%"));
+                }
+                else if (node.Method.Name == nameof(string.StartsWith))
+                {
+                    SetParameterValue(Expression.Constant($"{value}%"));
+                }
+                else
+                {
+                    SetParameterValue(Expression.Constant($"%{value}"));
+                }
+                _textBuilder.Append(")");
+            }
+            else if (IsInExpression(node))
+            {
+                _textBuilder.Append("(");
+                SetParameterName(node.Arguments[1] as MemberExpression);
+                if (_isNotExpression)
+                {
+                    _isNotExpression = false;
+                    _textBuilder.Append(" NOT IN ");
+                }
+                else
+                {
+                    _textBuilder.Append(" IN ");
+                }
+                SetParameterValue(node.Arguments[0] as MemberExpression);
+                _textBuilder.Append(")");
+            }
             else if (node.Method.DeclaringType.GetCustomAttribute(typeof(FunctionAttribute), true) != null)
             {
                 var function = new FunctionExpressionResovle(node).Resovle();
@@ -105,7 +161,15 @@ namespace SqlBatis.Expressions
         {
             if (node.NodeType == ExpressionType.Not)
             {
-                _textBuilder.AppendFormat("{0} ", Operator.ResovleExpressionType(ExpressionType.Not));
+                if (node.Operand is MethodCallExpression methodCallExpression
+                    && (IsInExpression(methodCallExpression) || IsLikeExpression(methodCallExpression)))
+                {
+                    _isNotExpression = true;
+                }
+                else
+                {
+                    _textBuilder.AppendFormat("{0} ", Operator.ResovleExpressionType(ExpressionType.Not));
+                }
                 Visit(node.Operand);
             }
             else
@@ -133,6 +197,32 @@ namespace SqlBatis.Expressions
             var parameterName = $"P_{_parameters.Count}";
             _parameters.Add(parameterName, value);
             _textBuilder.Append($"{_prefix}{parameterName}");
+        }
+
+        private bool IsLikeExpression(MethodCallExpression node)
+        {
+            var array = new string[]
+            {
+                nameof(string.Contains),
+                nameof(string.StartsWith),
+                nameof(string.EndsWith)
+            };
+            return node.Method.DeclaringType == typeof(string)
+                && array.Contains(node.Method.Name)
+                && node.Arguments.Count == 1;
+        }
+
+        private bool IsParameterExpression(Expression expression)
+        {
+            return expression is MemberExpression memberExpression &&
+                memberExpression.Expression?.NodeType == ExpressionType.Parameter;
+        }
+
+        private bool IsInExpression(MethodCallExpression node)
+        {
+            return node.Method.DeclaringType == typeof(Enumerable)
+                && node.Method.Name == nameof(Enumerable.Contains)
+                && node.Arguments.Count == 2;
         }
     }
 }

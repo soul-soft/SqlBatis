@@ -224,6 +224,72 @@
             回滚当前事务会话
             </summary>
         </member>
+        <member name="T:SqlBatis.DbDataInfo">
+            <summary>
+            DbColumn Information
+            </summary>
+        </member>
+        <member name="T:SqlBatis.EmitConvert">
+            <summary>
+            IL Convert
+            </summary>
+        </member>
+        <member name="M:SqlBatis.EmitConvert.GetSerializer``1(SqlBatis.IEntityMapper,System.Data.IDataRecord)">
+            <summary>
+            IDataRecord Converted to T
+            </summary>
+        </member>
+        <member name="M:SqlBatis.EmitConvert.GetSerializer">
+            <summary>
+            IDataRecord Converted to dynamic
+            </summary>
+        </member>
+        <member name="M:SqlBatis.EmitConvert.GetSerializer``1(System.Data.IDataRecord)">
+            <summary>
+            IDataRecord Converted to T
+            </summary>
+        </member>
+        <member name="M:SqlBatis.EmitConvert.GetDeserializer(System.Type)">
+            <summary>
+            Object To Dictionary&lt;tstring, object&gt;
+            </summary>
+        </member>
+        <member name="T:SqlBatis.IEntityMapper">
+            <summary>
+            TypeMapper Interface
+            </summary>
+        </member>
+        <member name="T:SqlBatis.EntityMapper">
+            <summary>
+            返回数据记录到Csharp类型的策略
+            </summary>
+        </member>
+        <member name="M:SqlBatis.EntityMapper.FindConstructor(System.Type)">
+            <summary>
+            Find parametric constructors.
+            If there is no default constructor, the constructor with the most parameters is returned.
+            </summary>
+        </member>
+        <member name="M:SqlBatis.EntityMapper.FindConstructorParameter(SqlBatis.DbDataInfo[],System.Reflection.ParameterInfo)">
+            <summary>
+            Returns field information based on parameter information
+            </summary>
+        </member>
+        <member name="M:SqlBatis.EntityMapper.FindMember(System.Reflection.MemberInfo[],SqlBatis.DbDataInfo)">
+            <summary>
+            Returns attribute information based on field information
+            </summary>
+        </member>
+        <member name="M:SqlBatis.EntityMapper.FindConvertMethod(System.Type,System.Type)">
+            <summary>
+            Return type conversion function.
+            </summary>
+        </member>
+        <member name="T:SqlBatis.DataConvertMethod">
+            <summary>
+            数据库类型到Csharp类型转换器
+            </summary>
+        </member>
         <member name="M:SqlBatis.IMultiResult.GetList">
             <summary>
             返回当前dynamic类型结果集
@@ -275,72 +341,6 @@
             </summary>
             <typeparam name="T">结果集类型</typeparam>
             <returns></returns>
-        </member>
-        <member name="T:SqlBatis.DbDataInfo">
-            <summary>
-            DbColumn Information
-            </summary>
-        </member>
-        <member name="T:SqlBatis.TypeConvert">
-            <summary>
-            Type Convert
-            </summary>
-        </member>
-        <member name="M:SqlBatis.TypeConvert.GetSerializer``1(SqlBatis.ITypeMapper,System.Data.IDataRecord)">
-            <summary>
-            IDataRecord Converted to T
-            </summary>
-        </member>
-        <member name="M:SqlBatis.TypeConvert.GetSerializer">
-            <summary>
-            IDataRecord Converted to dynamic
-            </summary>
-        </member>
-        <member name="M:SqlBatis.TypeConvert.GetSerializer``1(System.Data.IDataRecord)">
-            <summary>
-            IDataRecord Converted to T
-            </summary>
-        </member>
-        <member name="M:SqlBatis.TypeConvert.GetDeserializer(System.Type)">
-            <summary>
-            Object To Dictionary&lt;tstring, object&gt;
-            </summary>
-        </member>
-        <member name="T:SqlBatis.ITypeMapper">
-            <summary>
-            TypeMapper Interface
-            </summary>
-        </member>
-        <member name="T:SqlBatis.TypeMapper">
-            <summary>
-            返回数据记录到Csharp类型的策略
-            </summary>
-        </member>
-        <member name="M:SqlBatis.TypeMapper.FindConstructor(System.Type)">
-            <summary>
-            Find parametric constructors.
-            If there is no default constructor, the constructor with the most parameters is returned.
-            </summary>
-        </member>
-        <member name="M:SqlBatis.TypeMapper.FindConstructorParameter(SqlBatis.DbDataInfo[],System.Reflection.ParameterInfo)">
-            <summary>
-            Returns field information based on parameter information
-            </summary>
-        </member>
-        <member name="M:SqlBatis.TypeMapper.FindMember(System.Reflection.MemberInfo[],SqlBatis.DbDataInfo)">
-            <summary>
-            Returns attribute information based on field information
-            </summary>
-        </member>
-        <member name="M:SqlBatis.TypeMapper.FindConvertMethod(System.Type,System.Type)">
-            <summary>
-            Return type conversion function.
-            </summary>
-        </member>
-        <member name="T:SqlBatis.DataConvertMethod">
-            <summary>
-            数据库类型到Csharp类型转换器
-            </summary>
         </member>
         <member name="T:SqlBatis.Expressions.DbUpdateConcurrencyException">
             <summary>
@@ -396,6 +396,20 @@
             linq 查询
             </summary>
             <typeparam name="T"></typeparam>
+        </member>
+        <member name="M:SqlBatis.IDbQuery`1.Get(System.Object)">
+            <summary>
+            通过主键检索数据
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.IDbQuery`1.GetAsync(System.Object)">
+            <summary>
+            异步通过主键检索数据
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
         </member>
         <member name="M:SqlBatis.IDbQuery`1.Count(System.Nullable{System.Int32})">
             <summary>
@@ -891,12 +905,12 @@
             <param name="type"></param>
             <returns></returns>
         </member>
-        <member name="T:SqlBatis.IXmlCommand">
+        <member name="T:SqlBatis.IXmlQuery">
             <summary>
             xml命令映射器
             </summary>
         </member>
-        <member name="M:SqlBatis.IXmlCommand.ExecuteMultiQuery(System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
+        <member name="M:SqlBatis.IXmlQuery.ExecuteMultiQuery(System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
              <summary>
             执行多结果集查询，返回IMultiResult
              </summary>
@@ -904,7 +918,7 @@
              <param name="commandType">命令类型</param>
              <returns></returns>
         </member>
-        <member name="M:SqlBatis.IXmlCommand.ExecuteQuery(System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
+        <member name="M:SqlBatis.IXmlQuery.ExecuteQuery(System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
             <summary>
             执行单结果集查询，并返回dynamic类型的结果集
             </summary>
@@ -912,7 +926,7 @@
             <param name="commandType">命令类型</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IXmlCommand.ExecuteQueryAsync(System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
+        <member name="M:SqlBatis.IXmlQuery.ExecuteQueryAsync(System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
             <summary>
             异步执行单结果集查询，并返回dynamic类型的结果集
             </summary>
@@ -920,7 +934,7 @@
             <param name="commandType">命令类型</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IXmlCommand.ExecuteQuery``1(System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
+        <member name="M:SqlBatis.IXmlQuery.ExecuteQuery``1(System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
             <summary>
             执行单结果集查询，并返回T类型的结果集
             </summary>
@@ -929,7 +943,7 @@
             <param name="commandType">命令类型</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IXmlCommand.ExecuteQueryAsync``1(System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
+        <member name="M:SqlBatis.IXmlQuery.ExecuteQueryAsync``1(System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
             <summary>
             异步执行单结果集查询，并返回T类型的结果集
             </summary>
@@ -938,7 +952,7 @@
             <param name="commandType">命令类型</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IXmlCommand.ExecuteNonQuery(System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
+        <member name="M:SqlBatis.IXmlQuery.ExecuteNonQuery(System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
             <summary>
             执行无结果集查询，并返回受影响的行数
             </summary>
@@ -946,7 +960,7 @@
             <param name="commandType">命令类型</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IXmlCommand.ExecuteNonQueryAsync(System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
+        <member name="M:SqlBatis.IXmlQuery.ExecuteNonQueryAsync(System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
             <summary>
             异步执行无结果集查询，并返回受影响的行数
             </summary>
@@ -954,7 +968,7 @@
             <param name="commandType">命令类型</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IXmlCommand.ExecuteScalar``1(System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
+        <member name="M:SqlBatis.IXmlQuery.ExecuteScalar``1(System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
             <summary>
             执行无结果集查询，并返回指定类型的数据
             </summary>
@@ -963,7 +977,7 @@
             <param name="commandType">命令类型</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IXmlCommand.ExecuteScalarAsync``1(System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
+        <member name="M:SqlBatis.IXmlQuery.ExecuteScalarAsync``1(System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
             <summary>
             异步执行无结果集查询，并返回指定类型的数据
             </summary>
@@ -972,14 +986,14 @@
             <param name="commandType">命令类型</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IXmlCommand.AddDbParameter(System.String,System.Object)">
+        <member name="M:SqlBatis.IXmlQuery.AddDbParameter(System.String,System.Object)">
             <summary>
             添加数据库参数
             </summary>
             <param name="name"></param>
             <param name="value"></param>
         </member>
-        <member name="T:SqlBatis.XmlCommand">
+        <member name="T:SqlBatis.XmlQuery">
             <summary>
             实现xml命令映射器
             </summary>

@@ -9,7 +9,7 @@ namespace SqlBatis
     /// <summary>
     /// xml命令映射器
     /// </summary>
-    public interface IXmlCommand
+    public interface IXmlQuery
     {
         /// <summary>
         ///执行多结果集查询，返回IMultiResult
@@ -89,7 +89,7 @@ namespace SqlBatis
     /// <summary>
     /// 实现xml命令映射器
     /// </summary>
-    internal class XmlCommand : IXmlCommand
+    internal class XmlQuery : IXmlQuery
     {
         private readonly string _sql = null;
 
@@ -97,7 +97,7 @@ namespace SqlBatis
 
         private readonly IDbContext _mapper = null;
 
-        public XmlCommand(IDbContext mapper, string sql, Dictionary<string,object> parameters=null)
+        public XmlQuery(IDbContext mapper, string sql, Dictionary<string,object> parameters=null)
         {
             _mapper = mapper;
             _sql = sql;

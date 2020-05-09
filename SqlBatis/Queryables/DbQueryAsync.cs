@@ -14,6 +14,15 @@ namespace SqlBatis
     {
 
         #region async
+        public async Task<T> GetAsync(object id)
+        {
+            var sql = ResolveGet();
+            var values = new Dictionary<string, object>
+            {
+                { "id", id }
+            };
+            return (await _context.ExecuteQueryAsync<T>(sql, values)).FirstOrDefault();
+        }
         public Task<int> CountAsync(int? commandTimeout = null)
         {
             var sql = ResovleCount();

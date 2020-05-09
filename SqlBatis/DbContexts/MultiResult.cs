@@ -35,12 +35,12 @@ namespace SqlBatis
         /// 返回当前dynamic类型结果
         /// </summary>
         /// <returns></returns>
-        dynamic Get();
+        object Get();
         /// <summary>
         /// 异步返回当前dynamic类型结果
         /// </summary>
         /// <returns></returns>
-        Task<dynamic> GetAsync();
+        Task<object> GetAsync();
         /// <summary>
         /// 返回当前T类型结果
         /// </summary>
@@ -61,9 +61,9 @@ namespace SqlBatis
         
         private readonly IDbCommand _command = null;
 
-        private readonly ITypeMapper _mapper = null;
+        private readonly IEntityMapper _mapper = null;
 
-        internal MultiResult(IDbCommand command, ITypeMapper mapper)
+        internal MultiResult(IDbCommand command, IEntityMapper mapper)
         {
             _command = command;
             _reader = command.ExecuteReader();
@@ -86,19 +86,19 @@ namespace SqlBatis
             return (await GetListAsync<T>()).FirstOrDefault();
         }
 
-        public dynamic Get()
+        public object Get()
         {
-            return GetList().FirstOrDefault();
+            return GetList<object>().FirstOrDefault();
         }
        
-        public async Task<dynamic> GetAsync()
+        public async Task<object> GetAsync()
         {
-            return (await GetListAsync()).FirstOrDefault();
+            return (await GetListAsync<object>()).FirstOrDefault();
         }
       
         public async Task<List<dynamic>> GetListAsync()
         {
-            var handler = TypeConvert.GetSerializer();
+            var handler = EmitConvert.GetSerializer();
             var list = new List<dynamic>();
             while (await (_reader as DbDataReader).ReadAsync())
             {
@@ -110,7 +110,7 @@ namespace SqlBatis
       
         public List<dynamic> GetList()
         {
-            var handler = TypeConvert.GetSerializer();
+            var handler = EmitConvert.GetSerializer();
             var list = new List<dynamic>();
             while (_reader.Read())
             {
@@ -122,7 +122,7 @@ namespace SqlBatis
       
         public List<T> GetList<T>()
         {
-            var handler = TypeConvert.GetSerializer<T>(_mapper, _reader);
+            var handler = EmitConvert.GetSerializer<T>(_mapper, _reader);
             var list = new List<T>();
             while (_reader.Read())
             {
@@ -134,7 +134,7 @@ namespace SqlBatis
 
         public async Task<List<T>> GetListAsync<T>()
         {
-            var handler = TypeConvert.GetSerializer<T>(_mapper, _reader);
+            var handler = EmitConvert.GetSerializer<T>(_mapper, _reader);
             var list = new List<T>();
             while (await (_reader as DbDataReader).ReadAsync())
             {
