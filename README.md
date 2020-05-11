@@ -70,7 +70,7 @@ context.ExecuteNonQuery("delete from student where id in @Id",new {Id=new int[]{
 
 ``` C#
 //我们可以自定义DbContext
-public class MysqlDbContext : DbContext
+public class MyDbContext : DbContext
 {
     public IDbQuery<StudentDto> Students { get => new DbQuery<StudentDto>(this); }
     public MysqlDbContext(DbContextBuilder builder)
