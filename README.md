@@ -66,3 +66,100 @@ context.ExecuteNonQuery("delete from student where id in @Id",new {Id=new int[]{
 * 5.IEnumerable<IDbDataParameter>
 */
 ```
+## Linq操作
+
+``` C#
+//我们可以自定义DbContext
+public class MysqlDbContext : DbContext
+{
+    public IDbQuery<StudentDto> Students { get => new DbQuery<StudentDto>(this); }
+    public MysqlDbContext(DbContextBuilder builder)
+        :base(builder)
+    {
+
+    }
+}
+//对比使用区别
+var context1 = new DbContext(...);
+var context2 = new MyDbContext(...);
+var list1 = context1.From<Student>()
+    .Select(); 
+var list2 = context2.Student
+    .Select(); 
+//在使用linq查询时必须定义实体，以及实体注解（如果你自定义了注解提供程序可以不使用注解)，常用实例：
+//通过注解获取
+var entity1 = context.Students.Get(1);
+var list1 = context.Students
+    .Where(a=>a.Age>20)
+    .Select();
+var (list2,count) = context.Students
+    .Page(1,10)
+    .SelectMany();
+var row = context.Student.Insert(new Student
+{
+    Name="zs",
+    Age=50
+});
+```
+
+## Xml操作
+
+### xml的优势是可以构建复杂的sql，灵活的sql，动态的sql,推荐将xml编译到程序集中。基本格式如下：
+
+``` xml
+<?xml version="1.0" encoding="utf-8" ?>
+<commands namespace="student">
+
+  <!--
+    框架只定义了if,var,where等标签
+    insert,select可以随意，并没有实际意义
+  -->
+  
+  <var id="offset">
+    LIMIT 0,10
+  </var>
+
+  <select id="list">   
+    <!-- 定义局部变量,where标签非常强大， -->
+     <var id="where">
+      <where>
+        <if test="Id!=null">
+            AND Id=@Id
+        </if>
+        <if test="Name!=null" value="AND Name=@Name"/>
+      </where>
+    </var>    
+    select * from student ${where}${offset};
+    select count(1) from student ${where}
+  </select>
+
+  <insert id="add">
+    insert into student(name,age)values(@Name,@age)
+  </insert>
+</commands>
+```
+``` C#
+/**
+* xml中的参数分两大类
+*   1.数据库参数，已@开头的
+*   2.xml表达式参数，if.test中的表达式参数
+* if.test中的参数必须都在类中定义（只能是类类型，匿名类型），由于底层是解析字符串然后创建表达式树，进而生成委托（并缓存）限制如下：
+*   1.如果要对值类型进行非空判断比如Id!=null，则Id必须是可以为null的类型比如：int?,long?
+*   2.由于底层缓存了if.test表达式创建的委托，因此一个xml命令的id不能通过不同的参数类型去解析（一个id建议只能被一处调用）
+*   3.if.test的表达式中必须收到加括号（底层通过正则分析）比如：<if test="(Id!=null)&&(Id>10)" value="Id=@Id">
+*   4.if.test底层的解析器非常的轻量只有几百行代码，功能有限，基本满足使用
+*/
+using(var multi = db.From("student.list",new Student(){Id=null,Name="zs"}).ExecuteMultiQuery<Student>())
+{
+    var list = multi.GetList<Student>();
+    var count = multi.Get<long>();
+}
+//由于该student.list已今缓存了（考虑性能）表达式原型为Func<Student,bool>,因此下面的解析将出现错误，参数只能是Student类型（由第一次解析决定）
+var multi = db.From("student.list",new {Id=(int?)null,Name="zs"}
+//解析性能测试
+var xmlProvider = GlobalSettings.XmlCommandsProvider;
+for(var i=0;i<100000;i++)
+{
+    xmlProvider.Resolev("student.list",new {Id=(int?)i,Name="zs");
+}
+```
