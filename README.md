@@ -138,6 +138,7 @@ var row = context.Student.Insert(new Student
   </insert>
 </commands>
 ```
+### 使用xml功能必须先加载你的xml配置
 ``` C#
 /**
 * xml中的参数分两大类
