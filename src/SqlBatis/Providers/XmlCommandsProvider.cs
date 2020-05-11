@@ -7,7 +7,10 @@ using SqlBatis.XmlResovles;
 
 namespace SqlBatis
 {
-    public interface IXmlResovle
+    /// <summary>
+    /// xml配置提供程序
+    /// </summary>
+    public interface IXmlCommandsProvider
     {
         /// <summary>
         /// 解析动态sql
@@ -41,9 +44,22 @@ namespace SqlBatis
         /// <param name="pattern">文件通配符</param>
         /// <param name="options">查找选项</param>
         void Load(string path, string pattern, SearchOption options);
+        /// <summary>
+        /// 从程序集加载配置所有xml
+        /// </summary>
+        /// <param name="assembly">程序集</param>
+        void Load(System.Reflection.Assembly assembly);
+        /// <summary>
+        /// 从程序集加载配置
+        /// </summary>
+        /// <param name="assembly">程序集</param>
+        /// <param name="pattern">正则匹配</param>
+        void Load(System.Reflection.Assembly assembly, string pattern);
     }
-
-    public class XmlResovle : IXmlResovle
+    /// <summary>
+    /// xml配置提供程序
+    /// </summary>
+    public class XmlCommandsProvider : IXmlCommandsProvider
     {
         private readonly Dictionary<string, CommandNode> _commands
             = new Dictionary<string, CommandNode>();
@@ -152,17 +168,14 @@ namespace SqlBatis
         {
             return Resolve(id, (object)null);
         }
-
-        /// <summary>
-        /// 加载配置文件
-        /// </summary>
-        /// <param name="filename"></param>
-        public void Load(string filename)
+        private void Resolve(XmlDocument document)
         {
+            if (document.DocumentElement.Name != "commands")
+            {
+                return;
+            }
             lock (this)
             {
-                XmlDocument document = new XmlDocument();
-                document.Load(filename);
                 var @namespace = document.DocumentElement
                     .GetAttribute("namespace") ?? string.Empty;
                 //解析全局变量
@@ -209,58 +222,25 @@ namespace SqlBatis
         }
 
         /// <summary>
+        /// 加载配置文件
+        /// </summary>
+        /// <param name="filename"></param>
+        public void Load(string filename)
+        {
+            var document = new XmlDocument();
+            document.Load(filename);
+            Resolve(document);
+        }
+
+        /// <summary>
         /// 从流中加载xml
         /// </summary>
         /// <param name="stream"></param>
         public void Load(Stream stream)
         {
-            lock (this)
-            {
-                XmlDocument document = new XmlDocument();
-                document.Load(stream);
-                var @namespace = document.DocumentElement
-                    .GetAttribute("namespace") ?? string.Empty;
-                //解析全局变量
-                var globalVariables = ResolveVariables(document.DocumentElement);
-                //获取命令节点
-                var elements = document.DocumentElement
-                    .Cast<XmlNode>()
-                    .Where(a => a.Name != "var" && a is XmlElement);
-                foreach (XmlElement item in elements)
-                {
-                    var id = item.GetAttribute("id");
-                    id = string.IsNullOrEmpty(@namespace) ? $"{id}" : $"{@namespace}.{id}";
-                    //解析局部变量
-                    var localVariables = ResolveVariables(item);
-                    //合并局部和全局变量，局部变量可以覆盖全局变量
-                    var variables = new Dictionary<string, string>(globalVariables);
-                    foreach (var ariable in localVariables)
-                    {
-                        if (variables.ContainsKey(ariable.Key))
-                        {
-                            variables[ariable.Key] = ariable.Value;
-                        }
-                        else
-                        {
-                            variables.Add(ariable.Key, ariable.Value);
-                        }
-                    }
-                    //替换变量
-                    var xml = ReplaceVariable(variables, item.OuterXml);
-                    var doc = new XmlDocument();
-                    doc.LoadXml(xml);
-                    //通过变量解析命令
-                    var cmd = ResolveCommand(doc.DocumentElement);
-                    if (_commands.ContainsKey(id))
-                    {
-                        _commands[id] = cmd;
-                    }
-                    else
-                    {
-                        _commands.Add(id, cmd);
-                    }
-                }
-            }
+            XmlDocument document = new XmlDocument();
+            document.Load(stream);
+            Resolve(document);
         }
 
         /// <summary>
@@ -309,6 +289,7 @@ namespace SqlBatis
             }
 
         }
+
         /// <summary>
         /// 从嵌入式资源加载配置
         /// </summary>

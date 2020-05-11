@@ -16,5 +16,17 @@ namespace SqlBatis
         public static IDatabaseMetaInfoProvider DatabaseMetaInfoProvider { get; set; }
             = new DatabaseMetaInfoProvider();
 
+        /// <summary>
+        /// 实体映射器提供程序
+        /// </summary>
+        public static IEntityMapperProvider EntityMapperProvider { get; set; }
+            = new EntityMapperProvider();
+
+        /// <summary>
+        /// xml命令配置
+        /// </summary>
+        public static IXmlCommandsProvider XmlCommandsProvider { get; set; }
+            = new XmlCommandsProvider();
+
     }
 }

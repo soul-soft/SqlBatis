@@ -8,7 +8,7 @@ namespace SqlBatis
     /// <summary>
     /// TypeMapper Interface
     /// </summary>
-    public interface IEntityMapper
+    public interface IEntityMapperProvider
     {
         MemberInfo FindMember(MemberInfo[] properties, DbDataInfo dataInfo);
         MethodInfo FindConvertMethod(Type csharpType, Type dbType);
@@ -19,7 +19,7 @@ namespace SqlBatis
     /// <summary>
     /// 返回数据记录到Csharp类型的策略
     /// </summary>
-    public class EntityMapper : IEntityMapper
+    public class EntityMapperProvider : IEntityMapperProvider
     {
         public bool MatchNamesWithUnderscores { get; set; }
 
@@ -81,10 +81,6 @@ namespace SqlBatis
         /// </summary>
         public MethodInfo FindConvertMethod(Type csharpType, Type dbType)
         {
-            if (csharpType == typeof(System.Text.Json.JsonElement) || GetUnderlyingType(csharpType) == typeof(System.Text.Json.JsonElement))
-            {
-                return !IsNullableType(csharpType) ? DataConvertMethod.ToJsonElementMethod : DataConvertMethod.ToJsonElementNullableMethod;
-            }
             if (GetUnderlyingType(dbType) == typeof(bool) || GetUnderlyingType(csharpType) == typeof(bool))
             {
                 return !IsNullableType(csharpType) ? DataConvertMethod.ToBooleanMethod : DataConvertMethod.ToBooleanNullableMethod;
@@ -155,7 +151,7 @@ namespace SqlBatis
             return true;
         }
 
-        public EntityMapper(bool matchNamesWithUnderscores = false)
+        public EntityMapperProvider(bool matchNamesWithUnderscores = false)
         {
             MatchNamesWithUnderscores = matchNamesWithUnderscores;
         }
@@ -178,7 +174,6 @@ namespace SqlBatis
         public static MethodInfo ToBooleanMethod = typeof(DataConvertMethod).GetMethod(nameof(DataConvertMethod.ConvertToBoolean));
         public static MethodInfo ToCharMethod = typeof(DataConvertMethod).GetMethod(nameof(DataConvertMethod.ConvertToChar));
         public static MethodInfo ToStringMethod = typeof(DataConvertMethod).GetMethod(nameof(DataConvertMethod.ConvertToString));
-        public static MethodInfo ToJsonElementMethod = typeof(DataConvertMethod).GetMethod(nameof(DataConvertMethod.ConvertJsonElement));
         public static MethodInfo ToDateTimeMethod = typeof(DataConvertMethod).GetMethod(nameof(DataConvertMethod.ConvertToDateTime));
         public static MethodInfo ToEnumMethod = typeof(DataConvertMethod).GetMethod(nameof(DataConvertMethod.ConvertToEnum));
         public static MethodInfo ToGuidMethod = typeof(DataConvertMethod).GetMethod(nameof(DataConvertMethod.ConvertToGuid));
@@ -195,7 +190,6 @@ namespace SqlBatis
         public static MethodInfo ToBooleanNullableMethod = typeof(DataConvertMethod).GetMethod(nameof(DataConvertMethod.ConvertToBooleanNullable));
         public static MethodInfo ToDecimalNullableMethod = typeof(DataConvertMethod).GetMethod(nameof(DataConvertMethod.ConvertToDecimalNullable));
         public static MethodInfo ToCharNullableMethod = typeof(DataConvertMethod).GetMethod(nameof(DataConvertMethod.ConvertToCharNullable));
-        public static MethodInfo ToJsonElementNullableMethod = typeof(DataConvertMethod).GetMethod(nameof(DataConvertMethod.ConvertJsonElementNullable));
         public static MethodInfo ToDateTimeNullableMethod = typeof(DataConvertMethod).GetMethod(nameof(DataConvertMethod.ConvertToDateTimeNullable));
         public static MethodInfo ToEnumNullableMethod = typeof(DataConvertMethod).GetMethod(nameof(DataConvertMethod.ConvertToEnumNullable));
         public static MethodInfo ToGuidNullableMethod = typeof(DataConvertMethod).GetMethod(nameof(DataConvertMethod.ConvertToGuidNullable));
@@ -419,24 +413,6 @@ namespace SqlBatis
             }
         }
 
-        public static System.Text.Json.JsonElement ConvertJsonElement(IDataRecord dr, int i)
-        {
-            try
-            {
-                if (dr.IsDBNull(i))
-                {
-                    return default;
-                }
-                var json = dr.GetString(i);
-                var bytes = System.Text.Encoding.UTF8.GetBytes(json);
-                return System.Text.Json.JsonDocument.Parse(bytes).RootElement;
-            }
-            catch
-            {
-                throw ThrowException<System.Text.Json.JsonElement>(dr, i);
-            }
-        }
-
         public static DateTime ConvertToDateTime(IDataRecord dr, int i)
         {
             try
@@ -579,14 +555,6 @@ namespace SqlBatis
                 return default;
             }
             return ConvertToChar(dr, i);
-        }
-        public static System.Text.Json.JsonElement? ConvertJsonElementNullable(IDataRecord dr, int i)
-        {
-            if (dr.IsDBNull(i))
-            {
-                return default;
-            }
-            return ConvertJsonElement(dr, i);
         }
         public static DateTime? ConvertToDateTimeNullable(IDataRecord dr, int i)
         {

@@ -9,18 +9,10 @@ namespace SqlBatis.Test
     public class MysqlDbContext : DbContext
     {
         public IDbQuery<StudentDto> Students { get => new DbQuery<StudentDto>(this); }
-        private static readonly XmlResovle resovle;
-        static MysqlDbContext()
+        public MysqlDbContext(DbContextBuilder builder)
+            :base(builder)
         {
-            resovle = new XmlResovle();
-            resovle.Load(@"E:\SqlBatis\SqlBatis.Test", "*.xml");
-        }
-      
-        protected override DbContextBuilder OnConfiguring(DbContextBuilder builder)
-        {
-            builder.Connection = new MySql.Data.MySqlClient.MySqlConnection("server=47.110.55.16;user id=root;password=1234;database=test;");
-            builder.XmlResovle = resovle;
-            return builder;
+
         }
     }
 }

@@ -18,7 +18,7 @@ namespace SqlBatis.Test
     public class Tests
     {
         //public MysqlDbContext db = new MysqlDbContext();
-        public SqlDbContext db = new SqlDbContext();
+        public SqlDbContext db = new SqlDbContext(new DbContextBuilder { });
 
         [SetUp]
         public void Setup()
@@ -197,7 +197,7 @@ namespace SqlBatis.Test
             var cmd = db.Connection.CreateCommand();
             cmd.CommandText = "select * from Student";
             var reader = cmd.ExecuteReader();
-            var serializer = EmitConvert.GetSerializer<StudentDto>(new EntityMapper(), reader);
+            var serializer = EmitConvert.GetSerializer<StudentDto>(new EntityMapperProvider(), reader);
             while (reader.Read())
             {
                 StudentDto student = serializer(reader);
@@ -207,25 +207,25 @@ namespace SqlBatis.Test
         [Test]
         public void TestXmlresolve()
         {
+            GlobalSettings.EntityMapperProvider = new EntityMapperProvider(true);
             object c = 10;
-            var xmlresovle = new XmlResovle();
             //º”‘ÿ«∂»Î Ω≈‰÷√
-            xmlresovle.Load(System.Reflection.Assembly.GetExecutingAssembly(), @".+\.xml");
+            GlobalSettings.XmlCommandsProvider.Load(System.Reflection.Assembly.GetExecutingAssembly(), @".+\.xml");
             var db = new DbContext(new DbContextBuilder
             {
                 Connection = new MySqlConnection("server=127.0.0.1;port=3306;user id=root;password=1024;database=test;"),
-                XmlResovle = xmlresovle,
             });
             db.Logging += Db_Logging;  
             db.Open();
             try
             {
+                db.From("student.list").ExecuteQuery<Student>();
                 //var count = db.From<Student>().Get(1);
                 var multi = db.From("student.list",new { Id=(int?)null})
                     .ExecuteMultiQuery();
                 var list0 = multi.GetList();
                 var count = multi.Get();
-                var list2 = db.ExecuteQuery("select * from student");
+                var list2 = db.ExecuteNonQuery("select * from student");
                 var list1 = db.From<Student>().Select();
             }
             catch (Exception e)

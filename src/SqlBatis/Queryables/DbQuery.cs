@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
-using System.Text.Json;
 using SqlBatis.Expressions;
 
 namespace SqlBatis
@@ -64,7 +63,7 @@ namespace SqlBatis
 
         private string ResovleCount()
         {
-            var table = GetTableMetaInfo(typeof(T)).TableName;
+            var table = GetTableMetaInfo().TableName;
             var column = "COUNT(1)";
             var where = ResolveWhere();
             var group = ResolveGroup();
@@ -87,7 +86,7 @@ namespace SqlBatis
 
         private string ResovleSum()
         {
-            var table = GetTableMetaInfo(typeof(T)).TableName;
+            var table = GetTableMetaInfo().TableName;
             var column = $"SUM({ResovleColumns()})";
             var where = ResolveWhere();
             var sql = $"SELECT {column} FROM {table}{where}";
@@ -96,8 +95,8 @@ namespace SqlBatis
 
         private string ResolveGet()
         {
-            var table = GetTableMetaInfo(typeof(T)).TableName;
-            var columns = GetColumnMetaInfos(typeof(T));
+            var table = GetTableMetaInfo().TableName;
+            var columns = GetColumnMetaInfos();
             var column = ResovleColumns();
             var where = $" WHERE {columns.Where(a => a.IsPrimaryKey == true).First().ColumnName}=@id";
             string sql;
@@ -114,7 +113,7 @@ namespace SqlBatis
 
         private string ResolveSelect()
         {
-            var table = GetTableMetaInfo(typeof(T)).TableName;
+            var table = GetTableMetaInfo().TableName;
             var column = ResovleColumns();
             var where = ResolveWhere();
             var group = ResolveGroup();
@@ -155,9 +154,9 @@ namespace SqlBatis
 
         private string ResovleInsert(bool identity)
         {
-            var table = GetTableMetaInfo(typeof(T)).TableName;
+            var table = GetTableMetaInfo().TableName;
             var filters = new GroupExpressionResovle(_filterExpression).Resovle().Split(',');
-            var columns = GetColumnMetaInfos(typeof(T));
+            var columns = GetColumnMetaInfos();
             var intcolumns = columns
                 .Where(a => !filters.Contains(a.ColumnName) && !a.IsNotMapped && !a.IsIdentity)
                 .Where(a => !a.IsComplexType)
@@ -172,19 +171,19 @@ namespace SqlBatis
             return sql;
         }
 
-        private TableMetaInfo GetTableMetaInfo(Type type)
+        private TableMetaInfo GetTableMetaInfo()
         {
-            return GlobalSettings.DatabaseMetaInfoProvider.GetTable(type);
+            return GlobalSettings.DatabaseMetaInfoProvider.GetTable(typeof(T));
         }
-        private List<ColumnMetaInfo> GetColumnMetaInfos(Type type)
+        private List<ColumnMetaInfo> GetColumnMetaInfos()
         {
             return GlobalSettings.DatabaseMetaInfoProvider.GetColumns(typeof(T));
         }
         private string ResovleBatchInsert(IEnumerable<T> entitys)
         {
-            var table = GetTableMetaInfo(typeof(T)).TableName;
+            var table = GetTableMetaInfo().TableName;
             var filters = new GroupExpressionResovle(_filterExpression).Resovle().Split(',');
-            var columns = GetColumnMetaInfos(typeof(T))
+            var columns = GetColumnMetaInfos()
                 .Where(a => !a.IsComplexType).ToList();
             var intcolumns = columns
                 .Where(a => !filters.Contains(a.ColumnName) && !a.IsNotMapped && !a.IsIdentity)
@@ -217,10 +216,6 @@ namespace SqlBatis
                         {
                             buffer.Append($"'{value}'");
                         }
-                        else if (column.CsharpType == typeof(JsonElement) || column.CsharpType == typeof(JsonElement?))
-                        {
-                            buffer.Append($"'{value}'");
-                        }
                         else if (column.CsharpType.IsValueType || (Nullable.GetUnderlyingType(column.CsharpType)?.IsValueType == true))
                         {
                             buffer.Append(value);
@@ -248,7 +243,7 @@ namespace SqlBatis
 
         private string ResolveUpdate()
         {
-            var table = GetTableMetaInfo(typeof(T)).TableName;
+            var table = GetTableMetaInfo().TableName;
             var builder = new StringBuilder();
             if (_setExpressions.Count > 0)
             {
@@ -266,7 +261,7 @@ namespace SqlBatis
             {
                 var filters = new GroupExpressionResovle(_filterExpression).Resovle().Split(',');
                 var where = ResolveWhere();
-                var columns = GetColumnMetaInfos(typeof(T));
+                var columns = GetColumnMetaInfos();
                 var updcolumns = columns
                     .Where(a => !filters.Contains(a.ColumnName))
                     .Where(a => !a.IsComplexType)
@@ -307,7 +302,7 @@ namespace SqlBatis
 
         private string ResovleDelete()
         {
-            var table = GetTableMetaInfo(typeof(T)).TableName;
+            var table = GetTableMetaInfo().TableName;
             var where = ResolveWhere();
             var sql = $"DELETE FROM {table}{where}";
             return sql;
@@ -330,7 +325,7 @@ namespace SqlBatis
 
         private string ResovleExists()
         {
-            var table = GetTableMetaInfo(typeof(T)).TableName;
+            var table = GetTableMetaInfo().TableName;
             var where = ResolveWhere();
             var group = ResolveGroup();
             var having = ResolveHaving();
@@ -344,7 +339,7 @@ namespace SqlBatis
             {
                 var filters = new GroupExpressionResovle(_filterExpression)
                     .Resovle().Split(',');
-                var columns = GetColumnMetaInfos(typeof(T))
+                var columns = GetColumnMetaInfos()
                     .Where(a => !filters.Contains(a.ColumnName) && !a.IsNotMapped)
                     .Select(s => s.ColumnName != s.CsharpName ? $"{s.ColumnName} AS {s.CsharpName}" : s.CsharpName);
                 return string.Join(",", columns);
@@ -385,7 +380,7 @@ namespace SqlBatis
             if (buffer.Length > 0)
             {
                 buffer.Remove(buffer.Length - 1, 1);
-                sql = $" GROUP BY {buffer.ToString()}";
+                sql = $" GROUP BY {buffer}";
             }
             return sql;
         }

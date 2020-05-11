@@ -189,41 +189,25 @@ namespace SqlBatis
     public class DbContext : IDbContext
     {
         public DbContextState DbContextState = DbContextState.Closed;
-        private readonly IXmlResovle _xmlResovle = null;
         private IDbTransaction _transaction = null;
-        private readonly IEntityMapper _typeMapper = null;
         public IDbConnection Connection { get; } = null;
         public DbContextType DbContextType { get; } = DbContextType.Mysql;
-        protected virtual DbContextBuilder OnConfiguring(DbContextBuilder builder)
-        {
-            return builder;
-        }
         public event Logging Logging;
-        protected DbContext()
-        {
-            var builder = OnConfiguring(new DbContextBuilder());
-            Connection = builder.Connection;
-            _xmlResovle = builder.XmlResovle;
-            _typeMapper = builder.TypeMapper ?? new EntityMapper();
-            DbContextType = builder.DbContextType;
-        }
         public DbContext(DbContextBuilder builder)
         {
             Connection = builder.Connection;
-            _xmlResovle = builder.XmlResovle;
-            _typeMapper = builder.TypeMapper ?? new EntityMapper();
             DbContextType = builder.DbContextType;
         }
         public IXmlQuery From<T>(string id, T parameter) where T : class
         {
-            var sql = _xmlResovle.Resolve(id, parameter);
+            var sql = GlobalSettings.XmlCommandsProvider.Resolve(id, parameter);
             var deserializer = EmitConvert.GetDeserializer(typeof(T));
             var values = deserializer(parameter);
             return new XmlQuery(this, sql, values);
         }
         public IXmlQuery From(string id)
         {
-            var sql = _xmlResovle.Resolve(id);
+            var sql = GlobalSettings.XmlCommandsProvider.Resolve(id);
             return new XmlQuery(this, sql);
         }
         public IDbQuery<T> From<T>()
@@ -268,7 +252,7 @@ namespace SqlBatis
         {
             var cmd = Connection.CreateCommand();
             Initialize(cmd, sql, parameter, commandTimeout, commandType);
-            return new MultiResult(cmd, _typeMapper);
+            return new MultiResult(cmd);
         }
         public IEnumerable<T> ExecuteQuery<T>(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null)
         {
@@ -278,7 +262,7 @@ namespace SqlBatis
                 Initialize(cmd, sql, parameter, commandTimeout, commandType);
                 using (var reader = cmd.ExecuteReader())
                 {
-                    var handler = EmitConvert.GetSerializer<T>(_typeMapper, reader);
+                    var handler = EmitConvert.GetSerializer<T>(GlobalSettings.EntityMapperProvider, reader);
                     while (reader.Read())
                     {
                         list.Add(handler(reader));
@@ -295,7 +279,7 @@ namespace SqlBatis
                 using (var reader = await cmd.ExecuteReaderAsync())
                 {
                     var list = new List<T>();
-                    var handler = EmitConvert.GetSerializer<T>(_typeMapper, reader);
+                    var handler = EmitConvert.GetSerializer<T>(GlobalSettings.EntityMapperProvider, reader);
                     while (await reader.ReadAsync())
                     {
                         list.Add(handler(reader));
@@ -351,7 +335,7 @@ namespace SqlBatis
             await Task.Run(() =>
             {
                 _transaction = Connection.BeginTransaction();
-                Logging?.Invoke("Begin transaction");
+                Logging?.Invoke("Begin Transaction");
             });
         }
         public async Task BeginTransactionAsync(IsolationLevel level)
@@ -359,18 +343,18 @@ namespace SqlBatis
             await Task.Run(() =>
             {
                 _transaction = Connection.BeginTransaction(level);
-                Logging?.Invoke("Begin transaction isolationLevel = " + level);
+                Logging?.Invoke("Begin Transaction IsolationLevel = " + level);
             });
         }
         public void BeginTransaction()
         {
             _transaction = Connection.BeginTransaction();
-            Logging?.Invoke("Begin transaction");
+            Logging?.Invoke("Begin Transaction");
         }
         public void BeginTransaction(IsolationLevel level)
         {
             _transaction = Connection.BeginTransaction(level);
-            Logging?.Invoke("Begin transaction isolationLevel = " + level);
+            Logging?.Invoke("Begin Transaction IsolationLevel = " + level);
         }
         public void Close()
         {
@@ -446,12 +430,7 @@ namespace SqlBatis
             {
                 foreach (IDataParameter item in dbParameters)
                 {
-                    if (item.Value != null && item.Value.GetType() == typeof(System.Text.Json.JsonElement))
-                    {
-                        item.DbType = DbType.String;
-                        item.Value = item.Value.ToString();
-                    }
-                    else if (item.Value == null)
+                    if (item.Value == null)
                     {
                         item.Value = DBNull.Value;
                     }
