@@ -40,4 +40,29 @@ var context = new DbContext(new DbContextBuilder
 var list0 = context.ExecuteQuery("select * from student");
 //返回Student，底层采用IL，动态编写映射器并缓存
 var list1 = context.ExecuteQuery<Student>("select id,stu_name as stuName,create_time as createTime from student");
+//执行非查询操作，并返回受影响的行数
+var row = context.ExecuteNonQuery("delete from student");
+//多结果集查询，一次请求多个结果集，性能较高
+using(var multi = context.ExecuteMultiQuery("select * from student;select count(1) from student"))
+{
+    //获取集合，第一个结果集，数据阅读器在执行muit的获取操作，会自动移动到下一个结果集
+    var list = multi.GetList<List>();
+    //由于未读完IDataReader中的结果集，如果此时执行context.ExecuteQuery("select * from student");会抛出异常
+    //由于会自动移动到下一个结果级，我们不需要执行NextResult操作，当执行到最后一个结果级的时候，会自动关闭multi对象托管的IDataReader对象
+    var count = multi.Get<long>();
+    //由于上面已经读取完了multi的所有结果级，因此可以继续执行查询，multi托管的IDataReader已经被自动关闭
+    context.ExecuteQuery("select * from student");
+}
+//默认的in查询
+context.ExecuteNonQuery("delete from student where id in (@Id1,@Id2,@Id3)",new {Id1=1,Id2=2,Id3=3});
+//简化的in查询,会自动生成上面的sql
+context.ExecuteNonQuery("delete from student where id in @Id",new {Id=new int[]{1,2,3}});
+/**
+* sqlbatis支持的参数类型如下：
+* 1.类类型（常用）
+* 2.Dictionary<string,object>（常用）
+* 3.匿名类型（常用）
+* 4.IDataParameter类型
+* 5.IEnumerable<IDbDataParameter>
+*/
 ```
