@@ -15,19 +15,7 @@ namespace SqlBatis.Test
             resovle = new XmlResovle();
             resovle.Load(@"E:\SqlBatis\SqlBatis.Test", "*.xml");
         }
-        protected override void OnLogging(string message, IDataParameterCollection parameter = null, int? commandTimeout = null, CommandType? commandType = null)
-        {
-            Debug.WriteLine($"============================{DateTime.Now}================================");
-            Debug.WriteLine(message);
-            if (parameter != null)
-            {
-                foreach (IDataParameter item in parameter)
-                {
-                    Debug.WriteLine($"{item.ParameterName}={item.Value}");
-                }
-            }
-            Debug.WriteLine("==============================================================================");
-        }
+      
         protected override DbContextBuilder OnConfiguring(DbContextBuilder builder)
         {
             builder.Connection = new MySql.Data.MySqlClient.MySqlConnection("server=47.110.55.16;user id=root;password=1234;database=test;");

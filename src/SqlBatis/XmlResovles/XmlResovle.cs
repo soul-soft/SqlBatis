@@ -209,6 +209,61 @@ namespace SqlBatis
         }
 
         /// <summary>
+        /// 从流中加载xml
+        /// </summary>
+        /// <param name="stream"></param>
+        public void Load(Stream stream)
+        {
+            lock (this)
+            {
+                XmlDocument document = new XmlDocument();
+                document.Load(stream);
+                var @namespace = document.DocumentElement
+                    .GetAttribute("namespace") ?? string.Empty;
+                //解析全局变量
+                var globalVariables = ResolveVariables(document.DocumentElement);
+                //获取命令节点
+                var elements = document.DocumentElement
+                    .Cast<XmlNode>()
+                    .Where(a => a.Name != "var" && a is XmlElement);
+                foreach (XmlElement item in elements)
+                {
+                    var id = item.GetAttribute("id");
+                    id = string.IsNullOrEmpty(@namespace) ? $"{id}" : $"{@namespace}.{id}";
+                    //解析局部变量
+                    var localVariables = ResolveVariables(item);
+                    //合并局部和全局变量，局部变量可以覆盖全局变量
+                    var variables = new Dictionary<string, string>(globalVariables);
+                    foreach (var ariable in localVariables)
+                    {
+                        if (variables.ContainsKey(ariable.Key))
+                        {
+                            variables[ariable.Key] = ariable.Value;
+                        }
+                        else
+                        {
+                            variables.Add(ariable.Key, ariable.Value);
+                        }
+                    }
+                    //替换变量
+                    var xml = ReplaceVariable(variables, item.OuterXml);
+                    var doc = new XmlDocument();
+                    doc.LoadXml(xml);
+                    //通过变量解析命令
+                    var cmd = ResolveCommand(doc.DocumentElement);
+                    if (_commands.ContainsKey(id))
+                    {
+                        _commands[id] = cmd;
+                    }
+                    else
+                    {
+                        _commands.Add(id, cmd);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
         /// 从指定路径加载所有匹配的文件
         /// </summary>
         /// <param name="path">路径</param>
@@ -234,6 +289,41 @@ namespace SqlBatis
             foreach (var item in files)
             {
                 Load(item);
+            }
+        }
+
+        /// <summary>
+        /// 从嵌入式资源加载.xml结尾的文件
+        /// </summary>
+        /// <param name="assembly">程序集</param>
+        public void Load(System.Reflection.Assembly assembly)
+        {
+            var filenames = assembly.GetManifestResourceNames();
+            foreach (var item in filenames)
+            {
+                if (!item.EndsWith(".xml", System.StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+                Load(assembly.GetManifestResourceStream(item));
+            }
+
+        }
+        /// <summary>
+        /// 从嵌入式资源加载配置
+        /// </summary>
+        /// <param name="assembly">程序集</param>
+        /// <param name="pattern">匹配模式</param>
+        public void Load(System.Reflection.Assembly assembly, string pattern)
+        {
+            var filenames = assembly.GetManifestResourceNames();
+            foreach (var item in filenames)
+            {
+                if (!Regex.IsMatch(item, pattern))
+                {
+                    continue;
+                }
+                Load(assembly.GetManifestResourceStream(item));
             }
         }
     }

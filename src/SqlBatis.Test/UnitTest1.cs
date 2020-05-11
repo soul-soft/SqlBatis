@@ -209,20 +209,24 @@ namespace SqlBatis.Test
         {
             object c = 10;
             var xmlresovle = new XmlResovle();
-            xmlresovle.Load(@"E:\SqlBatis\SqlBatis.Test\Student.xml");
+            //º”‘ÿ«∂»Î Ω≈‰÷√
+            xmlresovle.Load(System.Reflection.Assembly.GetExecutingAssembly(), @".+\.xml");
             var db = new DbContext(new DbContextBuilder
             {
-                Connection = new MySql.Data.MySqlClient.MySqlConnection("server=127.0.0.1;port=3306;user id=root;password=1024;database=test;"),
+                Connection = new MySqlConnection("server=127.0.0.1;port=3306;user id=root;password=1024;database=test;"),
                 XmlResovle = xmlresovle,
             });
+            db.Logging += Db_Logging;  
             db.Open();
             try
             {
                 //var count = db.From<Student>().Get(1);
                 var multi = db.From("student.list",new { Id=(int?)null})
                     .ExecuteMultiQuery();
-                var list = multi.GetList();
+                var list0 = multi.GetList();
                 var count = multi.Get();
+                var list2 = db.ExecuteQuery("select * from student");
+                var list1 = db.From<Student>().Select();
             }
             catch (Exception e)
             {
@@ -231,6 +235,12 @@ namespace SqlBatis.Test
             }
            
         }
+
+        private void Db_Logging(string message, Dictionary<string, object> parameters = null, int? commandTimeout = null, CommandType? commandType = null)
+        {
+            
+        }
+
         public object Funcff()
         {
             var reader = new MySqlCommand().ExecuteReader();

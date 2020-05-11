@@ -16,20 +16,7 @@ namespace SqlBatis.Test
             resovle.Load(@"E:\SqlBatis\SqlBatis.Test", "*.xml");          
         }
         public IDbQuery<StudentDto> Students { get => new DbQuery<StudentDto>(this); }
-
-        protected override void OnLogging(string message, IDataParameterCollection parameter = null, int? commandTimeout = null, CommandType? commandType = null)
-        {
-            Debug.WriteLine($"============================{DateTime.Now}================================");
-            Debug.WriteLine(message);
-            if (parameter!=null)
-            {
-                foreach (IDataParameter item in parameter)
-                {
-                    Debug.WriteLine($"{item.ParameterName}={item.Value}");
-                }
-            }
-            Debug.WriteLine("==============================================================================");
-        }
+      
         protected override DbContextBuilder OnConfiguring(DbContextBuilder builder)
         {
             builder.Connection = new SqlConnection("Data Source=192.168.31.33;Initial Catalog=test;User ID=sa;Password=yangche!1234;Pooling=true");

@@ -64,7 +64,7 @@ namespace SqlBatis
 
         private string ResovleCount()
         {
-            var table = DbMetaInfoCache.GetTable(typeof(T)).TableName;
+            var table = GetTableMetaInfo(typeof(T)).TableName;
             var column = "COUNT(1)";
             var where = ResolveWhere();
             var group = ResolveGroup();
@@ -84,10 +84,10 @@ namespace SqlBatis
             }
             return sql;
         }
-       
+
         private string ResovleSum()
         {
-            var table = DbMetaInfoCache.GetTable(typeof(T)).TableName;
+            var table = GetTableMetaInfo(typeof(T)).TableName;
             var column = $"SUM({ResovleColumns()})";
             var where = ResolveWhere();
             var sql = $"SELECT {column} FROM {table}{where}";
@@ -96,8 +96,8 @@ namespace SqlBatis
 
         private string ResolveGet()
         {
-            var table = DbMetaInfoCache.GetTable(typeof(T)).TableName;
-            var columns = DbMetaInfoCache.GetColumns(typeof(T));
+            var table = GetTableMetaInfo(typeof(T)).TableName;
+            var columns = GetColumnMetaInfos(typeof(T));
             var column = ResovleColumns();
             var where = $" WHERE {columns.Where(a => a.IsPrimaryKey == true).First().ColumnName}=@id";
             string sql;
@@ -114,7 +114,7 @@ namespace SqlBatis
 
         private string ResolveSelect()
         {
-            var table = DbMetaInfoCache.GetTable(typeof(T)).TableName;
+            var table = GetTableMetaInfo(typeof(T)).TableName;
             var column = ResovleColumns();
             var where = ResolveWhere();
             var group = ResolveGroup();
@@ -155,12 +155,12 @@ namespace SqlBatis
 
         private string ResovleInsert(bool identity)
         {
-            var table = DbMetaInfoCache.GetTable(typeof(T)).TableName;
+            var table = GetTableMetaInfo(typeof(T)).TableName;
             var filters = new GroupExpressionResovle(_filterExpression).Resovle().Split(',');
-            var columns = DbMetaInfoCache.GetColumns(typeof(T));
+            var columns = GetColumnMetaInfos(typeof(T));
             var intcolumns = columns
                 .Where(a => !filters.Contains(a.ColumnName) && !a.IsNotMapped && !a.IsIdentity)
-                .Where(a=> !a.IsComplexType)
+                .Where(a => !a.IsComplexType)
                 .Where(a => !a.IsDefault || (_parameters.ContainsKey(a.CsharpName) && _parameters[a.CsharpName] != null));//如果是默认字段
             var columnNames = string.Join(",", intcolumns.Select(s => s.ColumnName));
             var parameterNames = string.Join(",", intcolumns.Select(s => $"@{s.CsharpName}"));
@@ -172,12 +172,20 @@ namespace SqlBatis
             return sql;
         }
 
+        private TableMetaInfo GetTableMetaInfo(Type type)
+        {
+            return GlobalSettings.DatabaseMetaInfoProvider.GetTable(type);
+        }
+        private List<ColumnMetaInfo> GetColumnMetaInfos(Type type)
+        {
+            return GlobalSettings.DatabaseMetaInfoProvider.GetColumns(typeof(T));
+        }
         private string ResovleBatchInsert(IEnumerable<T> entitys)
         {
-            var table = DbMetaInfoCache.GetTable(typeof(T)).TableName;
+            var table = GetTableMetaInfo(typeof(T)).TableName;
             var filters = new GroupExpressionResovle(_filterExpression).Resovle().Split(',');
-            var columns = DbMetaInfoCache.GetColumns(typeof(T))
-                .Where(a=>!a.IsComplexType).ToList();
+            var columns = GetColumnMetaInfos(typeof(T))
+                .Where(a => !a.IsComplexType).ToList();
             var intcolumns = columns
                 .Where(a => !filters.Contains(a.ColumnName) && !a.IsNotMapped && !a.IsIdentity)
                 .ToList();
@@ -217,7 +225,7 @@ namespace SqlBatis
                         {
                             buffer.Append(value);
                         }
-                        else 
+                        else
                         {
                             var str = SqlEncoding(value.ToString());
                             buffer.Append($"'{str}'");
@@ -240,7 +248,7 @@ namespace SqlBatis
 
         private string ResolveUpdate()
         {
-            var table = DbMetaInfoCache.GetTable(typeof(T)).TableName;
+            var table = GetTableMetaInfo(typeof(T)).TableName;
             var builder = new StringBuilder();
             if (_setExpressions.Count > 0)
             {
@@ -258,7 +266,7 @@ namespace SqlBatis
             {
                 var filters = new GroupExpressionResovle(_filterExpression).Resovle().Split(',');
                 var where = ResolveWhere();
-                var columns = DbMetaInfoCache.GetColumns(typeof(T));
+                var columns = GetColumnMetaInfos(typeof(T));
                 var updcolumns = columns
                     .Where(a => !filters.Contains(a.ColumnName))
                     .Where(a => !a.IsComplexType)
@@ -299,19 +307,19 @@ namespace SqlBatis
 
         private string ResovleDelete()
         {
-            var table = DbMetaInfoCache.GetTable(typeof(T)).TableName;
+            var table = GetTableMetaInfo(typeof(T)).TableName;
             var where = ResolveWhere();
             var sql = $"DELETE FROM {table}{where}";
             return sql;
         }
-        
+
         private string SqlEncoding(string sql)
         {
             var buffer = new StringBuilder();
             for (int i = 0; i < sql.Length; i++)
             {
                 var ch = sql[i];
-                if (ch=='\''||ch=='-'||ch=='\\'||ch=='*'||ch=='@')
+                if (ch == '\'' || ch == '-' || ch == '\\' || ch == '*' || ch == '@')
                 {
                     buffer.Append('\\');
                 }
@@ -322,7 +330,7 @@ namespace SqlBatis
 
         private string ResovleExists()
         {
-            var table = DbMetaInfoCache.GetTable(typeof(T)).TableName;
+            var table = GetTableMetaInfo(typeof(T)).TableName;
             var where = ResolveWhere();
             var group = ResolveGroup();
             var having = ResolveHaving();
@@ -336,7 +344,7 @@ namespace SqlBatis
             {
                 var filters = new GroupExpressionResovle(_filterExpression)
                     .Resovle().Split(',');
-                var columns = DbMetaInfoCache.GetColumns(typeof(T))
+                var columns = GetColumnMetaInfos(typeof(T))
                     .Where(a => !filters.Contains(a.ColumnName) && !a.IsNotMapped)
                     .Select(s => s.ColumnName != s.CsharpName ? $"{s.ColumnName} AS {s.CsharpName}" : s.CsharpName);
                 return string.Join(",", columns);
