@@ -1,20 +1,15 @@
-using Microsoft.Extensions.Logging;
 using MySql.Data.MySqlClient;
 using NUnit.Framework;
-using Org.BouncyCastle.Math.Field;
 using SqlBatis.Attributes;
 using SqlBatis.Expressions;
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.SqlClient;
+using System.Diagnostics;
 using System.Linq;
-using System.Linq.Expressions;
 
 namespace SqlBatis.Test
 {
-
-
     public class Tests
     {
         //public MysqlDbContext db = new MysqlDbContext();
@@ -197,7 +192,8 @@ namespace SqlBatis.Test
             var cmd = db.Connection.CreateCommand();
             cmd.CommandText = "select * from Student";
             var reader = cmd.ExecuteReader();
-            var serializer = new EntityMapperProvider().GetSerializer<StudentDto>(reader);
+            var serializer = new EntityMapperProvider()
+                .GetSerializer<StudentDto>(reader);
             while (reader.Read())
             {
                 StudentDto student = serializer(reader);
@@ -209,8 +205,6 @@ namespace SqlBatis.Test
         {
             object c = 10;
             //加载嵌入式配置
-            GlobalSettings.DbMetaInfoProvider = new MyDbMetaInfoProvider();
-            GlobalSettings.EntityMapperProvider = new EntityMapperProvider();
             GlobalSettings.XmlCommandsProvider.Load(System.Reflection.Assembly.GetExecutingAssembly(), @".+\.xml");
             var db = new DbContext(new DbContextBuilder
             {
@@ -220,13 +214,13 @@ namespace SqlBatis.Test
             db.Open();
             try
             {
-                db.From("student.list").Query<Student>();
-                //var count = db.From<Student>().Get(1);
-                var multi = db.From("student.list", new { Id = (int?)null })
-                    .MultipleQuery();
-                var list0 = multi.GetList();
-                var count = multi.Get();
-                var list2 = db.Query("select * from student");
+                //db.From("student.list").Query<Student>();
+                ////var count = db.From<Student>().Get(1);
+                //var multi = db.From("student.list", new { Id = (int?)null })
+                //    .MultipleQuery();
+                //var list0 = multi.GetList();
+                //var count = multi.Get();
+                //var list2 = db.Query("select * from student");
                 var list1 = db.From<Student>().Select();
             }
             catch (Exception e)
@@ -237,43 +231,87 @@ namespace SqlBatis.Test
 
         }
 
+        [Test]
+        public void CreateIntanceof()
+        {
+            //反射性能测试
+            var table = new DataTable();
+            table.Columns.Add("id", typeof(int));
+            table.Columns.Add("name", typeof(string));
+            table.Columns.Add("time", typeof(DateTime));
+            for (int i = 0; i < 2000000; i++)
+            {
+                var row = table.NewRow();
+                row[0] = i;
+                row[1] = "name" + i;
+                row[2] = DateTime.Now;
+                table.Rows.Add(row);
+            }
+            //自定义的内存数据源，
+            var reader = new DataReader(table);
+            var stopwatch = new Stopwatch();
+            var func = GlobalSettings.EntityMapperProvider.GetSerializer<Student>(reader);
+            var pops = typeof(Student).GetProperties();
+            stopwatch.Start();
+            while (reader.Read())
+            {
+                #region 反射
+                ////反射
+                //var student = Activator.CreateInstance(typeof(Student));
+                //if (!reader.IsDBNull(0))
+                //{
+                //    pops[0].SetValue(student, reader.GetInt32(0));
+                //}
+                //if (!reader.IsDBNull(1))
+                //{
+                //    pops[1].SetValue(student, reader.GetString(1));
+                //}
+                //if (!reader.IsDBNull(2))
+                //{
+                //    pops[2].SetValue(student, reader.GetDateTime(2));
+                //}
+                #endregion
+
+                #region 手写
+                var stu = new Student();
+                if (!reader.IsDBNull(0))
+                {
+                    stu.id = reader.GetInt32(0);
+                }
+                if (!reader.IsDBNull(1))
+                {
+                    stu.name = reader.GetString(1);
+                }
+                if (!reader.IsDBNull(2))
+                {
+                    stu.time = reader.GetDateTime(2);
+                }
+                #endregion
+                //sqlbatis
+                //var entity = func(reader);
+            }
+            stopwatch.Stop();
+        }
+
         private void Db_Logging(string message, Dictionary<string, object> parameters = null, int? commandTimeout = null, CommandType? commandType = null)
         {
 
         }
 
-        public object Funcff()
-        {
-            var reader = new MySqlCommand().ExecuteReader();
-            return FiniteFields(reader, 0);
-        }
-        static long? FiniteFields(IDataRecord record, int i)
-        {
-            return 90;
-        }
-
     }
-
-
-
     class P
     {
         public int Id { get; set; }
         public int? Age { get; set; }//Age type must be int?
     }
-
     public class Student
     {
-        [Column("id")]
-        [PrimaryKey]
-        public int Id { get; set; }
-        [Column("stu_name")]
-        public string Name { get; set; }
-        [Column("create_time")]
-        [Default]
-        public DateTime CreateTime { get; set; }
-    }
+        public int id { get; set; }
 
+        public string name { get; set; }
+
+        public DateTime time { get; set; }
+    }
     public class StudentDto
     {
         public int? Id { get; set; }
@@ -281,70 +319,5 @@ namespace SqlBatis.Test
         public string Name { get; set; }
         public int? Age { get; set; }
         public bool? IsDelete { get; set; }
-    }
-
-    public class MyDbMetaInfoProvider : IDbMetaInfoProvider
-    {
-        public List<DbColumnMetaInfo> GetColumns(Type type)
-        {
-            return type.GetProperties().Select(s => new DbColumnMetaInfo()
-            {
-                ColumnName = s.Name,
-                CsharpName = s.Name,
-                CsharpType = s.PropertyType,
-                IsComplexType = false,
-                IsConcurrencyCheck = false,
-                IsDefault = false,
-                IsIdentity = false,
-                IsNotMapped = true,
-                IsPrimaryKey = false,
-            }).ToList();
-        }
-
-        public DbTableMetaInfo GetTable(Type type)
-        {
-            return new DbTableMetaInfo()
-            {
-                TableName = type.Name.ToUpper(),
-                CsharpName = type.Name
-            };
-        }
-    }
-
-    public class MyEntityMapperProvider : IEntityMapperProvider
-    {
-        /// <summary>
-        /// 默认的提供程序是线程安全的
-        /// </summary>
-        private EntityMapperProvider defaultMapper = new EntityMapperProvider();
-        public Func<object, Dictionary<string, object>> GetDeserializer(Type type)
-        {
-            return defaultMapper.GetDeserializer(type);
-        }
-
-        public Func<IDataRecord, T> GetSerializer<T>(IDataRecord record)
-        {
-            //如果是student类型
-            if (typeof(T) == typeof(Student))
-            {
-                return new Func<IDataRecord, T>((r) =>
-                {
-                    var student = (object)new Student()
-                    {
-                        Id = r.GetInt32(r.GetOrdinal("id")),
-                        CreateTime = r.GetDateTime(r.GetOrdinal("create_time")),
-                        Name = r.GetString(r.GetOrdinal("stu_name"))
-                    };
-                    return (T)student;
-                });
-            }
-            //否则使用默认实现
-            return defaultMapper.GetSerializer<T>(record);
-        }
-
-        public Func<IDataRecord, dynamic> GetSerializer()
-        {
-            return defaultMapper.GetSerializer();
-        }
     }
 }

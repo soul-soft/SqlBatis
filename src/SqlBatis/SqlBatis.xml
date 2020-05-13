@@ -22,7 +22,7 @@
         </member>
         <member name="T:SqlBatis.Attributes.ConcurrencyCheckAttribute">
             <summary>
-            并发检查，如果字段属性是number类型则用时间戳，否则使用GUID
+            并发检查列，如果字段属性是number类型则用时间戳，否则使用GUID
             </summary>
         </member>
         <member name="T:SqlBatis.Attributes.DefaultAttribute">
@@ -414,7 +414,7 @@
         </member>
         <member name="P:SqlBatis.DbColumnMetaInfo.IsConcurrencyCheck">
             <summary>
-            是否并发检查
+            是否并发检查列
             </summary>
         </member>
         <member name="P:SqlBatis.DbColumnMetaInfo.IsDefault">
@@ -519,7 +519,7 @@
             <param name="record"></param>
             <returns></returns>
         </member>
-        <member name="T:SqlBatis.DataReaderCellInfo">
+        <member name="T:SqlBatis.DataCellInfo">
             <summary>
             DataReader中的行信息
             </summary>
@@ -535,17 +535,17 @@
             If there is no default constructor, the constructor with the most parameters is returned.
             </summary>
         </member>
-        <member name="M:SqlBatis.MemberMapper.FindConstructorParameter(SqlBatis.DataReaderCellInfo[],System.Reflection.ParameterInfo)">
+        <member name="M:SqlBatis.MemberMapper.FindReaderCellInfoByParameter(SqlBatis.DataCellInfo[],System.Reflection.ParameterInfo)">
             <summary>
             Returns field information based on parameter information
             </summary>
         </member>
-        <member name="M:SqlBatis.MemberMapper.FindMember(System.Reflection.MemberInfo[],SqlBatis.DataReaderCellInfo)">
+        <member name="M:SqlBatis.MemberMapper.FindMember(System.Reflection.MemberInfo[],SqlBatis.DataCellInfo)">
             <summary>
             Returns attribute information based on field information
             </summary>
         </member>
-        <member name="M:SqlBatis.MemberMapper.FindConvertMethod(System.Type,System.Type)">
+        <member name="M:SqlBatis.MemberMapper.FindConvertMethod(System.Type)">
             <summary>
             Return type conversion function.
             </summary>
@@ -1183,7 +1183,7 @@
             xml命令映射器
             </summary>
         </member>
-        <member name="M:SqlBatis.IXmlQuery.ExecuteMultiQuery(System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
+        <member name="M:SqlBatis.IXmlQuery.MultipleQuery(System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
              <summary>
             执行多结果集查询，返回IMultiResult
              </summary>
@@ -1191,7 +1191,7 @@
              <param name="commandType">命令类型</param>
              <returns></returns>
         </member>
-        <member name="M:SqlBatis.IXmlQuery.ExecuteQuery(System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
+        <member name="M:SqlBatis.IXmlQuery.Query(System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
             <summary>
             执行单结果集查询，并返回dynamic类型的结果集
             </summary>
@@ -1199,7 +1199,7 @@
             <param name="commandType">命令类型</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IXmlQuery.ExecuteQueryAsync(System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
+        <member name="M:SqlBatis.IXmlQuery.QueryAsync(System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
             <summary>
             异步执行单结果集查询，并返回dynamic类型的结果集
             </summary>
@@ -1207,7 +1207,7 @@
             <param name="commandType">命令类型</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IXmlQuery.ExecuteQuery``1(System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
+        <member name="M:SqlBatis.IXmlQuery.Query``1(System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
             <summary>
             执行单结果集查询，并返回T类型的结果集
             </summary>
@@ -1216,7 +1216,7 @@
             <param name="commandType">命令类型</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IXmlQuery.ExecuteQueryAsync``1(System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
+        <member name="M:SqlBatis.IXmlQuery.QueryAsync``1(System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
             <summary>
             异步执行单结果集查询，并返回T类型的结果集
             </summary>
@@ -1225,7 +1225,7 @@
             <param name="commandType">命令类型</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IXmlQuery.ExecuteNonQuery(System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
+        <member name="M:SqlBatis.IXmlQuery.Execute(System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
             <summary>
             执行无结果集查询，并返回受影响的行数
             </summary>
@@ -1233,7 +1233,7 @@
             <param name="commandType">命令类型</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IXmlQuery.ExecuteNonQueryAsync(System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
+        <member name="M:SqlBatis.IXmlQuery.ExecuteAsync(System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
             <summary>
             异步执行无结果集查询，并返回受影响的行数
             </summary>

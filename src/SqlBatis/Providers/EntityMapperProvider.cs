@@ -200,7 +200,7 @@ namespace SqlBatis
             if (dataInfos.Length == 1 && (type.IsValueType || type == typeof(string) || type == typeof(object)))
             {
                 var dataInfo = dataInfos.First();
-                var convertMethod = mapper.FindConvertMethod(type, dataInfo.DataType);
+                var convertMethod = mapper.FindConvertMethod(type);
                 generator.Emit(OpCodes.Ldarg_0);
                 generator.Emit(OpCodes.Ldc_I4, 0);
                 if (convertMethod.IsVirtual)
@@ -232,7 +232,7 @@ namespace SqlBatis
                     {
                         continue;
                     }
-                    var convertMethod = mapper.FindConvertMethod(parameters[i].ParameterType, item.DataType);
+                    var convertMethod = mapper.FindConvertMethod(parameters[i].ParameterType);
                     generator.Emit(OpCodes.Ldarg_0);
                     generator.Emit(OpCodes.Ldc_I4, item.Ordinal);
                     if (convertMethod.IsVirtual)
@@ -263,7 +263,7 @@ namespace SqlBatis
                     {
                         continue;
                     }
-                    var convertMethod = mapper.FindConvertMethod(property.PropertyType, item.DataType);
+                    var convertMethod = mapper.FindConvertMethod(property.PropertyType);
                     if (convertMethod == null)
                     {
                         continue;
@@ -364,9 +364,9 @@ namespace SqlBatis
         /// <summary>
         /// Return type conversion function.
         /// </summary>
-        public MethodInfo FindConvertMethod(Type csharpType, Type dbType)
+        public MethodInfo FindConvertMethod(Type csharpType)
         {
-            if (GetUnderlyingType(dbType) == typeof(bool) || GetUnderlyingType(csharpType) == typeof(bool))
+            if (GetUnderlyingType(csharpType) == typeof(bool))
             {
                 return !IsNullableType(csharpType) ? MemberMapperMethod.ToBooleanMethod : MemberMapperMethod.ToBooleanNullableMethod;
             }
@@ -374,7 +374,7 @@ namespace SqlBatis
             {
                 return !IsNullableType(csharpType) ? MemberMapperMethod.ToEnumMethod.MakeGenericMethod(csharpType) : MemberMapperMethod.ToEnumNullableMethod.MakeGenericMethod(GetUnderlyingType(csharpType));
             }
-            if (GetUnderlyingType(dbType) == typeof(char) || GetUnderlyingType(csharpType) == typeof(char))
+            if (GetUnderlyingType(csharpType) == typeof(char))
             {
                 return !IsNullableType(csharpType) ? MemberMapperMethod.ToCharMethod : MemberMapperMethod.ToCharNullableMethod;
             }
@@ -382,43 +382,43 @@ namespace SqlBatis
             {
                 return MemberMapperMethod.ToStringMethod;
             }
-            if (GetUnderlyingType(dbType) == typeof(Guid) || GetUnderlyingType(csharpType) == typeof(Guid))
+            if (GetUnderlyingType(csharpType) == typeof(Guid))
             {
                 return !IsNullableType(csharpType) ? MemberMapperMethod.ToGuidMethod : MemberMapperMethod.ToGuidNullableMethod;
             }
-            if (GetUnderlyingType(dbType) == typeof(DateTime) || GetUnderlyingType(csharpType) == typeof(DateTime))
+            if (GetUnderlyingType(csharpType) == typeof(DateTime))
             {
                 return !IsNullableType(csharpType) ? MemberMapperMethod.ToDateTimeMethod : MemberMapperMethod.ToDateTimeNullableMethod;
             }
-            if (GetUnderlyingType(dbType) == typeof(byte) || GetUnderlyingType(dbType) == typeof(sbyte) || GetUnderlyingType(csharpType) == typeof(byte) || GetUnderlyingType(csharpType) == typeof(sbyte))
+            if (GetUnderlyingType(csharpType) == typeof(byte) || GetUnderlyingType(csharpType) == typeof(sbyte))
             {
                 return !IsNullableType(csharpType) ? MemberMapperMethod.ToByteMethod : MemberMapperMethod.ToByteNullableMethod;
             }
-            if (GetUnderlyingType(dbType) == typeof(short) || GetUnderlyingType(dbType) == typeof(ushort) || GetUnderlyingType(csharpType) == typeof(short) || GetUnderlyingType(csharpType) == typeof(ushort))
+            if (GetUnderlyingType(csharpType) == typeof(short) || GetUnderlyingType(csharpType) == typeof(ushort))
             {
                 return !IsNullableType(csharpType) ? MemberMapperMethod.ToIn16Method : MemberMapperMethod.ToIn16NullableMethod;
             }
-            if (GetUnderlyingType(dbType) == typeof(int) || GetUnderlyingType(dbType) == typeof(uint) || GetUnderlyingType(csharpType) == typeof(int) || GetUnderlyingType(csharpType) == typeof(uint))
+            if (GetUnderlyingType(csharpType) == typeof(int) || GetUnderlyingType(csharpType) == typeof(uint))
             {
                 return !IsNullableType(csharpType) ? MemberMapperMethod.ToIn32Method : MemberMapperMethod.ToIn32NullableMethod;
             }
-            if (GetUnderlyingType(dbType) == typeof(long) || GetUnderlyingType(dbType) == typeof(long) || GetUnderlyingType(csharpType) == typeof(long) || GetUnderlyingType(csharpType) == typeof(ulong))
+            if (GetUnderlyingType(csharpType) == typeof(long) || GetUnderlyingType(csharpType) == typeof(ulong))
             {
                 return !IsNullableType(csharpType) ? MemberMapperMethod.ToIn64Method : MemberMapperMethod.ToIn64NullableMethod;
             }
-            if (GetUnderlyingType(dbType) == typeof(float) || GetUnderlyingType(csharpType) == typeof(float))
+            if (GetUnderlyingType(csharpType) == typeof(float))
             {
                 return !IsNullableType(csharpType) ? MemberMapperMethod.ToFloatMethod : MemberMapperMethod.ToFloatNullableMethod;
             }
-            if (GetUnderlyingType(dbType) == typeof(double) || GetUnderlyingType(csharpType) == typeof(double))
+            if (GetUnderlyingType(csharpType) == typeof(double))
             {
                 return !IsNullableType(csharpType) ? MemberMapperMethod.ToDoubleMethod : MemberMapperMethod.ToDoubleNullableMethod;
             }
-            if (GetUnderlyingType(dbType) == typeof(decimal) || GetUnderlyingType(csharpType) == typeof(decimal))
+            if (GetUnderlyingType(csharpType) == typeof(decimal))
             {
                 return !IsNullableType(csharpType) ? MemberMapperMethod.ToDecimalMethod : MemberMapperMethod.ToDecimalNullableMethod;
             }
-            return !IsNullableType(csharpType) ? MemberMapperMethod.ToObjectMethod.MakeGenericMethod(csharpType) : MemberMapperMethod.ToObjectNullableMethod.MakeGenericMethod(Nullable.GetUnderlyingType(GetUnderlyingType(csharpType)));
+            return MemberMapperMethod.ToObjectMethod;
         }
 
         private Type GetUnderlyingType(Type type)
@@ -459,7 +459,6 @@ namespace SqlBatis
             #endregion
 
             #region NullableMethod Field
-            public static MethodInfo ToObjectNullableMethod = typeof(MemberMapperMethod).GetMethod(nameof(MemberMapperMethod.ConvertObjectNullable));
             public static MethodInfo ToByteNullableMethod = typeof(MemberMapperMethod).GetMethod(nameof(MemberMapperMethod.ConvertToByteNullable));
             public static MethodInfo ToIn16NullableMethod = typeof(MemberMapperMethod).GetMethod(nameof(MemberMapperMethod.ConvertToInt16Nullable));
             public static MethodInfo ToIn32NullableMethod = typeof(MemberMapperMethod).GetMethod(nameof(MemberMapperMethod.ConvertToInt32Nullable));
@@ -703,23 +702,10 @@ namespace SqlBatis
                     throw ThrowException<Guid>(dr, i);
                 }
             }
-
-            private static Exception ThrowException<T>(IDataRecord dr, int i)
-            {
-                var inner = new FormatException($"Column of {dr.GetName(i)} {dr.GetFieldType(i)} '{dr.GetValue(i)}' was not recognized as a valid {typeof(T).Name}.");
-                return new InvalidCastException($"Unable to cast object of type '{dr.GetFieldType(i).Name}' to type '{typeof(int).Name}'.", inner);
-            }
+          
             #endregion
 
             #region Define Nullable Convert
-            public static object ConvertObjectNullable(IDataRecord dr, int i)
-            {
-                if (dr.IsDBNull(i))
-                {
-                    return default;
-                }
-                return ConvertToObject(dr, i);
-            }
             public static byte? ConvertToByteNullable(IDataRecord dr, int i)
             {
                 if (dr.IsDBNull(i))
@@ -815,6 +801,15 @@ namespace SqlBatis
                     return default;
                 }
                 return ConvertToGuid(dr, i);
+            }
+            #endregion
+
+
+            #region Exception
+            private static Exception ThrowException<T>(IDataRecord dr, int i)
+            {
+                var inner = new FormatException($"Column of [{dr.GetFieldType(i)}]{dr.GetName(i)} = {dr.GetValue(i)} was not recognized as a valid {typeof(T)}.");
+                return new InvalidCastException($"Unable to cast object of type '{dr.GetFieldType(i).Name}' to type '{typeof(T)}'.", inner);
             }
             #endregion
         }
