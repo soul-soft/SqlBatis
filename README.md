@@ -2,12 +2,11 @@
 
 ## 全局设置
 ``` C#
-//所有设置均有默认行为，可以按需配置
-//开启忽略下划线
-GlobalSettings.EntityMapperProvider = new EntityMapperProvider(true);
+//所有设置均有默认行为，可以按需配置，一下均为默认值
+GlobalSettings.EntityMapperProvider = new EntityMapperProvider();
 
 //自定义数据库元信息提供程序，默认从注解中获取，如果你不想使用注解可以通过自定义元数据提供程序
-GlobalSettings.DatabaseMetaInfoProvider = new MyDatabaseMetaInfoProvider();
+GlobalSettings.DbMetaInfoProvider = new AnnotationDbMetaInfoProvider();
 
 //Xml命令提供程序，加载xml配置。建议将文件属性设置为嵌入的资源（vs文件属性->生成操作->嵌入的资源）
 GlobalSettings.XmlCommandsProvider.Load(System.Reflection.Assembly.GetExecutingAssembly(), @".+\.xml");
@@ -103,8 +102,7 @@ var row = context.Student.Insert(new Student
 ```
 
 ## Xml操作
-
-### xml的优势是可以构建复杂的sql，灵活的sql，动态的sql,推荐将xml编译到程序集中。基本格式如下：
+xml的优势是可以构建复杂的sql，灵活的sql，动态的sql,推荐将xml编译到程序集中。基本格式如下：
 
 ``` xml
 <?xml version="1.0" encoding="utf-8" ?>
@@ -138,7 +136,7 @@ var row = context.Student.Insert(new Student
   </insert>
 </commands>
 ```
-### 使用xml功能必须先加载你的xml配置
+
 ``` C#
 /**
 * xml中的参数分两大类
@@ -150,6 +148,8 @@ var row = context.Student.Insert(new Student
 *   3.if.test的表达式中必须收到加括号（底层通过正则分析）比如：<if test="(Id!=null)&&(Id>10)" value="Id=@Id">
 *   4.if.test底层的解析器非常的轻量只有几百行代码，功能有限，基本满足使用
 */
+使用xml功能必须先加载你的xml配置
+GlobalSettings.XmlCommandsProvider.Load(System.Reflection.Assembly.GetExecutingAssembly(), @".+\.xml");
 using(var multi = db.From("student.list",new Student(){Id=null,Name="zs"}).ExecuteMultiQuery<Student>())
 {
     var list = multi.GetList<Student>();
