@@ -5,7 +5,7 @@
     <NoWarn>$(NoWarn);1591</NoWarn>
     <PackageTags>orm;sql;micro-orm;ibatis</PackageTags>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <Version>1.0.4</Version>
+    <Version>1.0.5</Version>
     <PackageProjectUrl>https://github.com/1448376744/SqlBatis</PackageProjectUrl>
     <RepositoryUrl>https://github.com/1448376744/SqlBatis</RepositoryUrl>
     <PackageTags>orm;sql;micro-orm;mybatis</PackageTags>

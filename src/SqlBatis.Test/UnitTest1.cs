@@ -184,7 +184,7 @@ namespace SqlBatis.Test
         [Test]
         public void TestTypeConvert()
         {
-            var deserializer = EmitConvert.GetDeserializer(typeof(StudentDto));
+            var deserializer = new EntityMapperProvider().GetDeserializer(typeof(StudentDto));
 
             Dictionary<string, object> keyvalues = deserializer(new StudentDto
             {
@@ -197,7 +197,7 @@ namespace SqlBatis.Test
             var cmd = db.Connection.CreateCommand();
             cmd.CommandText = "select * from Student";
             var reader = cmd.ExecuteReader();
-            var serializer = EmitConvert.GetSerializer<StudentDto>(new EntityMapperProvider(), reader);
+            var serializer = new EntityMapperProvider().GetSerializer<StudentDto>( reader);
             while (reader.Read())
             {
                 StudentDto student = serializer(reader);
@@ -207,9 +207,9 @@ namespace SqlBatis.Test
         [Test]
         public void TestXmlresolve()
         {
-            GlobalSettings.EntityMapperProvider = new EntityMapperProvider(true);
             object c = 10;
             //º”‘ÿ«∂»Î Ω≈‰÷√
+            
             GlobalSettings.XmlCommandsProvider.Load(System.Reflection.Assembly.GetExecutingAssembly(), @".+\.xml");
             var db = new DbContext(new DbContextBuilder
             {
@@ -225,7 +225,7 @@ namespace SqlBatis.Test
                     .ExecuteMultiQuery();
                 var list0 = multi.GetList();
                 var count = multi.Get();
-                var list2 = db.ExecuteNonQuery("select * from student");
+                var list2 = db.Query("select * from student");
                 var list1 = db.From<Student>().Select();
             }
             catch (Exception e)

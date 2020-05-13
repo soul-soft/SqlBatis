@@ -132,7 +132,7 @@
             提交当前事务会话
             </summary>
         </member>
-        <member name="M:SqlBatis.IDbContext.ExecuteMultiQuery(System.String,System.Object,System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
+        <member name="M:SqlBatis.IDbContext.QueryMultiple(System.String,System.Object,System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
             <summary>
             执行多结果集查询，返回IMultiResult
             </summary>
@@ -142,7 +142,7 @@
             <param name="commandType">命令类型</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbContext.ExecuteQuery(System.String,System.Object,System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
+        <member name="M:SqlBatis.IDbContext.Query(System.String,System.Object,System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
             <summary>
             执行单结果集查询，并返回dynamic类型的结果集
             </summary>
@@ -152,7 +152,7 @@
             <param name="commandType">命令类型</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbContext.ExecuteQueryAsync(System.String,System.Object,System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
+        <member name="M:SqlBatis.IDbContext.QueryAsync(System.String,System.Object,System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
             <summary>
             异步执行单结果集查询，并返回dynamic类型的结果集
             </summary>
@@ -162,7 +162,7 @@
             <param name="commandType">命令类型</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbContext.ExecuteQuery``1(System.String,System.Object,System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
+        <member name="M:SqlBatis.IDbContext.Query``1(System.String,System.Object,System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
             <summary>
             执行单结果集查询，并返回T类型的结果集
             </summary>
@@ -173,7 +173,7 @@
             <param name="commandType">命令类型</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbContext.ExecuteQueryAsync``1(System.String,System.Object,System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
+        <member name="M:SqlBatis.IDbContext.QueryAsync``1(System.String,System.Object,System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
             <summary>
             异步执行单结果集查询，并返回T类型的结果集
             </summary>
@@ -184,7 +184,7 @@
             <param name="commandType">命令类型</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbContext.ExecuteNonQuery(System.String,System.Object,System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
+        <member name="M:SqlBatis.IDbContext.Execute(System.String,System.Object,System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
             <summary>
             执行无结果集查询，并返回受影响的行数
             </summary>
@@ -194,7 +194,7 @@
             <param name="commandType">命令类型</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbContext.ExecuteNonQueryAsync(System.String,System.Object,System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
+        <member name="M:SqlBatis.IDbContext.ExecuteAsync(System.String,System.Object,System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
             <summary>
             异步执行无结果集查询，并返回受影响的行数
             </summary>
@@ -242,6 +242,11 @@
             回滚当前事务会话
             </summary>
         </member>
+        <member name="T:SqlBatis.DbContext">
+            <summary>
+            数据库上下文
+            </summary>
+        </member>
         <member name="T:SqlBatis.Logging">
             <summary>
             sql执行日志
@@ -251,87 +256,67 @@
             <param name="commandTimeout"></param>
             <param name="commandType"></param>
         </member>
-        <member name="T:SqlBatis.DbContext">
+        <member name="P:SqlBatis.DbContextBuilder.Connection">
             <summary>
-            数据库上下文
+            设置要托管的数据库连接
             </summary>
         </member>
-        <member name="T:SqlBatis.DbDataInfo">
+        <member name="P:SqlBatis.DbContextBuilder.DbContextType">
             <summary>
-            DbColumn Information
+            设置数据库类型
             </summary>
         </member>
-        <member name="T:SqlBatis.EmitConvert">
+        <member name="T:SqlBatis.IDbMultipleResult">
             <summary>
-            IL Convert
+            DataReader多个结果集
             </summary>
         </member>
-        <member name="M:SqlBatis.EmitConvert.GetSerializer``1(SqlBatis.IEntityMapperProvider,System.Data.IDataRecord)">
-            <summary>
-            IDataRecord Converted to T
-            </summary>
-        </member>
-        <member name="M:SqlBatis.EmitConvert.GetSerializer">
-            <summary>
-            IDataRecord Converted to dynamic
-            </summary>
-        </member>
-        <member name="M:SqlBatis.EmitConvert.GetSerializer``1(System.Data.IDataRecord)">
-            <summary>
-            IDataRecord Converted to T
-            </summary>
-        </member>
-        <member name="M:SqlBatis.EmitConvert.GetDeserializer(System.Type)">
-            <summary>
-            Object To Dictionary&lt;tstring, object&gt;
-            </summary>
-        </member>
-        <member name="M:SqlBatis.IMultiResult.GetList">
+        <member name="M:SqlBatis.IDbMultipleResult.GetList">
             <summary>
             返回当前dynamic类型结果集
             </summary>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IMultiResult.GetListAsync">
+        <member name="M:SqlBatis.IDbMultipleResult.GetListAsync">
             <summary>
             异步返回当前dynamic类型结果集
             </summary>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IMultiResult.GetList``1">
+        <member name="M:SqlBatis.IDbMultipleResult.GetList``1">
             <summary>
             返回当前T结果集
             </summary>
             <typeparam name="T">结果集类型</typeparam>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IMultiResult.GetListAsync``1">
+        <member name="M:SqlBatis.IDbMultipleResult.GetListAsync``1">
             <summary>
              异步返回当前T类型结果集
             </summary>
             <typeparam name="T"></typeparam>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IMultiResult.Get">
+        <member name="M:SqlBatis.IDbMultipleResult.Get">
             <summary>
             返回当前dynamic类型结果
             </summary>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IMultiResult.GetAsync">
+        <member name="M:SqlBatis.IDbMultipleResult.GetAsync">
             <summary>
             异步返回当前dynamic类型结果
             </summary>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IMultiResult.Get``1">
+        <member name="M:SqlBatis.IDbMultipleResult.Get``1">
             <summary>
             返回当前T类型结果
             </summary>
             <typeparam name="T">结果集类型</typeparam>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IMultiResult.GetAsync``1">
+        <member name="M:SqlBatis.IDbMultipleResult.GetAsync``1">
             <summary>
             异步返回当前T类型结果
             </summary>
@@ -363,101 +348,12 @@
             <param name="csharpName"></param>
             <returns></returns>
         </member>
-        <member name="T:SqlBatis.Expressions.IDatabaseMetaInfoProvider">
-            <summary>
-            数据库元信息提供程序
-            </summary>
-        </member>
-        <member name="M:SqlBatis.Expressions.IDatabaseMetaInfoProvider.GetTable(System.Type)">
-            <summary>
-            获取表的元信息
-            </summary>
-            <param name="type"></param>
-            <returns></returns>
-        </member>
-        <member name="M:SqlBatis.Expressions.IDatabaseMetaInfoProvider.GetColumns(System.Type)">
-            <summary>
-            获取字段的元信息
-            </summary>
-            <param name="type"></param>
-            <returns></returns>
-        </member>
-        <member name="T:SqlBatis.Expressions.DatabaseMetaInfoProvider">
-            <summary>
-            数据库元信息
-            </summary>
-        </member>
-        <member name="T:SqlBatis.Expressions.TableMetaInfo">
-            <summary>
-            表信息
-            </summary>
-        </member>
-        <member name="P:SqlBatis.Expressions.TableMetaInfo.TableName">
-            <summary>
-            数据库表名称
-            </summary>
-        </member>
-        <member name="P:SqlBatis.Expressions.TableMetaInfo.CsharpName">
-            <summary>
-            Csharp表名称
-            </summary>
-        </member>
-        <member name="T:SqlBatis.Expressions.ColumnMetaInfo">
-            <summary>
-            字段信息
-            </summary>
-        </member>
-        <member name="P:SqlBatis.Expressions.ColumnMetaInfo.IsConcurrencyCheck">
-            <summary>
-            是否并发检查
-            </summary>
-        </member>
-        <member name="P:SqlBatis.Expressions.ColumnMetaInfo.IsDefault">
-            <summary>
-            是否默认值约束
-            </summary>
-        </member>
-        <member name="P:SqlBatis.Expressions.ColumnMetaInfo.IsNotMapped">
-            <summary>
-            是否是数据库字段
-            </summary>
-        </member>
-        <member name="P:SqlBatis.Expressions.ColumnMetaInfo.ColumnName">
-            <summary>
-            数据库字段名
-            </summary>
-        </member>
-        <member name="P:SqlBatis.Expressions.ColumnMetaInfo.CsharpName">
-            <summary>
-            Csharp字段名
-            </summary>
-        </member>
-        <member name="P:SqlBatis.Expressions.ColumnMetaInfo.CsharpType">
-            <summary>
-            Csharp类型
-            </summary>
-        </member>
-        <member name="P:SqlBatis.Expressions.ColumnMetaInfo.IsPrimaryKey">
-            <summary>
-            是否主键约束
-            </summary>
-        </member>
-        <member name="P:SqlBatis.Expressions.ColumnMetaInfo.IsIdentity">
-            <summary>
-            是否是自增列
-            </summary>
-        </member>
-        <member name="P:SqlBatis.Expressions.ColumnMetaInfo.IsComplexType">
-            <summary>
-            是否为计算列
-            </summary>
-        </member>
         <member name="T:SqlBatis.GlobalSettings">
             <summary>
             全局设置
             </summary>
         </member>
-        <member name="P:SqlBatis.GlobalSettings.DatabaseMetaInfoProvider">
+        <member name="P:SqlBatis.GlobalSettings.DbMetaInfoProvider">
             <summary>
             数据库元信息提供程序
             </summary>
@@ -472,43 +368,199 @@
             xml命令配置
             </summary>
         </member>
-        <member name="T:SqlBatis.IEntityMapperProvider">
+        <member name="T:SqlBatis.IDbMetaInfoProvider">
             <summary>
-            TypeMapper Interface
+            数据库元信息提供程序
             </summary>
         </member>
+        <member name="M:SqlBatis.IDbMetaInfoProvider.GetTable(System.Type)">
+            <summary>
+            获取表的元信息
+            </summary>
+            <param name="type"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.IDbMetaInfoProvider.GetColumns(System.Type)">
+            <summary>
+            获取字段的元信息
+            </summary>
+            <param name="type"></param>
+            <returns></returns>
+        </member>
+        <member name="T:SqlBatis.AnnotationDbMetaInfoProvider">
+            <summary>
+            注解方案数据库元信息
+            </summary>
+        </member>
+        <member name="T:SqlBatis.DbTableMetaInfo">
+            <summary>
+            表信息
+            </summary>
+        </member>
+        <member name="P:SqlBatis.DbTableMetaInfo.TableName">
+            <summary>
+            数据库表名称
+            </summary>
+        </member>
+        <member name="P:SqlBatis.DbTableMetaInfo.CsharpName">
+            <summary>
+            Csharp表名称
+            </summary>
+        </member>
+        <member name="T:SqlBatis.DbColumnMetaInfo">
+            <summary>
+            字段信息
+            </summary>
+        </member>
+        <member name="P:SqlBatis.DbColumnMetaInfo.IsConcurrencyCheck">
+            <summary>
+            是否并发检查
+            </summary>
+        </member>
+        <member name="P:SqlBatis.DbColumnMetaInfo.IsDefault">
+            <summary>
+            是否默认值约束
+            </summary>
+        </member>
+        <member name="P:SqlBatis.DbColumnMetaInfo.IsNotMapped">
+            <summary>
+            是否是数据库字段
+            </summary>
+        </member>
+        <member name="P:SqlBatis.DbColumnMetaInfo.ColumnName">
+            <summary>
+            数据库字段名
+            </summary>
+        </member>
+        <member name="P:SqlBatis.DbColumnMetaInfo.CsharpName">
+            <summary>
+            Csharp字段名
+            </summary>
+        </member>
+        <member name="P:SqlBatis.DbColumnMetaInfo.CsharpType">
+            <summary>
+            Csharp类型
+            </summary>
+        </member>
+        <member name="P:SqlBatis.DbColumnMetaInfo.IsPrimaryKey">
+            <summary>
+            是否主键约束
+            </summary>
+        </member>
+        <member name="P:SqlBatis.DbColumnMetaInfo.IsIdentity">
+            <summary>
+            是否是自增列
+            </summary>
+        </member>
+        <member name="P:SqlBatis.DbColumnMetaInfo.IsComplexType">
+            <summary>
+            是否为计算列
+            </summary>
+        </member>
+        <member name="T:SqlBatis.IEntityMapperProvider">
+            <summary>
+            实体转换映射器
+            </summary>
+        </member>
+        <member name="M:SqlBatis.IEntityMapperProvider.GetSerializer``1(System.Data.IDataRecord)">
+            <summary>
+            获取实体序列化转换器
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="record"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.IEntityMapperProvider.GetSerializer">
+            <summary>
+            获取动态实体列化转换器
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.IEntityMapperProvider.GetDeserializer(System.Type)">
+            <summary>
+            获取参数解码器
+            </summary>
+            <param name="type"></param>
+            <returns></returns>
+        </member>
         <member name="T:SqlBatis.EntityMapperProvider">
+            <summary>
+            默认实体映射器
+            </summary>
+        </member>
+        <member name="M:SqlBatis.EntityMapperProvider.GetSerializer``1(System.Data.IDataRecord)">
+            <summary>
+            获取实体映射器
+            </summary>
+        </member>
+        <member name="M:SqlBatis.EntityMapperProvider.GetSerializer">
+            <summary>
+            获取动态映射器
+            </summary>
+        </member>
+        <member name="M:SqlBatis.EntityMapperProvider.GetDeserializer(System.Type)">
+            <summary>
+            获取实体解构器
+            </summary>
+        </member>
+        <member name="M:SqlBatis.EntityMapperProvider.CreateTypeDeserializerHandler(System.Type)">
+            <summary>
+            创建动态方法
+            </summary>
+            <param name="type"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.EntityMapperProvider.CreateTypeSerializerHandler``1(SqlBatis.MemberMapper,System.Data.IDataRecord)">
+            <summary>
+            创建动态方法
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="mapper"></param>
+            <param name="record"></param>
+            <returns></returns>
+        </member>
+        <member name="T:SqlBatis.DataReaderCellInfo">
+            <summary>
+            DataReader中的行信息
+            </summary>
+        </member>
+        <member name="T:SqlBatis.MemberMapper">
             <summary>
             返回数据记录到Csharp类型的策略
             </summary>
         </member>
-        <member name="M:SqlBatis.EntityMapperProvider.FindConstructor(System.Type)">
+        <member name="M:SqlBatis.MemberMapper.FindConstructor(System.Type)">
             <summary>
             Find parametric constructors.
             If there is no default constructor, the constructor with the most parameters is returned.
             </summary>
         </member>
-        <member name="M:SqlBatis.EntityMapperProvider.FindConstructorParameter(SqlBatis.DbDataInfo[],System.Reflection.ParameterInfo)">
+        <member name="M:SqlBatis.MemberMapper.FindConstructorParameter(SqlBatis.DataReaderCellInfo[],System.Reflection.ParameterInfo)">
             <summary>
             Returns field information based on parameter information
             </summary>
         </member>
-        <member name="M:SqlBatis.EntityMapperProvider.FindMember(System.Reflection.MemberInfo[],SqlBatis.DbDataInfo)">
+        <member name="M:SqlBatis.MemberMapper.FindMember(System.Reflection.MemberInfo[],SqlBatis.DataReaderCellInfo)">
             <summary>
             Returns attribute information based on field information
             </summary>
         </member>
-        <member name="M:SqlBatis.EntityMapperProvider.FindConvertMethod(System.Type,System.Type)">
+        <member name="M:SqlBatis.MemberMapper.FindConvertMethod(System.Type,System.Type)">
             <summary>
             Return type conversion function.
             </summary>
         </member>
-        <member name="T:SqlBatis.DataConvertMethod">
+        <member name="T:SqlBatis.MemberMapper.MemberMapperMethod">
             <summary>
             数据库类型到Csharp类型转换器
             </summary>
         </member>
-        <member name="M:SqlBatis.IXmlCommandsProvider.Resolve``1(System.String,``0)">
+        <member name="T:SqlBatis.IXmlCommandsProvider">
+            <summary>
+            xml配置提供程序
+            </summary>
+        </member>
+        <member name="M:SqlBatis.IXmlCommandsProvider.Build``1(System.String,``0)">
             <summary>
             解析动态sql
             </summary>
@@ -517,7 +569,7 @@
             <param name="parameter"></param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IXmlCommandsProvider.Resolve(System.String)">
+        <member name="M:SqlBatis.IXmlCommandsProvider.Build(System.String)">
             <summary>
             解析sql
             </summary>
@@ -557,6 +609,11 @@
             </summary>
             <param name="assembly">程序集</param>
             <param name="pattern">正则匹配</param>
+        </member>
+        <member name="T:SqlBatis.XmlCommandsProvider">
+            <summary>
+            xml配置提供程序
+            </summary>
         </member>
         <member name="M:SqlBatis.XmlCommandsProvider.Load(System.String)">
             <summary>
