@@ -2,12 +2,11 @@
 
 ## 全局设置
 ``` C#
-//所有设置均有默认行为，可以按需配置
-//开启忽略下划线
-GlobalSettings.EntityMapperProvider = new EntityMapperProvider(true);
+//所有设置均有默认行为，可以按需配置，一下均为默认值
+GlobalSettings.EntityMapperProvider = new EntityMapperProvider();
 
 //自定义数据库元信息提供程序，默认从注解中获取，如果你不想使用注解可以通过自定义元数据提供程序
-GlobalSettings.DatabaseMetaInfoProvider = new MyDatabaseMetaInfoProvider();
+GlobalSettings.DbMetaInfoProvider = new AnnotationDbMetaInfoProvider();
 
 //Xml命令提供程序，加载xml配置。建议将文件属性设置为嵌入的资源（vs文件属性->生成操作->嵌入的资源）
 GlobalSettings.XmlCommandsProvider.Load(System.Reflection.Assembly.GetExecutingAssembly(), @".+\.xml");
@@ -37,13 +36,13 @@ var context = new DbContext(new DbContextBuilder
 */
 //查询和执行存储过程都可以使用：ExecuteQuery
 //返回dynamic
-var list0 = context.ExecuteQuery("select * from student");
+var list0 = context.Query("select * from student");
 //返回Student，底层采用IL，动态编写映射器并缓存
-var list1 = context.ExecuteQuery<Student>("select id,stu_name as stuName,create_time as createTime from student");
+var list1 = context.Query<Student>("select id,stu_name as stuName,create_time as createTime from student");
 //执行非查询操作，并返回受影响的行数
-var row = context.ExecuteNonQuery("delete from student");
+var row = context.Execute("delete from student");
 //多结果集查询，一次请求多个结果集，性能较高
-using(var multi = context.ExecuteMultiQuery("select * from student;select count(1) from student"))
+using(var multi = context.MultipleQuery("select * from student;select count(1) from student"))
 {
     //获取集合，第一个结果集，数据阅读器在执行muit的获取操作，会自动移动到下一个结果集
     var list = multi.GetList<List>();
@@ -51,7 +50,7 @@ using(var multi = context.ExecuteMultiQuery("select * from student;select count(
     //由于会自动移动到下一个结果级，我们不需要执行NextResult操作，当执行到最后一个结果级的时候，会自动关闭multi对象托管的IDataReader对象
     var count = multi.Get<long>();
     //由于上面已经读取完了multi的所有结果级，因此可以继续执行查询，multi托管的IDataReader已经被自动关闭
-    context.ExecuteQuery("select * from student");
+    context.Query("select * from student");
 }
 //默认的in查询
 context.ExecuteNonQuery("delete from student where id in (@Id1,@Id2,@Id3)",new {Id1=1,Id2=2,Id3=3});
@@ -103,8 +102,7 @@ var row = context.Student.Insert(new Student
 ```
 
 ## Xml操作
-
-### xml的优势是可以构建复杂的sql，灵活的sql，动态的sql,推荐将xml编译到程序集中。基本格式如下：
+xml的优势是可以构建复杂的sql，灵活的sql，动态的sql,推荐将xml编译到程序集中。基本格式如下：
 
 ``` xml
 <?xml version="1.0" encoding="utf-8" ?>
@@ -138,7 +136,7 @@ var row = context.Student.Insert(new Student
   </insert>
 </commands>
 ```
-### 使用xml功能必须先加载你的xml配置
+
 ``` C#
 /**
 * xml中的参数分两大类
@@ -150,6 +148,8 @@ var row = context.Student.Insert(new Student
 *   3.if.test的表达式中必须收到加括号（底层通过正则分析）比如：<if test="(Id!=null)&&(Id>10)" value="Id=@Id">
 *   4.if.test底层的解析器非常的轻量只有几百行代码，功能有限，基本满足使用
 */
+使用xml功能必须先加载你的xml配置
+GlobalSettings.XmlCommandsProvider.Load(System.Reflection.Assembly.GetExecutingAssembly(), @".+\.xml");
 using(var multi = db.From("student.list",new Student(){Id=null,Name="zs"}).ExecuteMultiQuery<Student>())
 {
     var list = multi.GetList<Student>();
@@ -163,4 +163,85 @@ for(var i=0;i<100000;i++)
 {
     xmlProvider.Resolev("student.list",new {Id=(int?)i,Name="zs");
 }
+```
+
+## 自定义提供程序
+
+### 自定义数据库元信息提供程序
+
+``` C#
+//自定义提供程序
+public class MyDbMetaInfoProvider : IDbMetaInfoProvider
+{
+    public List<DbColumnMetaInfo> GetColumns(Type type)
+    {
+        return type.GetProperties().Select(s => new DbColumnMetaInfo()
+        {
+            ColumnName = s.Name,
+            CsharpName = s.Name,
+            CsharpType = s.PropertyType,
+            IsComplexType = false,
+            IsConcurrencyCheck = false,
+            IsDefault = false,
+            IsIdentity = false,
+            IsNotMapped = true,
+            IsPrimaryKey = false,
+        }).ToList();
+    }
+
+    public DbTableMetaInfo GetTable(Type type)
+    {
+        return new DbTableMetaInfo()
+        {
+            TableName = type.Name.ToUpper(),
+            CsharpName = type.Name
+        };
+    }
+}
+//替换掉默认提供程序
+GlobalSettings.DbMetaInfoProvider = new MyDbMetaInfoProvider();
+```
+
+### 自定义类型映射提供程序
+
+``` C#
+//自定义实现规则
+public class MyEntityMapperProvider : IEntityMapperProvider
+{
+    /// <summary>
+    /// 默认的提供程序是线程安全的
+    /// </summary>
+    private EntityMapperProvider defaultMapper = new EntityMapperProvider();
+    public Func<object, Dictionary<string, object>> GetDeserializer(Type type)
+    {
+        return defaultMapper.GetDeserializer(type);
+    }
+
+    public Func<IDataRecord, T> GetSerializer<T>(IDataRecord record)
+        {
+            //如果是student类型
+            if (typeof(T) == typeof(Student))
+            {
+                return new Func<IDataRecord, T>((r) =>
+                {
+                    var student = (object)new Student()
+                    {
+                        Id = r.GetInt32(r.GetOrdinal("id")),
+                        CreateTime = r.GetDateTime(r.GetOrdinal("create_time")),
+                        Name = r.GetString(r.GetOrdinal("stu_name"))
+                    };
+                    return (T)student;
+                });
+            }
+            //否则使用默认实现
+            return defaultMapper.GetSerializer<T>(record);
+        }
+
+    public Func<IDataRecord, dynamic> GetSerializer()
+    {
+        return defaultMapper.GetSerializer();
+    }
+}
+//替换掉默认提供程序
+GlobalSettings.EntityMapperProvider = new EntityMapperProvider();
 ```
