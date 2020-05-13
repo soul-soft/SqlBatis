@@ -36,13 +36,13 @@ var context = new DbContext(new DbContextBuilder
 */
 //查询和执行存储过程都可以使用：ExecuteQuery
 //返回dynamic
-var list0 = context.ExecuteQuery("select * from student");
+var list0 = context.Query("select * from student");
 //返回Student，底层采用IL，动态编写映射器并缓存
-var list1 = context.ExecuteQuery<Student>("select id,stu_name as stuName,create_time as createTime from student");
+var list1 = context.Query<Student>("select id,stu_name as stuName,create_time as createTime from student");
 //执行非查询操作，并返回受影响的行数
-var row = context.ExecuteNonQuery("delete from student");
+var row = context.Execute("delete from student");
 //多结果集查询，一次请求多个结果集，性能较高
-using(var multi = context.ExecuteMultiQuery("select * from student;select count(1) from student"))
+using(var multi = context.MultipleQuery("select * from student;select count(1) from student"))
 {
     //获取集合，第一个结果集，数据阅读器在执行muit的获取操作，会自动移动到下一个结果集
     var list = multi.GetList<List>();
@@ -50,7 +50,7 @@ using(var multi = context.ExecuteMultiQuery("select * from student;select count(
     //由于会自动移动到下一个结果级，我们不需要执行NextResult操作，当执行到最后一个结果级的时候，会自动关闭multi对象托管的IDataReader对象
     var count = multi.Get<long>();
     //由于上面已经读取完了multi的所有结果级，因此可以继续执行查询，multi托管的IDataReader已经被自动关闭
-    context.ExecuteQuery("select * from student");
+    context.Query("select * from student");
 }
 //默认的in查询
 context.ExecuteNonQuery("delete from student where id in (@Id1,@Id2,@Id3)",new {Id1=1,Id2=2,Id3=3});
@@ -163,4 +163,85 @@ for(var i=0;i<100000;i++)
 {
     xmlProvider.Resolev("student.list",new {Id=(int?)i,Name="zs");
 }
+```
+
+## 自定义提供程序
+
+### 自定义数据库元信息提供程序
+
+``` C#
+//自定义提供程序
+public class MyDbMetaInfoProvider : IDbMetaInfoProvider
+{
+    public List<DbColumnMetaInfo> GetColumns(Type type)
+    {
+        return type.GetProperties().Select(s => new DbColumnMetaInfo()
+        {
+            ColumnName = s.Name,
+            CsharpName = s.Name,
+            CsharpType = s.PropertyType,
+            IsComplexType = false,
+            IsConcurrencyCheck = false,
+            IsDefault = false,
+            IsIdentity = false,
+            IsNotMapped = true,
+            IsPrimaryKey = false,
+        }).ToList();
+    }
+
+    public DbTableMetaInfo GetTable(Type type)
+    {
+        return new DbTableMetaInfo()
+        {
+            TableName = type.Name.ToUpper(),
+            CsharpName = type.Name
+        };
+    }
+}
+//替换掉默认提供程序
+GlobalSettings.DbMetaInfoProvider = new MyDbMetaInfoProvider();
+```
+
+### 自定义类型映射提供程序
+
+``` C#
+//自定义实现规则
+public class MyEntityMapperProvider : IEntityMapperProvider
+{
+    /// <summary>
+    /// 默认的提供程序是线程安全的
+    /// </summary>
+    private EntityMapperProvider defaultMapper = new EntityMapperProvider();
+    public Func<object, Dictionary<string, object>> GetDeserializer(Type type)
+    {
+        return defaultMapper.GetDeserializer(type);
+    }
+
+    public Func<IDataRecord, T> GetSerializer<T>(IDataRecord record)
+        {
+            //如果是student类型
+            if (typeof(T) == typeof(Student))
+            {
+                return new Func<IDataRecord, T>((r) =>
+                {
+                    var student = (object)new Student()
+                    {
+                        Id = r.GetInt32(r.GetOrdinal("id")),
+                        CreateTime = r.GetDateTime(r.GetOrdinal("create_time")),
+                        Name = r.GetString(r.GetOrdinal("stu_name"))
+                    };
+                    return (T)student;
+                });
+            }
+            //否则使用默认实现
+            return defaultMapper.GetSerializer<T>(record);
+        }
+
+    public Func<IDataRecord, dynamic> GetSerializer()
+    {
+        return defaultMapper.GetSerializer();
+    }
+}
+//替换掉默认提供程序
+GlobalSettings.EntityMapperProvider = new EntityMapperProvider();
 ```
