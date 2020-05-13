@@ -162,11 +162,11 @@ namespace SqlBatis.Test
             {
                 Name = "xml",
                 Age = 90
-            }).ExecuteNonQuery();
+            }).Execute();
 
             var p = new { Id = (int?)1, Index = 1, Count = 10 };
             var list = db.From("sutdent.list-dynamic", p)
-                .ExecuteQuery<StudentDto>()
+                .Query<StudentDto>()
                 .ToList();
         }
 
@@ -197,7 +197,7 @@ namespace SqlBatis.Test
             var cmd = db.Connection.CreateCommand();
             cmd.CommandText = "select * from Student";
             var reader = cmd.ExecuteReader();
-            var serializer = new EntityMapperProvider().GetSerializer<StudentDto>( reader);
+            var serializer = new EntityMapperProvider().GetSerializer<StudentDto>(reader);
             while (reader.Read())
             {
                 StudentDto student = serializer(reader);
@@ -209,20 +209,21 @@ namespace SqlBatis.Test
         {
             object c = 10;
             //加载嵌入式配置
-            
+            GlobalSettings.DbMetaInfoProvider = new MyDbMetaInfoProvider();
+            GlobalSettings.EntityMapperProvider = new EntityMapperProvider();
             GlobalSettings.XmlCommandsProvider.Load(System.Reflection.Assembly.GetExecutingAssembly(), @".+\.xml");
             var db = new DbContext(new DbContextBuilder
             {
                 Connection = new MySqlConnection("server=127.0.0.1;port=3306;user id=root;password=1024;database=test;"),
             });
-            db.Logging += Db_Logging;  
+            db.Logging += Db_Logging;
             db.Open();
             try
             {
-                db.From("student.list").ExecuteQuery<Student>();
+                db.From("student.list").Query<Student>();
                 //var count = db.From<Student>().Get(1);
-                var multi = db.From("student.list",new { Id=(int?)null})
-                    .ExecuteMultiQuery();
+                var multi = db.From("student.list", new { Id = (int?)null })
+                    .MultipleQuery();
                 var list0 = multi.GetList();
                 var count = multi.Get();
                 var list2 = db.Query("select * from student");
@@ -233,20 +234,20 @@ namespace SqlBatis.Test
 
                 throw;
             }
-           
+
         }
 
         private void Db_Logging(string message, Dictionary<string, object> parameters = null, int? commandTimeout = null, CommandType? commandType = null)
         {
-            
+
         }
 
         public object Funcff()
         {
             var reader = new MySqlCommand().ExecuteReader();
-            return FiniteFields(reader,0);
+            return FiniteFields(reader, 0);
         }
-        static long? FiniteFields(IDataRecord record,int i)
+        static long? FiniteFields(IDataRecord record, int i)
         {
             return 90;
         }
@@ -282,4 +283,68 @@ namespace SqlBatis.Test
         public bool? IsDelete { get; set; }
     }
 
+    public class MyDbMetaInfoProvider : IDbMetaInfoProvider
+    {
+        public List<DbColumnMetaInfo> GetColumns(Type type)
+        {
+            return type.GetProperties().Select(s => new DbColumnMetaInfo()
+            {
+                ColumnName = s.Name,
+                CsharpName = s.Name,
+                CsharpType = s.PropertyType,
+                IsComplexType = false,
+                IsConcurrencyCheck = false,
+                IsDefault = false,
+                IsIdentity = false,
+                IsNotMapped = true,
+                IsPrimaryKey = false,
+            }).ToList();
+        }
+
+        public DbTableMetaInfo GetTable(Type type)
+        {
+            return new DbTableMetaInfo()
+            {
+                TableName = type.Name.ToUpper(),
+                CsharpName = type.Name
+            };
+        }
+    }
+
+    public class MyEntityMapperProvider : IEntityMapperProvider
+    {
+        /// <summary>
+        /// 默认的提供程序是线程安全的
+        /// </summary>
+        private EntityMapperProvider defaultMapper = new EntityMapperProvider();
+        public Func<object, Dictionary<string, object>> GetDeserializer(Type type)
+        {
+            return defaultMapper.GetDeserializer(type);
+        }
+
+        public Func<IDataRecord, T> GetSerializer<T>(IDataRecord record)
+        {
+            //如果是student类型
+            if (typeof(T) == typeof(Student))
+            {
+                return new Func<IDataRecord, T>((r) =>
+                {
+                    var student = (object)new Student()
+                    {
+                        Id = r.GetInt32(r.GetOrdinal("id")),
+                        CreateTime = r.GetDateTime(r.GetOrdinal("create_time")),
+                        Name = r.GetString(r.GetOrdinal("stu_name"))
+                    };
+                    return (T)student;
+                });
+            }
+            //否则使用默认实现
+            return defaultMapper.GetSerializer<T>(record);
+        }
+
+        public Func<IDataRecord, dynamic> GetSerializer()
+        {
+            return defaultMapper.GetSerializer();
+        }
+    }
 }

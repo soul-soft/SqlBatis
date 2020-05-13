@@ -141,7 +141,7 @@ namespace SqlBatis
     public class DbColumnMetaInfo
     {
         /// <summary>
-        /// 是否并发检查
+        /// 是否并发检查列
         /// </summary>
         public bool IsConcurrencyCheck { get; set; }
         /// <summary>

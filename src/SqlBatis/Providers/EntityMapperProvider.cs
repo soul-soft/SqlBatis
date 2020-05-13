@@ -189,13 +189,13 @@ namespace SqlBatis
             var dynamicMethod = new DynamicMethod(methodName, type, new Type[] { typeof(IDataRecord) }, type, true);
             var generator = dynamicMethod.GetILGenerator();
             LocalBuilder local = generator.DeclareLocal(type);
-            var dataInfos = new DataReaderCellInfo[record.FieldCount];
+            var dataInfos = new DataCellInfo[record.FieldCount];
             for (int i = 0; i < record.FieldCount; i++)
             {
                 var dataname = record.GetName(i);
                 var datatype = record.GetFieldType(i);
                 var typename = record.GetDataTypeName(i);
-                dataInfos[i] = new DataReaderCellInfo(i, typename, datatype, dataname);
+                dataInfos[i] = new DataCellInfo(i, typename, datatype, dataname);
             }
             if (dataInfos.Length == 1 && (type.IsValueType || type == typeof(string) || type == typeof(object)))
             {
@@ -227,7 +227,7 @@ namespace SqlBatis
                 }
                 for (int i = 0; i < locals.Length; i++)
                 {
-                    var item = mapper.FindConstructorParameter(dataInfos, parameters[i]);
+                    var item = mapper.FindReaderCellInfoByParameter(dataInfos, parameters[i]);
                     if (item == null)
                     {
                         continue;
@@ -288,13 +288,13 @@ namespace SqlBatis
     /// <summary>
     /// DataReader中的行信息
     /// </summary>
-    class DataReaderCellInfo
+    class DataCellInfo
     {
         public string TypeName { get; set; }
         public Type DataType { get; set; }
         public string DataName { get; set; }
         public int Ordinal { get; set; }
-        public DataReaderCellInfo(int ordinal, string typeName, Type dataType, string dataName)
+        public DataCellInfo(int ordinal, string typeName, Type dataType, string dataName)
         {
             Ordinal = ordinal;
             TypeName = typeName;
@@ -326,7 +326,7 @@ namespace SqlBatis
         /// <summary>
         /// Returns field information based on parameter information
         /// </summary>
-        public DataReaderCellInfo FindConstructorParameter(DataReaderCellInfo[] dataInfos, ParameterInfo parameterInfo)
+        public DataCellInfo FindReaderCellInfoByParameter(DataCellInfo[] dataInfos, ParameterInfo parameterInfo)
         {
             foreach (var item in dataInfos)
             {
@@ -345,7 +345,7 @@ namespace SqlBatis
         /// <summary>
         /// Returns attribute information based on field information
         /// </summary>
-        public MemberInfo FindMember(MemberInfo[] properties, DataReaderCellInfo dataInfo)
+        public MemberInfo FindMember(MemberInfo[] properties, DataCellInfo dataInfo)
         {
             foreach (var item in properties)
             {
