@@ -205,43 +205,34 @@ GlobalSettings.DbMetaInfoProvider = new MyDbMetaInfoProvider();
 ### 自定义类型映射提供程序
 
 ``` C#
-//自定义实现规则
-public class MyEntityMapperProvider : IEntityMapperProvider
-{
-    /// <summary>
-    /// 默认的提供程序是线程安全的
-    /// </summary>
-    private EntityMapperProvider defaultMapper = new EntityMapperProvider();
-    public Func<object, Dictionary<string, object>> GetDeserializer(Type type)
-    {
-        return defaultMapper.GetDeserializer(type);
-    }
-
-    public Func<IDataRecord, T> GetSerializer<T>(IDataRecord record)
-        {
-            //如果是student类型
-            if (typeof(T) == typeof(Student))
+ public class MyEntityMapperProvider : EntityMapperProvider
+ {
+     //定义一个内部类，编写转换器
+     static class ConvertMethod 
+     {
+            public static MethodInfo ConvertToBooleanMethod = typeof(ConvertMethod).GetMethod(nameof(ConvertToBoolean));
+            //方法的原型要求：静态函数，形参类型和顺序必须如下
+            public static bool ConvertToBoolean(IDataRecord record,int i)
             {
-                return new Func<IDataRecord, T>((r) =>
+                if (record.IsDBNull(i))
                 {
-                    var student = (object)new Student()
-                    {
-                        Id = r.GetInt32(r.GetOrdinal("id")),
-                        CreateTime = r.GetDateTime(r.GetOrdinal("create_time")),
-                        Name = r.GetString(r.GetOrdinal("stu_name"))
-                    };
-                    return (T)student;
-                });
+                    return false;
+                }
+                return record.GetValue(i).ToString() == "Ok";
             }
-            //否则使用默认实现
-            return defaultMapper.GetSerializer<T>(record);
         }
 
-    public Func<IDataRecord, dynamic> GetSerializer()
-    {
-        return defaultMapper.GetSerializer();
-    }
-}
-//替换掉默认提供程序
-GlobalSettings.EntityMapperProvider = new EntityMapperProvider();
+     //重写转换器查找逻辑
+     protected override MethodInfo FindConvertMethod(Type returnType, Type fieldType)
+     {
+            //只对实体类型为Student中的bool类型处理（精准控制）
+            if (typeof(Student) == returnType && fieldType == typeof(bool))
+            {
+                return ConvertMethod.ConvertToBooleanMethod;
+            }
+            //否则使用默认的转换器
+            return base.FindConvertMethod(returnType, fieldType);
+      }
+ }
+ GlobalSettings.EntityMapperProvider = new MyEntityMapperProvider();
 ```
