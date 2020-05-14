@@ -24,7 +24,7 @@ GlobalSettings.XmlCommandsProvider.Load(System.Reflection.Assembly.GetExecutingA
 var context = new DbContext(new DbContextBuilder
 {
     Connection = new MySql.Data.MySqlClient.MySqlConnection("server=127.0.0.1;user id=root;password=1024;database=test;"),
-    DbContextType=DbContextType.Mysql,
+    DbContextType = DbContextType.Mysql,
 });
  
 ```
