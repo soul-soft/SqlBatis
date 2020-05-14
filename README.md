@@ -1,6 +1,6 @@
 # SqlBatis
 
-## 全局设置
+## 全局设置-为定制化需求提供入口
 ``` C#
 //所有设置均有默认行为，可以按需配置，一下均为默认值
 GlobalSettings.EntityMapperProvider = new EntityMapperProvider();
