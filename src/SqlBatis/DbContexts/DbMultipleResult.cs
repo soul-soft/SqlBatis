@@ -98,7 +98,7 @@ namespace SqlBatis
 
         public async Task<List<dynamic>> GetListAsync()
         {
-            var handler = GlobalSettings.EntityMapperProvider.GetSerializer();
+            var handler = GlobalSettings.EntityMapperProvider.GetSerializer(_reader);
             var list = new List<dynamic>();
             while (await (_reader as DbDataReader).ReadAsync())
             {
@@ -110,7 +110,7 @@ namespace SqlBatis
 
         public List<dynamic> GetList()
         {
-            var handler = GlobalSettings.EntityMapperProvider.GetSerializer();
+            var handler = GlobalSettings.EntityMapperProvider.GetSerializer(_reader);
             var list = new List<dynamic>();
             while (_reader.Read())
             {

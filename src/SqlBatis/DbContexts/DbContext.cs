@@ -209,11 +209,11 @@ namespace SqlBatis
         {
             using (var cmd = Connection.CreateCommand())
             {
-                Initialize(cmd, sql, parameter, commandTimeout, commandType);
+                ExecuteCommand(cmd, sql, parameter, commandTimeout, commandType);
                 var list = new List<dynamic>();
                 using (var reader = cmd.ExecuteReader())
                 {
-                    var handler = GlobalSettings.EntityMapperProvider.GetSerializer();
+                    var handler = GlobalSettings.EntityMapperProvider.GetSerializer(reader);
                     while (reader.Read())
                     {
                         list.Add(handler(reader));
@@ -226,11 +226,11 @@ namespace SqlBatis
         {
             using (var cmd = (Connection as DbConnection).CreateCommand())
             {
-                Initialize(cmd, sql, parameter, commandTimeout, commandType);
+                ExecuteCommand(cmd, sql, parameter, commandTimeout, commandType);
                 using (var reader = await cmd.ExecuteReaderAsync())
                 {
                     var list = new List<dynamic>();
-                    var handler = GlobalSettings.EntityMapperProvider.GetSerializer();
+                    var handler = GlobalSettings.EntityMapperProvider.GetSerializer(reader);
                     while (reader.Read())
                     {
                         list.Add(handler(reader));
@@ -242,7 +242,7 @@ namespace SqlBatis
         public IDbMultipleResult QueryMultiple(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null)
         {
             var cmd = Connection.CreateCommand();
-            Initialize(cmd, sql, parameter, commandTimeout, commandType);
+            ExecuteCommand(cmd, sql, parameter, commandTimeout, commandType);
             return new DbMultipleResult(cmd);
         }
         public IEnumerable<T> Query<T>(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null)
@@ -250,7 +250,7 @@ namespace SqlBatis
             using (var cmd = Connection.CreateCommand())
             {
                 var list = new List<T>();
-                Initialize(cmd, sql, parameter, commandTimeout, commandType);
+                ExecuteCommand(cmd, sql, parameter, commandTimeout, commandType);
                 using (var reader = cmd.ExecuteReader())
                 {
                     var handler = GlobalSettings.EntityMapperProvider.GetSerializer<T>(reader);
@@ -266,7 +266,7 @@ namespace SqlBatis
         {
             using (var cmd = (Connection as DbConnection).CreateCommand())
             {
-                Initialize(cmd, sql, parameter, commandTimeout, commandType);
+                ExecuteCommand(cmd, sql, parameter, commandTimeout, commandType);
                 using (var reader = await cmd.ExecuteReaderAsync())
                 {
                     var list = new List<T>();
@@ -283,7 +283,7 @@ namespace SqlBatis
         {
             using (var cmd = Connection.CreateCommand())
             {
-                Initialize(cmd, sql, parameter, commandTimeout, commandType);
+                ExecuteCommand(cmd, sql, parameter, commandTimeout, commandType);
                 return cmd.ExecuteNonQuery();
             }
         }
@@ -291,7 +291,7 @@ namespace SqlBatis
         {
             using (var cmd = (Connection as DbConnection).CreateCommand())
             {
-                Initialize(cmd, sql, parameter, commandTimeout, commandType);
+                ExecuteCommand(cmd, sql, parameter, commandTimeout, commandType);
                 return await cmd.ExecuteNonQueryAsync();
             }
         }
@@ -299,7 +299,7 @@ namespace SqlBatis
         {
             using (var cmd = Connection.CreateCommand())
             {
-                Initialize(cmd, sql, parameter, commandTimeout, commandType);
+                ExecuteCommand(cmd, sql, parameter, commandTimeout, commandType);
                 var result = cmd.ExecuteScalar();
                 if (result is DBNull || result == null)
                 {
@@ -312,7 +312,7 @@ namespace SqlBatis
         {
             using (var cmd = (Connection as DbConnection).CreateCommand())
             {
-                Initialize(cmd, sql, parameter, commandTimeout, commandType);
+                ExecuteCommand(cmd, sql, parameter, commandTimeout, commandType);
                 var result = await cmd.ExecuteScalarAsync();
                 if (result is DBNull || result == null)
                 {
@@ -378,7 +378,7 @@ namespace SqlBatis
             DbContextState = DbContextState.Rollback;
             Logging?.Invoke("Rollback");
         }
-        private void Initialize(IDbCommand cmd, string sql, object parameter, int? commandTimeout = null, CommandType? commandType = null)
+        protected virtual void ExecuteCommand(IDbCommand cmd, string sql, object parameter, int? commandTimeout = null, CommandType? commandType = null)
         {
             var dbParameters = new List<IDbDataParameter>();
             cmd.Transaction = _transaction;

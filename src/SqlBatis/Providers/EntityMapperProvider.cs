@@ -24,7 +24,7 @@ namespace SqlBatis
         /// 获取动态实体列化转换器
         /// </summary>
         /// <returns></returns>
-        Func<IDataRecord, dynamic> GetSerializer();
+        Func<IDataRecord, dynamic> GetSerializer(IDataRecord record);
         /// <summary>
         /// 获取参数解码器
         /// </summary>
@@ -38,15 +38,26 @@ namespace SqlBatis
     /// </summary>
     public class EntityMapperProvider : IEntityMapperProvider
     {
-        private readonly MemberMapper _memberMapper = new MemberMapper();
+        /// <summary>
+        /// 序列化器
+        /// </summary>
         private readonly ConcurrentDictionary<SerializerKey, object> _serializers
             = new ConcurrentDictionary<SerializerKey, object>();
+
+        /// <summary>
+        /// 参数解序列化器
+        /// </summary>
         private readonly ConcurrentDictionary<Type, Func<object, Dictionary<string, object>>> _deserializers
             = new ConcurrentDictionary<Type, Func<object, Dictionary<string, object>>>();
+
         public EntityMapperProvider()
         {
 
         }
+
+        /// <summary>
+        /// 获取实体序列化器的hashkey
+        /// </summary>
         private struct SerializerKey : IEquatable<SerializerKey>
         {
             private string[] Names { get; set; }
@@ -91,9 +102,13 @@ namespace SqlBatis
                 Names = names;
             }
         }
+       
         /// <summary>
-        /// 获取实体映射器
+        /// 获取实体序列化器
         /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="record"></param>
+        /// <returns></returns>
         public Func<IDataRecord, T> GetSerializer<T>(IDataRecord record)
         {
             string[] names = new string[record.FieldCount];
@@ -104,14 +119,14 @@ namespace SqlBatis
             var key = new SerializerKey(typeof(T), names.Length == 1 ? null : names);
             var handler = _serializers.GetOrAdd(key, k =>
              {
-                 return CreateTypeSerializerHandler<T>(_memberMapper, record);
+                 return CreateTypeSerializerHandler<T>(record);
              });
             return handler as Func<IDataRecord, T>;
         }
         /// <summary>
-        /// 获取动态映射器
+        /// 获取动态实体序列化器
         /// </summary>
-        public Func<IDataRecord, dynamic> GetSerializer()
+        public Func<IDataRecord, dynamic> GetSerializer(IDataRecord record)
         {
             return (reader) =>
             {
@@ -140,6 +155,123 @@ namespace SqlBatis
             });
             return handler;
         }
+
+
+        #region 一组可以被重写的策略
+        /// <summary>
+        /// 查找构造函数如果存在带参构造则获取参数最多的构造器进行实体的创建
+        /// </summary>
+        protected virtual ConstructorInfo FindConstructor(Type csharpType)
+        {
+            var constructor = csharpType.GetConstructor(Type.EmptyTypes);
+            if (constructor == null)
+            {
+                var constructors = csharpType.GetConstructors();
+                constructor = constructors.Where(a => a.GetParameters().Length == constructors.Max(s => s.GetParameters().Length)).FirstOrDefault();
+            }
+            return constructor;
+        }
+
+        /// <summary>
+        /// 获取参数在DataReader中的顺序
+        /// </summary>
+        protected virtual int? FindParameterOrdinal(DbFieldInfo[] dataInfos, ParameterInfo parameterInfo)
+        {
+            foreach (var item in dataInfos)
+            {
+                if (item.DataName.Equals(parameterInfo.Name, StringComparison.OrdinalIgnoreCase))
+                {
+                    return item.Ordinal;
+                }
+                else if (item.DataName.Replace("_", "").Equals(parameterInfo.Name, StringComparison.OrdinalIgnoreCase))
+                {
+                    return item.Ordinal;
+                }
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// 获取成员信息
+        /// </summary>
+        protected virtual MemberInfo FindMember(MemberInfo[] properties, DbFieldInfo dataInfo)
+        {
+            foreach (var item in properties)
+            {
+                if (item.Name.Equals(dataInfo.DataName, StringComparison.OrdinalIgnoreCase))
+                {
+                    return item;
+                }
+                else if (item.Name.Equals(dataInfo.DataName.Replace("_", ""), StringComparison.OrdinalIgnoreCase))
+                {
+                    return item;
+                }
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// 获取映射实体成员的转换方法
+        /// </summary>
+        protected virtual MethodInfo FindConvertMethod(Type returnType,Type memberType)
+        {
+            if (GetUnderlyingType(memberType) == typeof(bool))
+            {
+                return !IsNullableType(memberType) ? MemberMapperMethod.ToBooleanMethod : MemberMapperMethod.ToBooleanNullableMethod;
+            }
+            if (GetUnderlyingType(memberType).IsEnum)
+            {
+                return !IsNullableType(memberType) ? MemberMapperMethod.ToEnumMethod.MakeGenericMethod(memberType) : MemberMapperMethod.ToEnumNullableMethod.MakeGenericMethod(GetUnderlyingType(memberType));
+            }
+            if (GetUnderlyingType(memberType) == typeof(char))
+            {
+                return !IsNullableType(memberType) ? MemberMapperMethod.ToCharMethod : MemberMapperMethod.ToCharNullableMethod;
+            }
+            if (memberType == typeof(string))
+            {
+                return MemberMapperMethod.ToStringMethod;
+            }
+            if (GetUnderlyingType(memberType) == typeof(Guid))
+            {
+                return !IsNullableType(memberType) ? MemberMapperMethod.ToGuidMethod : MemberMapperMethod.ToGuidNullableMethod;
+            }
+            if (GetUnderlyingType(memberType) == typeof(DateTime))
+            {
+                return !IsNullableType(memberType) ? MemberMapperMethod.ToDateTimeMethod : MemberMapperMethod.ToDateTimeNullableMethod;
+            }
+            if (GetUnderlyingType(memberType) == typeof(byte) || GetUnderlyingType(memberType) == typeof(sbyte))
+            {
+                return !IsNullableType(memberType) ? MemberMapperMethod.ToByteMethod : MemberMapperMethod.ToByteNullableMethod;
+            }
+            if (GetUnderlyingType(memberType) == typeof(short) || GetUnderlyingType(memberType) == typeof(ushort))
+            {
+                return !IsNullableType(memberType) ? MemberMapperMethod.ToIn16Method : MemberMapperMethod.ToIn16NullableMethod;
+            }
+            if (GetUnderlyingType(memberType) == typeof(int) || GetUnderlyingType(memberType) == typeof(uint))
+            {
+                return !IsNullableType(memberType) ? MemberMapperMethod.ToIn32Method : MemberMapperMethod.ToIn32NullableMethod;
+            }
+            if (GetUnderlyingType(memberType) == typeof(long) || GetUnderlyingType(memberType) == typeof(ulong))
+            {
+                return !IsNullableType(memberType) ? MemberMapperMethod.ToIn64Method : MemberMapperMethod.ToIn64NullableMethod;
+            }
+            if (GetUnderlyingType(memberType) == typeof(float))
+            {
+                return !IsNullableType(memberType) ? MemberMapperMethod.ToFloatMethod : MemberMapperMethod.ToFloatNullableMethod;
+            }
+            if (GetUnderlyingType(memberType) == typeof(double))
+            {
+                return !IsNullableType(memberType) ? MemberMapperMethod.ToDoubleMethod : MemberMapperMethod.ToDoubleNullableMethod;
+            }
+            if (GetUnderlyingType(memberType) == typeof(decimal))
+            {
+                return !IsNullableType(memberType) ? MemberMapperMethod.ToDecimalMethod : MemberMapperMethod.ToDecimalNullableMethod;
+            }
+            return MemberMapperMethod.ToObjectMethod;
+        }
+        #endregion
+
+        #region 内部私有方法
         /// <summary>
         /// 创建动态方法
         /// </summary>
@@ -179,28 +311,26 @@ namespace SqlBatis
         /// 创建动态方法
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="mapper"></param>
         /// <param name="record"></param>
         /// <returns></returns>
-        private Func<IDataRecord, T> CreateTypeSerializerHandler<T>(MemberMapper mapper, IDataRecord record)
+        private Func<IDataRecord, T> CreateTypeSerializerHandler<T>(IDataRecord record)
         {
             var type = typeof(T);
             var methodName = $"Serializer{Guid.NewGuid():N}";
             var dynamicMethod = new DynamicMethod(methodName, type, new Type[] { typeof(IDataRecord) }, type, true);
             var generator = dynamicMethod.GetILGenerator();
             LocalBuilder local = generator.DeclareLocal(type);
-            var dataInfos = new DataCellInfo[record.FieldCount];
+            var dataInfos = new DbFieldInfo[record.FieldCount];
             for (int i = 0; i < record.FieldCount; i++)
             {
                 var dataname = record.GetName(i);
                 var datatype = record.GetFieldType(i);
                 var typename = record.GetDataTypeName(i);
-                dataInfos[i] = new DataCellInfo(i, typename, datatype, dataname);
+                dataInfos[i] = new DbFieldInfo(i, typename, datatype, dataname);
             }
             if (dataInfos.Length == 1 && (type.IsValueType || type == typeof(string) || type == typeof(object)))
             {
-                var dataInfo = dataInfos.First();
-                var convertMethod = mapper.FindConvertMethod(type);
+                var convertMethod = FindConvertMethod(type,type);
                 generator.Emit(OpCodes.Ldarg_0);
                 generator.Emit(OpCodes.Ldc_I4, 0);
                 if (convertMethod.IsVirtual)
@@ -216,7 +346,7 @@ namespace SqlBatis
                 generator.Emit(OpCodes.Ret);
                 return dynamicMethod.CreateDelegate(typeof(Func<IDataRecord, T>)) as Func<IDataRecord, T>;
             }
-            var constructor = mapper.FindConstructor(type);
+            var constructor = FindConstructor(type);
             if (constructor.GetParameters().Length > 0)
             {
                 var parameters = constructor.GetParameters();
@@ -227,14 +357,14 @@ namespace SqlBatis
                 }
                 for (int i = 0; i < locals.Length; i++)
                 {
-                    var item = mapper.FindReaderCellInfoByParameter(dataInfos, parameters[i]);
+                    var item = FindParameterOrdinal(dataInfos, parameters[i]);
                     if (item == null)
                     {
                         continue;
                     }
-                    var convertMethod = mapper.FindConvertMethod(parameters[i].ParameterType);
+                    var convertMethod = FindConvertMethod(type,parameters[i].ParameterType);
                     generator.Emit(OpCodes.Ldarg_0);
-                    generator.Emit(OpCodes.Ldc_I4, item.Ordinal);
+                    generator.Emit(OpCodes.Ldc_I4, item.Value);
                     if (convertMethod.IsVirtual)
                         generator.Emit(OpCodes.Callvirt, convertMethod);
                     else
@@ -258,12 +388,12 @@ namespace SqlBatis
                 generator.Emit(OpCodes.Stloc, local);
                 foreach (var item in dataInfos)
                 {
-                    var property = mapper.FindMember(properties, item) as PropertyInfo;
+                    var property = FindMember(properties, item) as PropertyInfo;
                     if (property == null)
                     {
                         continue;
                     }
-                    var convertMethod = mapper.FindConvertMethod(property.PropertyType);
+                    var convertMethod = FindConvertMethod(type,property.PropertyType);
                     if (convertMethod == null)
                     {
                         continue;
@@ -283,150 +413,22 @@ namespace SqlBatis
                 return dynamicMethod.CreateDelegate(typeof(Func<IDataRecord, T>)) as Func<IDataRecord, T>;
             }
         }
-    }
-
-    /// <summary>
-    /// DataReader中的行信息
-    /// </summary>
-    class DataCellInfo
-    {
-        public string TypeName { get; set; }
-        public Type DataType { get; set; }
-        public string DataName { get; set; }
-        public int Ordinal { get; set; }
-        public DataCellInfo(int ordinal, string typeName, Type dataType, string dataName)
-        {
-            Ordinal = ordinal;
-            TypeName = typeName;
-            DataType = dataType;
-            DataName = dataName;
-        }
-    }
-
-    /// <summary>
-    /// 返回数据记录到Csharp类型的策略
-    /// </summary>
-    class MemberMapper
-    {
         /// <summary>
-        /// Find parametric constructors.
-        /// If there is no default constructor, the constructor with the most parameters is returned.
+        /// 获取类型的非Nullable类型
         /// </summary>
-        public ConstructorInfo FindConstructor(Type csharpType)
-        {
-            var constructor = csharpType.GetConstructor(Type.EmptyTypes);
-            if (constructor == null)
-            {
-                var constructors = csharpType.GetConstructors();
-                constructor = constructors.Where(a => a.GetParameters().Length == constructors.Max(s => s.GetParameters().Length)).FirstOrDefault();
-            }
-            return constructor;
-        }
-
-        /// <summary>
-        /// Returns field information based on parameter information
-        /// </summary>
-        public DataCellInfo FindReaderCellInfoByParameter(DataCellInfo[] dataInfos, ParameterInfo parameterInfo)
-        {
-            foreach (var item in dataInfos)
-            {
-                if (item.DataName.Equals(parameterInfo.Name, StringComparison.OrdinalIgnoreCase))
-                {
-                    return item;
-                }
-                else if (item.DataName.Replace("_", "").Equals(parameterInfo.Name, StringComparison.OrdinalIgnoreCase))
-                {
-                    return item;
-                }
-            }
-            return null;
-        }
-
-        /// <summary>
-        /// Returns attribute information based on field information
-        /// </summary>
-        public MemberInfo FindMember(MemberInfo[] properties, DataCellInfo dataInfo)
-        {
-            foreach (var item in properties)
-            {
-                if (item.Name.Equals(dataInfo.DataName, StringComparison.OrdinalIgnoreCase))
-                {
-                    return item;
-                }
-                else if (item.Name.Equals(dataInfo.DataName.Replace("_", ""), StringComparison.OrdinalIgnoreCase))
-                {
-                    return item;
-                }
-            }
-            return null;
-        }
-
-        /// <summary>
-        /// Return type conversion function.
-        /// </summary>
-        public MethodInfo FindConvertMethod(Type csharpType)
-        {
-            if (GetUnderlyingType(csharpType) == typeof(bool))
-            {
-                return !IsNullableType(csharpType) ? MemberMapperMethod.ToBooleanMethod : MemberMapperMethod.ToBooleanNullableMethod;
-            }
-            if (GetUnderlyingType(csharpType).IsEnum)
-            {
-                return !IsNullableType(csharpType) ? MemberMapperMethod.ToEnumMethod.MakeGenericMethod(csharpType) : MemberMapperMethod.ToEnumNullableMethod.MakeGenericMethod(GetUnderlyingType(csharpType));
-            }
-            if (GetUnderlyingType(csharpType) == typeof(char))
-            {
-                return !IsNullableType(csharpType) ? MemberMapperMethod.ToCharMethod : MemberMapperMethod.ToCharNullableMethod;
-            }
-            if (csharpType == typeof(string))
-            {
-                return MemberMapperMethod.ToStringMethod;
-            }
-            if (GetUnderlyingType(csharpType) == typeof(Guid))
-            {
-                return !IsNullableType(csharpType) ? MemberMapperMethod.ToGuidMethod : MemberMapperMethod.ToGuidNullableMethod;
-            }
-            if (GetUnderlyingType(csharpType) == typeof(DateTime))
-            {
-                return !IsNullableType(csharpType) ? MemberMapperMethod.ToDateTimeMethod : MemberMapperMethod.ToDateTimeNullableMethod;
-            }
-            if (GetUnderlyingType(csharpType) == typeof(byte) || GetUnderlyingType(csharpType) == typeof(sbyte))
-            {
-                return !IsNullableType(csharpType) ? MemberMapperMethod.ToByteMethod : MemberMapperMethod.ToByteNullableMethod;
-            }
-            if (GetUnderlyingType(csharpType) == typeof(short) || GetUnderlyingType(csharpType) == typeof(ushort))
-            {
-                return !IsNullableType(csharpType) ? MemberMapperMethod.ToIn16Method : MemberMapperMethod.ToIn16NullableMethod;
-            }
-            if (GetUnderlyingType(csharpType) == typeof(int) || GetUnderlyingType(csharpType) == typeof(uint))
-            {
-                return !IsNullableType(csharpType) ? MemberMapperMethod.ToIn32Method : MemberMapperMethod.ToIn32NullableMethod;
-            }
-            if (GetUnderlyingType(csharpType) == typeof(long) || GetUnderlyingType(csharpType) == typeof(ulong))
-            {
-                return !IsNullableType(csharpType) ? MemberMapperMethod.ToIn64Method : MemberMapperMethod.ToIn64NullableMethod;
-            }
-            if (GetUnderlyingType(csharpType) == typeof(float))
-            {
-                return !IsNullableType(csharpType) ? MemberMapperMethod.ToFloatMethod : MemberMapperMethod.ToFloatNullableMethod;
-            }
-            if (GetUnderlyingType(csharpType) == typeof(double))
-            {
-                return !IsNullableType(csharpType) ? MemberMapperMethod.ToDoubleMethod : MemberMapperMethod.ToDoubleNullableMethod;
-            }
-            if (GetUnderlyingType(csharpType) == typeof(decimal))
-            {
-                return !IsNullableType(csharpType) ? MemberMapperMethod.ToDecimalMethod : MemberMapperMethod.ToDecimalNullableMethod;
-            }
-            return MemberMapperMethod.ToObjectMethod;
-        }
-
+        /// <param name="type"></param>
+        /// <returns></returns>
         private Type GetUnderlyingType(Type type)
         {
             var underlyingType = Nullable.GetUnderlyingType(type);
             return underlyingType ?? type;
         }
 
+        /// <summary>
+        /// 判断是否是可以为null的类型
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
         private bool IsNullableType(Type type)
         {
             if (type.IsValueType && Nullable.GetUnderlyingType(type) == null)
@@ -435,9 +437,11 @@ namespace SqlBatis
             }
             return true;
         }
+        #endregion
 
+        #region 定义一组成员实体转函数
         /// <summary>
-        /// 数据库类型到Csharp类型转换器
+        /// 定义映射到成员的转换器
         /// </summary>
         static class MemberMapperMethod
         {
@@ -702,7 +706,7 @@ namespace SqlBatis
                     throw ThrowException<Guid>(dr, i);
                 }
             }
-          
+
             #endregion
 
             #region Define Nullable Convert
@@ -808,11 +812,29 @@ namespace SqlBatis
             #region Exception
             private static Exception ThrowException<T>(IDataRecord dr, int i)
             {
-                var inner = new FormatException($"Column of [{dr.GetFieldType(i)}]{dr.GetName(i)} = {dr.GetValue(i)} was not recognized as a valid {typeof(T)}.");
+                var inner = new InvalidCastException($"Column of [{dr.GetFieldType(i)}][{dr.GetName(i)}] = [{dr.GetValue(i)}] was not recognized as a valid {typeof(T)}.");
                 return new InvalidCastException($"Unable to cast object of type '{dr.GetFieldType(i).Name}' to type '{typeof(T)}'.", inner);
             }
             #endregion
         }
+        #endregion
     }
 
+    /// <summary>
+    /// DataReader中的行信息
+    /// </summary>
+    public class DbFieldInfo
+    {
+        public string TypeName { get; set; }
+        public Type DataType { get; set; }
+        public string DataName { get; set; }
+        public int Ordinal { get; set; }
+        public DbFieldInfo(int ordinal, string typeName, Type dataType, string dataName)
+        {
+            Ordinal = ordinal;
+            TypeName = typeName;
+            DataType = dataType;
+            DataName = dataName;
+        }
+    }
 }

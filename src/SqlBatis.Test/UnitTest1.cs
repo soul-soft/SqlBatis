@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 
 namespace SqlBatis.Test
 {
@@ -205,7 +206,7 @@ namespace SqlBatis.Test
         {
             object c = 10;
             //º”‘ÿ«∂»Î Ω≈‰÷√
-            GlobalSettings.XmlCommandsProvider.Load(System.Reflection.Assembly.GetExecutingAssembly(), @".+\.xml");
+            GlobalSettings.EntityMapperProvider = new MyMapper();
             var db = new DbContext(new DbContextBuilder
             {
                 Connection = new MySqlConnection("server=127.0.0.1;port=3306;user id=root;password=1024;database=test;"),
@@ -214,6 +215,7 @@ namespace SqlBatis.Test
             db.Open();
             try
             {
+                var list = db.Query<Student>("select 'Ok' as IsDel");
                 //db.From("student.list").Query<Student>();
                 ////var count = db.From<Student>().Get(1);
                 //var multi = db.From("student.list", new { Id = (int?)null })
@@ -221,7 +223,7 @@ namespace SqlBatis.Test
                 //var list0 = multi.GetList();
                 //var count = multi.Get();
                 //var list2 = db.Query("select * from student");
-                var list1 = db.From<Student>().Select();
+                //var list1 = db.From<Student>().Select();
             }
             catch (Exception e)
             {
@@ -287,8 +289,11 @@ namespace SqlBatis.Test
                     stu.time = reader.GetDateTime(2);
                 }
                 #endregion
+
+                #region sqlbatis
                 //sqlbatis
                 //var entity = func(reader);
+                #endregion
             }
             stopwatch.Stop();
         }
@@ -306,6 +311,7 @@ namespace SqlBatis.Test
     }
     public class Student
     {
+        public bool IsDel { get; set; }
         public int id { get; set; }
 
         public string name { get; set; }
@@ -319,5 +325,30 @@ namespace SqlBatis.Test
         public string Name { get; set; }
         public int? Age { get; set; }
         public bool? IsDelete { get; set; }
+    }
+
+    public class MyMapper : EntityMapperProvider
+    {
+        static class ConvertMethod 
+        {
+            public static MethodInfo ConvertToBooleanMethod = typeof(ConvertMethod).GetMethod(nameof(ConvertToBoolean));
+            public static bool ConvertToBoolean(IDataRecord record,int i)
+            {
+                if (record.IsDBNull(i))
+                {
+                    return false;
+                }
+                return record.GetValue(i).ToString() == "Ok";
+            }
+        }
+
+        protected override MethodInfo FindConvertMethod(Type returnType, Type fieldType)
+        {
+            if (typeof(Student) == returnType && fieldType == typeof(bool))
+            {
+                return ConvertMethod.ConvertToBooleanMethod;
+            }
+            return base.FindConvertMethod(returnType, fieldType);
+        }
     }
 }
