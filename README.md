@@ -207,8 +207,8 @@ GlobalSettings.DbMetaInfoProvider = new MyDbMetaInfoProvider();
 ### 自定义类型映射提供程序
 
 ``` C#
- public class MyEntityMapperProvider : EntityMapperProvider
- {
+public class MyEntityMapperProvider : EntityMapperProvider
+{
      //定义一个内部类，编写转换器
      static class ConvertMethod 
      {
@@ -222,7 +222,7 @@ GlobalSettings.DbMetaInfoProvider = new MyDbMetaInfoProvider();
                 }
                 return record.GetValue(i).ToString() == "Ok";
             }
-        }
+       }
 
      //重写转换器查找逻辑
      protected override MethodInfo FindConvertMethod(Type returnType, Type fieldType)
@@ -235,6 +235,6 @@ GlobalSettings.DbMetaInfoProvider = new MyDbMetaInfoProvider();
             //否则使用默认的转换器
             return base.FindConvertMethod(returnType, fieldType);
       }
- }
+}
  GlobalSettings.EntityMapperProvider = new MyEntityMapperProvider();
 ```
