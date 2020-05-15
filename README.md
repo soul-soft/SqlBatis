@@ -29,6 +29,37 @@ var context = new DbContext(new DbContextBuilder
  
 ```
 
+## 事务操作
+
+1. 经典做法
+``` C#
+IDbContext context = null;
+try
+{
+context = new Dbcontext(...);
+context.Open();
+context.Execute(...);
+...
+context.CommitTransaction();
+}
+catch
+{
+    context?.RollbackTransaction();
+    throw;
+}
+```
+2. 1.0.7之后你不需要主动Rollback，因为using会执行Dispose，Dispose如果发现你没有提交就先回滚事务
+
+``` C#
+using(var context = new DbContext(...))
+{
+context.Open();
+context.Execute(...);
+....
+context.CommitTransaction();
+}
+```
+
 ## 执行sql脚本
 
 ``` C#
