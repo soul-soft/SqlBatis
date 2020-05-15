@@ -5,6 +5,7 @@ using SqlBatis.Expressions;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
@@ -171,7 +172,7 @@ namespace SqlBatis.Test
         {
 
             var expr = "(Age != null) && (Id > 0)";
-            var context = new ExpressionActivator();
+            var context = new EvalExpression();
             var result = context.Create<P>(expr);
             var flag1 = result.Func(new P { Id = 2, Age = null });
             var flag2 = result.Func(new P { Id = 2, Age = 2 });
@@ -204,26 +205,35 @@ namespace SqlBatis.Test
         [Test]
         public void TestXmlresolve()
         {
+            var stop = new Stopwatch();
+            stop.Start();
+            var func = GlobalSettings.EntityMapperProvider.GetDeserializer(typeof(Student));
+            for (int i = 0; i < 100000; i++)
+            {
+                func(new Student() { id=i,stu_name="ff"+i});
+            }
+            stop.Stop();
             object c = 10;
             //加载嵌入式配置
             GlobalSettings.EntityMapperProvider = new MyMapper();
-            var db = new DbContext(new DbContextBuilder
-            {
-                Connection = new MySqlConnection("server=127.0.0.1;port=3306;user id=root;password=1024;database=test;"),
-            });
-            db.Logging += Db_Logging;
-            db.Open();
+            //var db = new DbContext(new DbContextBuilder
+            //{
+            //    Connection = new MySqlConnection("server=127.0.0.1;port=3306;user id=root;password=1024;database=test;"),
+            //});
+            //db.Logging += Db_Logging;
+            //db.Open();
             try
             {
-                var list = db.Query<Student>("select 'Ok' as IsDel");
-                //db.From("student.list").Query<Student>();
-                ////var count = db.From<Student>().Get(1);
-                //var multi = db.From("student.list", new { Id = (int?)null })
-                //    .MultipleQuery();
-                //var list0 = multi.GetList();
-                //var count = multi.Get();
-                //var list2 = db.Query("select * from student");
-                //var list1 = db.From<Student>().Select();
+                using (var db = new DbContext(new DbContextBuilder
+                {
+                    Connection = new MySqlConnection("server=127.0.0.1;port=3306;user id=root;password=1024;database=test;"),
+                }))
+                {
+                    db.Open();
+                    db.BeginTransaction();
+                    var list = db.Query("select * from student where id=@id",new { id= 35006 });
+                    db.CommitTransaction();
+                }
             }
             catch (Exception e)
             {
@@ -275,19 +285,19 @@ namespace SqlBatis.Test
                 #endregion
 
                 #region 手写
-                var stu = new Student();
-                if (!reader.IsDBNull(0))
-                {
-                    stu.id = reader.GetInt32(0);
-                }
-                if (!reader.IsDBNull(1))
-                {
-                    stu.name = reader.GetString(1);
-                }
-                if (!reader.IsDBNull(2))
-                {
-                    stu.time = reader.GetDateTime(2);
-                }
+                //var stu = new Student();
+                //if (!reader.IsDBNull(0))
+                //{
+                //    stu.id = reader.GetInt32(0);
+                //}
+                //if (!reader.IsDBNull(1))
+                //{
+                //    stu.name = reader.GetString(1);
+                //}
+                //if (!reader.IsDBNull(2))
+                //{
+                //    stu.time = reader.GetDateTime(2);
+                //}
                 #endregion
 
                 #region sqlbatis
@@ -311,12 +321,16 @@ namespace SqlBatis.Test
     }
     public class Student
     {
-        public bool IsDel { get; set; }
         public int id { get; set; }
 
-        public string name { get; set; }
+        public string stu_name { get; set; }
 
-        public DateTime time { get; set; }
+        public bool is_del { get; set; }
+    }
+    public class StudentScore
+    {
+        public int Id { get; set; }
+        public double Score { get; set; }
     }
     public class StudentDto
     {
@@ -329,10 +343,10 @@ namespace SqlBatis.Test
 
     public class MyMapper : EntityMapperProvider
     {
-        static class ConvertMethod 
+        static class ConvertMethod
         {
             public static MethodInfo ConvertToBooleanMethod = typeof(ConvertMethod).GetMethod(nameof(ConvertToBoolean));
-            public static bool ConvertToBoolean(IDataRecord record,int i)
+            public static bool ConvertToBoolean(IDataRecord record, int i)
             {
                 if (record.IsDBNull(i))
                 {

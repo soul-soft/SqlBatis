@@ -22,7 +22,7 @@ namespace SqlBatis.XmlResovles
             {
                 lock (this)
                 {
-                    var context = new ExpressionActivator();
+                    var context = new EvalExpression();
                     var result = context.Create<T>(node.Test);
                     node.Delegate = result.Func;
                 }

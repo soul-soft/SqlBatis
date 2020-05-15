@@ -60,9 +60,9 @@
             数据库上下文
             </summary>
         </member>
-        <member name="E:SqlBatis.IDbContext.Logging">
+        <member name="P:SqlBatis.IDbContext.DbContextState">
             <summary>
-            日志处理
+            数据库上下文状态
             </summary>
         </member>
         <member name="P:SqlBatis.IDbContext.Connection">
@@ -247,15 +247,6 @@
             数据库上下文
             </summary>
         </member>
-        <member name="T:SqlBatis.Logging">
-            <summary>
-            sql执行日志
-            </summary>
-            <param name="message"></param>
-            <param name="parameters"></param>
-            <param name="commandTimeout"></param>
-            <param name="commandType"></param>
-        </member>
         <member name="P:SqlBatis.DbContextBuilder.Connection">
             <summary>
             设置要托管的数据库连接
@@ -328,7 +319,7 @@
             修改数据时并发冲突
             </summary>
         </member>
-        <member name="T:SqlBatis.Expressions.ExpressionActivator">
+        <member name="T:SqlBatis.Expressions.EvalExpression">
             <summary>
             表达式树生成器
             </summary>

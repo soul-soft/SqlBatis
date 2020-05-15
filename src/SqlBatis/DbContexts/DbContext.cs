@@ -15,9 +15,9 @@ namespace SqlBatis
     public interface IDbContext : IDisposable
     {
         /// <summary>
-        /// 日志处理
+        /// 数据库上下文状态
         /// </summary>
-        event Logging Logging;
+        DbContextState DbContextState { get; }
         /// <summary>
         /// 数据库连接
         /// </summary>
@@ -179,33 +179,32 @@ namespace SqlBatis
     /// </summary>
     public class DbContext : IDbContext
     {
-        public DbContextState DbContextState = DbContextState.Closed;
-        private IDbTransaction _transaction = null;
+        public DbContextState DbContextState { get; private set; } = DbContextState.Closed;
+        protected  IDbTransaction _transaction = null;
         public IDbConnection Connection { get; } = null;
         public DbContextType DbContextType { get; } = DbContextType.Mysql;
-        public event Logging Logging;
         public DbContext(DbContextBuilder builder)
         {
             Connection = builder.Connection;
             DbContextType = builder.DbContextType;
         }
-        public IXmlQuery From<T>(string id, T parameter) where T : class
+        public virtual IXmlQuery From<T>(string id, T parameter) where T : class
         {
             var sql = GlobalSettings.XmlCommandsProvider.Build(id, parameter);
             var deserializer = GlobalSettings.EntityMapperProvider.GetDeserializer(typeof(T));
             var values = deserializer(parameter);
             return new XmlQuery(this, sql, values);
         }
-        public IXmlQuery From(string id)
+        public virtual IXmlQuery From(string id)
         {
             var sql = GlobalSettings.XmlCommandsProvider.Build(id);
             return new XmlQuery(this, sql);
         }
-        public IDbQuery<T> From<T>()
+        public virtual IDbQuery<T> From<T>()
         {
             return new DbQuery<T>(this);
         }
-        public IEnumerable<dynamic> Query(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null)
+        public virtual IEnumerable<dynamic> Query(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null)
         {
             using (var cmd = Connection.CreateCommand())
             {
@@ -222,7 +221,7 @@ namespace SqlBatis
                 }
             }
         }
-        public async Task<IEnumerable<dynamic>> QueryAsync(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null)
+        public virtual async Task<IEnumerable<dynamic>> QueryAsync(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null)
         {
             using (var cmd = (Connection as DbConnection).CreateCommand())
             {
@@ -239,13 +238,13 @@ namespace SqlBatis
                 }
             }
         }
-        public IDbMultipleResult QueryMultiple(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null)
+        public virtual IDbMultipleResult QueryMultiple(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null)
         {
             var cmd = Connection.CreateCommand();
             ExecuteCommand(cmd, sql, parameter, commandTimeout, commandType);
             return new DbMultipleResult(cmd);
         }
-        public IEnumerable<T> Query<T>(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null)
+        public virtual IEnumerable<T> Query<T>(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null)
         {
             using (var cmd = Connection.CreateCommand())
             {
@@ -262,7 +261,7 @@ namespace SqlBatis
                 }
             }
         }
-        public async Task<IEnumerable<T>> QueryAsync<T>(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null)
+        public virtual async Task<IEnumerable<T>> QueryAsync<T>(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null)
         {
             using (var cmd = (Connection as DbConnection).CreateCommand())
             {
@@ -279,7 +278,7 @@ namespace SqlBatis
                 }
             }
         }
-        public int Execute(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null)
+        public virtual int Execute(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null)
         {
             using (var cmd = Connection.CreateCommand())
             {
@@ -287,7 +286,7 @@ namespace SqlBatis
                 return cmd.ExecuteNonQuery();
             }
         }
-        public async Task<int> ExecuteAsync(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null)
+        public virtual async Task<int> ExecuteAsync(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null)
         {
             using (var cmd = (Connection as DbConnection).CreateCommand())
             {
@@ -295,7 +294,7 @@ namespace SqlBatis
                 return await cmd.ExecuteNonQueryAsync();
             }
         }
-        public T ExecuteScalar<T>(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null)
+        public virtual T ExecuteScalar<T>(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null)
         {
             using (var cmd = Connection.CreateCommand())
             {
@@ -308,7 +307,7 @@ namespace SqlBatis
                 return (T)Convert.ChangeType(result, typeof(T));
             }
         }
-        public async Task<T> ExecuteScalarAsync<T>(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null)
+        public virtual async Task<T> ExecuteScalarAsync<T>(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null)
         {
             using (var cmd = (Connection as DbConnection).CreateCommand())
             {
@@ -321,64 +320,55 @@ namespace SqlBatis
                 return (T)Convert.ChangeType(result, typeof(T));
             }
         }
-        public async Task BeginTransactionAsync()
+        public virtual async Task BeginTransactionAsync()
         {
             await Task.Run(() =>
             {
                 _transaction = Connection.BeginTransaction();
-                Logging?.Invoke("Begin Transaction");
             });
         }
-        public async Task BeginTransactionAsync(IsolationLevel level)
+        public virtual async Task BeginTransactionAsync(IsolationLevel level)
         {
             await Task.Run(() =>
             {
                 _transaction = Connection.BeginTransaction(level);
-                Logging?.Invoke("Begin Transaction IsolationLevel = " + level);
             });
         }
-        public void BeginTransaction()
+        public virtual void BeginTransaction()
         {
             _transaction = Connection.BeginTransaction();
-            Logging?.Invoke("Begin Transaction");
         }
-        public void BeginTransaction(IsolationLevel level)
+        public virtual void BeginTransaction(IsolationLevel level)
         {
             _transaction = Connection.BeginTransaction(level);
-            Logging?.Invoke("Begin Transaction IsolationLevel = " + level);
         }
-        public void Close()
+        public virtual void Close()
         {
             _transaction?.Dispose();
             Connection?.Close();
             DbContextState = DbContextState.Closed;
-            Logging?.Invoke("Colsed Connection");
         }
-        public void CommitTransaction()
+        public virtual void CommitTransaction()
         {
             _transaction?.Commit();
             DbContextState = DbContextState.Commit;
-            Logging?.Invoke("Commit Transaction");
         }
-        public void Open()
+        public virtual void Open()
         {
             Connection?.Open();
             DbContextState = DbContextState.Open;
-            Logging?.Invoke("Open Connection");
         }
-        public async Task OpenAsync()
+        public virtual async Task OpenAsync()
         {
             await (Connection as DbConnection).OpenAsync();
             DbContextState = DbContextState.Open;
-            Logging?.Invoke("Open Connection");
         }
-        public void RollbackTransaction()
+        public virtual void RollbackTransaction()
         {
             _transaction?.Rollback();
             DbContextState = DbContextState.Rollback;
-            Logging?.Invoke("Rollback");
         }
-        protected virtual void ExecuteCommand(IDbCommand cmd, string sql, object parameter, int? commandTimeout = null, CommandType? commandType = null)
+        protected void ExecuteCommand(IDbCommand cmd, string sql, object parameter, int? commandTimeout = null, CommandType? commandType = null)
         {
             var dbParameters = new List<IDbDataParameter>();
             cmd.Transaction = _transaction;
@@ -460,15 +450,6 @@ namespace SqlBatis
                     }
                 }
             }
-            if (Logging != null)
-            {
-                var parameters = new Dictionary<string, object>();
-                foreach (IDbDataParameter item in cmd.Parameters)
-                {
-                    parameters.Add(item.ParameterName, item.Value);
-                }
-                Logging.Invoke(cmd.CommandText, parameters, commandTimeout, commandType);
-            }
         }
         private IDbDataParameter CreateParameter(IDbCommand command, string name, object value)
         {
@@ -477,19 +458,18 @@ namespace SqlBatis
             parameter.Value = value;
             return parameter;
         }
-        public void Dispose()
+        public virtual void Dispose()
         {
-            _transaction?.Dispose();
+            if (_transaction != null)
+            {
+                if (DbContextState == DbContextState.Open)
+                {
+                    RollbackTransaction();
+                }
+                _transaction?.Dispose();
+            }
             Connection?.Dispose();
         }
     }
 
-    /// <summary>
-    /// sql执行日志
-    /// </summary>
-    /// <param name="message"></param>
-    /// <param name="parameters"></param>
-    /// <param name="commandTimeout"></param>
-    /// <param name="commandType"></param>
-    public delegate void Logging(string message, Dictionary<string, object> parameters = null, int? commandTimeout = null, CommandType? commandType = null);
 }

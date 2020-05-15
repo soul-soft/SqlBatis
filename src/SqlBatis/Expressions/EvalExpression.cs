@@ -9,7 +9,7 @@ namespace SqlBatis.Expressions
     /// <summary>
     /// 表达式树生成器
     /// </summary>
-    public class ExpressionActivator
+    public class EvalExpression
     {
         private Dictionary<string, string> Factorization(string expression)
         {
