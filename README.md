@@ -4,7 +4,8 @@ sqlbatis无疑是轻量的orm，太没有复杂的功能。麻雀虽小但五脏
 
 ## 全局设置-为定制化需求提供入口
 ``` C#
-//所有设置均有默认行为，可以按需配置，一下均为默认值
+//所有设置均有默认行为，可以按需配置，以下均为默认值
+//由于是全局设置，只需要设置一次即可
 //可以写在asp.net core的main函数中，或者startup或者类的静态构造器中
 GlobalSettings.EntityMapperProvider = new EntityMapperProvider();
 
