@@ -17,8 +17,8 @@ GlobalSettings.XmlCommandsProvider.Load(System.Reflection.Assembly.GetExecutingA
 
 ``` C#
 /**
- * DbContext会在第一次执行命令时自动检查连接是否开启，未开启则自动开启，记住你必须释放DbContext
- * 在net core中必须注册为scope范围的生命周期
+ * DbContext会在第一次执行命令时自动检查连接是否开启，未开启则自动开启，记住你必须释放DbContext，来关闭连接
+ * 也可以通过容器来处理，在net core中必须注册为scope范围的生命周期
  */
 
 var context = new DbContext(new DbContextBuilder
@@ -254,7 +254,20 @@ public class MyEntityMapperProvider : EntityMapperProvider
                 return record.GetValue(i).ToString() == "Ok";
             }
        }
-
+    //对动态类型的sqlserver的nchar和nvarchar处理
+     protected override object GetDynamicValue(IDataRecord record, int i)
+     {
+         if (record.IsDBNull(i))
+         {
+             return null;
+         }
+         var typeName = record.GetDataTypeName(i);
+         if ("nvarchar".Equals(typeName)|| "nchar".Equals(typeName))
+         {
+             return record.GetString(i)?.Trim();
+         }
+         return base.GetDynamicValue(record, i);
+     }
      //重写转换器查找逻辑
      protected override MethodInfo FindConvertMethod(Type returnType, Type fieldType)
      {
