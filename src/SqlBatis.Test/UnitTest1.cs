@@ -9,6 +9,7 @@ using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 
 namespace SqlBatis.Test
 {
@@ -306,6 +307,21 @@ namespace SqlBatis.Test
                 #endregion
             }
             stopwatch.Stop();
+        }
+        [Test]
+        public void AutoOpenConnectionAsync()
+        {
+            var builder = new DbContextBuilder
+            {
+                Connection = new MySqlConnection("server=127.0.0.1;port=3306;user id=root;password=1024;database=test;"),
+            };
+            using (var db = new DbContext(builder))
+            {
+                db.Open();
+                db.BeginTransaction();
+                var list = db.Execute("insert into student(stu_name,is_del)values('zs',0)");
+                db.CommitTransaction();
+            }
         }
 
         private void Db_Logging(string message, Dictionary<string, object> parameters = null, int? commandTimeout = null, CommandType? commandType = null)
