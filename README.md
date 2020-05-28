@@ -254,20 +254,20 @@ public class MyEntityMapperProvider : EntityMapperProvider
                 return record.GetValue(i).ToString() == "Ok";
             }
        }
-//对动态类型的sqlserver的nchar和nvarchar处理
-protected override object GetDynamicValue(IDataRecord record, int i)
-{
-    if (record.IsDBNull(i))
+    //对动态类型的sqlserver的nchar和nvarchar处理
+    protected override object GetDynamicValue(IDataRecord record, int i)
     {
-        return null;
+        if (record.IsDBNull(i))
+        {
+            return null;
+        }
+        var typeName = record.GetDataTypeName(i);
+        if ("nvarchar".Equals(typeName)|| "nchar".Equals(typeName))
+        {
+            return record.GetString(i)?.Trim();
+        }
+        return base.GetDynamicValue(record, i);
     }
-    var typeName = record.GetDataTypeName(i);
-    if ("nvarchar".Equals(typeName)|| "nchar".Equals(typeName))
-    {
-        return record.GetString(i)?.Trim();
-    }
-    return base.GetDynamicValue(record, i);
-}
      //重写转换器查找逻辑
      protected override MethodInfo FindConvertMethod(Type returnType, Type fieldType)
      {
