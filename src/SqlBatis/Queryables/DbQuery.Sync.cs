@@ -107,7 +107,7 @@ namespace SqlBatis
 
         public IDbQuery<T> Set<TResult>(Expression<Func<T, TResult>> column, TResult value, bool condition = true)
         {
-            if (true)
+            if (condition)
             {
                 _setExpressions.Add(new SetExpression
                 {
@@ -120,7 +120,7 @@ namespace SqlBatis
 
         public IDbQuery<T> Set<TResult>(Expression<Func<T, TResult>> column, Expression<Func<T, TResult>> expression, bool condition = true)
         {
-            if (true)
+            if (condition)
             {
                 _setExpressions.Add(new SetExpression
                 {

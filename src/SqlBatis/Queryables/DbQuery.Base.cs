@@ -10,32 +10,19 @@ namespace SqlBatis
     public partial class DbQuery<T> : IDbQuery<T>
     {
         #region fields
-
         private readonly Dictionary<string, object> _parameters
             = new Dictionary<string, object>();
-
         private readonly PageData _page = new PageData();
-
         private string _lockname = string.Empty;
-
         private readonly IDbContext _context = null;
-
         private readonly List<Expression> _whereExpressions = new List<Expression>();
-
         private readonly List<SetExpression> _setExpressions = new List<SetExpression>();
-
         private readonly List<OrderExpression> _orderExpressions = new List<OrderExpression>();
-
         private readonly List<Expression> _groupExpressions = new List<Expression>();
-
         private readonly List<Expression> _havingExpressions = new List<Expression>();
-
         private Expression _filterExpression = null;
-
         private Expression _selectExpression = null;
-
         private Expression _countExpression = null;
-
         public DbQuery(IDbContext context)
         {
             _context = context;
@@ -60,7 +47,6 @@ namespace SqlBatis
                 }
             }
         }
-
         private string ResovleCount()
         {
             var table = GetTableMetaInfo().TableName;
@@ -83,7 +69,6 @@ namespace SqlBatis
             }
             return sql;
         }
-
         private string ResovleSum()
         {
             var table = GetTableMetaInfo().TableName;
@@ -92,7 +77,6 @@ namespace SqlBatis
             var sql = $"SELECT {column} FROM {table}{where}";
             return sql;
         }
-
         private string ResolveGet()
         {
             var table = GetTableMetaInfo().TableName;
@@ -110,7 +94,6 @@ namespace SqlBatis
             }
             return sql;
         }
-
         private string ResolveSelect()
         {
             var table = GetTableMetaInfo().TableName;
@@ -151,7 +134,6 @@ namespace SqlBatis
             }
             return sql;
         }
-
         private string ResovleInsert(bool identity)
         {
             var table = GetTableMetaInfo().TableName;
@@ -170,7 +152,6 @@ namespace SqlBatis
             }
             return sql;
         }
-
         private DbTableMetaInfo GetTableMetaInfo()
         {
             return GlobalSettings.DbMetaInfoProvider.GetTable(typeof(T));
@@ -240,7 +221,6 @@ namespace SqlBatis
             }
             throw new NotImplementedException();
         }
-
         private string ResolveUpdate()
         {
             var table = GetTableMetaInfo().TableName;
@@ -299,7 +279,6 @@ namespace SqlBatis
                 return sql;
             }
         }
-
         private string ResovleDelete()
         {
             var table = GetTableMetaInfo().TableName;
@@ -307,7 +286,6 @@ namespace SqlBatis
             var sql = $"DELETE FROM {table}{where}";
             return sql;
         }
-
         private string SqlEncoding(string sql)
         {
             var buffer = new StringBuilder();
@@ -322,7 +300,6 @@ namespace SqlBatis
             }
             return buffer.ToString();
         }
-
         private string ResovleExists()
         {
             var table = GetTableMetaInfo().TableName;
@@ -332,7 +309,6 @@ namespace SqlBatis
             var sql = $"SELECT 1 WHERE EXISTS(SELECT 1 FROM {table}{where}{group}{having})";
             return sql;
         }
-
         private string ResovleColumns()
         {
             if (_selectExpression == null)
@@ -349,7 +325,6 @@ namespace SqlBatis
                 return new SelectExpressionResovle(_selectExpression).Resovle();
             }
         }
-
         private string ResolveWhere()
         {
             var builder = new StringBuilder();
@@ -367,7 +342,6 @@ namespace SqlBatis
             }
             return builder.ToString();
         }
-
         private string ResolveGroup()
         {
             var buffer = new StringBuilder();
@@ -384,7 +358,6 @@ namespace SqlBatis
             }
             return sql;
         }
-
         private string ResolveHaving()
         {
             var buffer = new StringBuilder();
@@ -402,7 +375,6 @@ namespace SqlBatis
             }
             return buffer.ToString();
         }
-
         private string ResolveOrder()
         {
             var buffer = new StringBuilder();
@@ -418,13 +390,11 @@ namespace SqlBatis
             }
             return buffer.ToString().Trim(',');
         }
-
         class PageData
         {
             public int Index { get; set; } = -1;
             public int Count { get; set; }
         }
-
         class OrderExpression
         {
             public bool Asc { get; set; } = true;
