@@ -1,6 +1,8 @@
 # SqlBatis
 
-## 全局设置
+sqlbatis无疑是轻量的orm，太没有复杂的功能。麻雀虽小但五脏俱全，你可以像dapper那样使用它，也可以像linq那样使用它，甚至可以像mybatis那样去使用它。它的实体映射能力几乎接近手写代码（这在单元测试中有测试案例），sqlbatis从sql到返回查询结果这个过程所执行的代码行数极短（这也是高性能的指标之一）。实体创建采用IL，你可以像使用C#代码一样定制化你的映射规则。
+
+## 全局设置-为定制化需求提供入口
 ``` C#
 //所有设置均有默认行为，可以按需配置，一下均为默认值
 GlobalSettings.EntityMapperProvider = new EntityMapperProvider();
@@ -22,9 +24,40 @@ GlobalSettings.XmlCommandsProvider.Load(System.Reflection.Assembly.GetExecutingA
 var context = new DbContext(new DbContextBuilder
 {
     Connection = new MySql.Data.MySqlClient.MySqlConnection("server=127.0.0.1;user id=root;password=1024;database=test;"),
-    DbContextType=DbContextType.Mysql,
+    DbContextType = DbContextType.Mysql,
 });
  
+```
+
+## 事务操作
+
+1. 经典做法
+``` C#
+IDbContext context = null;
+try
+{
+context = new Dbcontext(...);
+context.Open();
+context.Execute(...);
+...
+context.CommitTransaction();
+}
+catch
+{
+    context?.RollbackTransaction();
+    throw;
+}
+```
+2. 1.0.7之后你不需要主动Rollback，因为using会执行Dispose，Dispose如果发现你没有提交就先回滚事务
+
+``` C#
+using(var context = new DbContext(...))
+{
+context.Open();
+context.Execute(...);
+....
+context.CommitTransaction();
+}
 ```
 
 ## 执行sql脚本
@@ -205,43 +238,34 @@ GlobalSettings.DbMetaInfoProvider = new MyDbMetaInfoProvider();
 ### 自定义类型映射提供程序
 
 ``` C#
-//自定义实现规则
-public class MyEntityMapperProvider : IEntityMapperProvider
+public class MyEntityMapperProvider : EntityMapperProvider
 {
-    /// <summary>
-    /// 默认的提供程序是线程安全的
-    /// </summary>
-    private EntityMapperProvider defaultMapper = new EntityMapperProvider();
-    public Func<object, Dictionary<string, object>> GetDeserializer(Type type)
-    {
-        return defaultMapper.GetDeserializer(type);
-    }
-
-    public Func<IDataRecord, T> GetSerializer<T>(IDataRecord record)
-        {
-            //如果是student类型
-            if (typeof(T) == typeof(Student))
+     //定义一个内部类，编写转换器
+     static class ConvertMethod 
+     {
+            public static MethodInfo ConvertToBooleanMethod = typeof(ConvertMethod).GetMethod(nameof(ConvertToBoolean));
+            //方法的原型要求：静态函数，形参类型和顺序必须如下
+            public static bool ConvertToBoolean(IDataRecord record,int i)
             {
-                return new Func<IDataRecord, T>((r) =>
+                if (record.IsDBNull(i))
                 {
-                    var student = (object)new Student()
-                    {
-                        Id = r.GetInt32(r.GetOrdinal("id")),
-                        CreateTime = r.GetDateTime(r.GetOrdinal("create_time")),
-                        Name = r.GetString(r.GetOrdinal("stu_name"))
-                    };
-                    return (T)student;
-                });
+                    return false;
+                }
+                return record.GetValue(i).ToString() == "Ok";
             }
-            //否则使用默认实现
-            return defaultMapper.GetSerializer<T>(record);
-        }
+       }
 
-    public Func<IDataRecord, dynamic> GetSerializer()
-    {
-        return defaultMapper.GetSerializer();
-    }
+     //重写转换器查找逻辑
+     protected override MethodInfo FindConvertMethod(Type returnType, Type fieldType)
+     {
+            //只对实体类型为Student中的bool类型处理（精准控制）
+            if (typeof(Student) == returnType && fieldType == typeof(bool))
+            {
+                return ConvertMethod.ConvertToBooleanMethod;
+            }
+            //否则使用默认的转换器
+            return base.FindConvertMethod(returnType, fieldType);
+      }
 }
-//替换掉默认提供程序
-GlobalSettings.EntityMapperProvider = new EntityMapperProvider();
+ GlobalSettings.EntityMapperProvider = new MyEntityMapperProvider();
 ```
