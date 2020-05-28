@@ -17,7 +17,7 @@ GlobalSettings.XmlCommandsProvider.Load(System.Reflection.Assembly.GetExecutingA
 
 ``` C#
 /**
- * 使用之前必须Open，使用之后必须Close。DbContext由于是Connection对象的简单包装层因此生命周期等同于Connection，非线程安全的，
+ * DbContext会在第一次执行命令时自动检查连接是否开启，未开启则自动开启，记住你必须释放DbContext
  * 在net core中必须注册为scope范围的生命周期
  */
 
