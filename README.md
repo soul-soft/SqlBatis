@@ -60,7 +60,7 @@ context.CommitTransaction();
 }
 ```
 
-## 执行sql脚本
+## 执行sql脚本(Dapper那样使用)
 
 ``` C#
 /**
