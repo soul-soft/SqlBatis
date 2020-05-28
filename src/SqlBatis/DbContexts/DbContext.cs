@@ -485,9 +485,8 @@ namespace SqlBatis
                 {
                     RollbackTransaction();
                 }
-                _transaction?.Dispose();
             }
-            Connection?.Dispose();
+            Close();
         }
     }
 
