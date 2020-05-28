@@ -102,7 +102,7 @@ namespace SqlBatis
                 Names = names;
             }
         }
-       
+
         /// <summary>
         /// 获取实体序列化器
         /// </summary>
@@ -135,7 +135,8 @@ namespace SqlBatis
                 for (int i = 0; i < reader.FieldCount; i++)
                 {
                     var name = reader.GetName(i);
-                    row.Add(name, reader.GetValue(i));
+                    var value = GetDynamicValue(record, i);
+                    row.Add(name, value);
                 }
                 return row;
             };
@@ -151,13 +152,14 @@ namespace SqlBatis
             }
             var handler = _deserializers.GetOrAdd(type, t =>
             {
-                return CreateTypeDeserializerHandler(type) as Func<object, Dictionary<string, object>>;
+                return CreateTypeDeserializerHandler(type);
             });
             return handler;
         }
 
 
         #region 一组可以被重写的策略
+
         /// <summary>
         /// 查找构造函数如果存在带参构造则获取参数最多的构造器进行实体的创建
         /// </summary>
@@ -175,17 +177,17 @@ namespace SqlBatis
         /// <summary>
         /// 获取参数在DataReader中的顺序
         /// </summary>
-        protected virtual int? FindParameterOrdinal(DbFieldInfo[] dataInfos, ParameterInfo parameterInfo)
+        protected virtual DbFieldInfo FindTypeParameter(DbFieldInfo[] dataInfos, ParameterInfo parameterInfo)
         {
             foreach (var item in dataInfos)
             {
                 if (item.DataName.Equals(parameterInfo.Name, StringComparison.OrdinalIgnoreCase))
                 {
-                    return item.Ordinal;
+                    return item;
                 }
                 else if (item.DataName.Replace("_", "").Equals(parameterInfo.Name, StringComparison.OrdinalIgnoreCase))
                 {
-                    return item.Ordinal;
+                    return item;
                 }
             }
             return null;
@@ -194,7 +196,7 @@ namespace SqlBatis
         /// <summary>
         /// 获取成员信息
         /// </summary>
-        protected virtual MemberInfo FindMember(MemberInfo[] properties, DbFieldInfo dataInfo)
+        protected virtual MemberInfo FindTypeMember(MemberInfo[] properties, DbFieldInfo dataInfo)
         {
             foreach (var item in properties)
             {
@@ -213,7 +215,7 @@ namespace SqlBatis
         /// <summary>
         /// 获取映射实体成员的转换方法
         /// </summary>
-        protected virtual MethodInfo FindConvertMethod(Type returnType,Type memberType)
+        protected virtual MethodInfo FindTypeMethod(Type returnType, Type memberType)
         {
             if (GetUnderlyingType(memberType) == typeof(bool))
             {
@@ -268,6 +270,17 @@ namespace SqlBatis
                 return !IsNullableType(memberType) ? MemberMapperMethod.ToDecimalMethod : MemberMapperMethod.ToDecimalNullableMethod;
             }
             return MemberMapperMethod.ToObjectMethod;
+        }
+
+        /// <summary>
+        /// 获取动态映射值
+        /// </summary>
+        /// <param name="record"></param>
+        /// <param name="i"></param>
+        /// <returns></returns>
+        protected virtual object GetDynamicValue(IDataRecord record, int i)
+        {
+            return record.GetValue(i);
         }
         #endregion
 
@@ -330,7 +343,7 @@ namespace SqlBatis
             }
             if (dataInfos.Length == 1 && (type.IsValueType || type == typeof(string) || type == typeof(object)))
             {
-                var convertMethod = FindConvertMethod(type,type);
+                var convertMethod = FindTypeMethod(type, type);
                 generator.Emit(OpCodes.Ldarg_0);
                 generator.Emit(OpCodes.Ldc_I4, 0);
                 if (convertMethod.IsVirtual)
@@ -357,14 +370,14 @@ namespace SqlBatis
                 }
                 for (int i = 0; i < locals.Length; i++)
                 {
-                    var item = FindParameterOrdinal(dataInfos, parameters[i]);
+                    var item = FindTypeParameter(dataInfos, parameters[i]);
                     if (item == null)
                     {
                         continue;
                     }
-                    var convertMethod = FindConvertMethod(type,parameters[i].ParameterType);
+                    var convertMethod = FindTypeMethod(type, parameters[i].ParameterType);
                     generator.Emit(OpCodes.Ldarg_0);
-                    generator.Emit(OpCodes.Ldc_I4, item.Value);
+                    generator.Emit(OpCodes.Ldc_I4, item.Ordinal);
                     if (convertMethod.IsVirtual)
                         generator.Emit(OpCodes.Callvirt, convertMethod);
                     else
@@ -388,12 +401,12 @@ namespace SqlBatis
                 generator.Emit(OpCodes.Stloc, local);
                 foreach (var item in dataInfos)
                 {
-                    var property = FindMember(properties, item) as PropertyInfo;
+                    var property = FindTypeMember(properties, item) as PropertyInfo;
                     if (property == null)
                     {
                         continue;
                     }
-                    var convertMethod = FindConvertMethod(type,property.PropertyType);
+                    var convertMethod = FindTypeMethod(type, property.PropertyType);
                     if (convertMethod == null)
                     {
                         continue;

@@ -311,15 +311,16 @@ namespace SqlBatis.Test
         [Test]
         public void AutoOpenConnectionAsync()
         {
+            GlobalSettings.EntityMapperProvider = new MyMapper();
             var builder = new DbContextBuilder
             {
                 Connection = new MySqlConnection("server=127.0.0.1;port=3306;user id=root;password=1024;database=test;"),
             };
             using (var db = new DbContext(builder))
             {
-                db.Open();
+                //db.Open();
                 db.BeginTransaction();
-                var list = db.Execute("insert into student(stu_name,is_del)values('zs',0)");
+                var list = db.Query("select * from student");
                 db.CommitTransaction();
             }
         }
@@ -378,7 +379,7 @@ namespace SqlBatis.Test
             {
                 return ConvertMethod.ConvertToBooleanMethod;
             }
-            return base.FindConvertMethod(returnType, fieldType);
+            return base.FindTypeMethod(returnType, fieldType);
         }
     }
 }
