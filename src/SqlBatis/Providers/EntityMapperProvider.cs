@@ -50,11 +50,6 @@ namespace SqlBatis
         private readonly ConcurrentDictionary<Type, Func<object, Dictionary<string, object>>> _deserializers
             = new ConcurrentDictionary<Type, Func<object, Dictionary<string, object>>>();
 
-        public EntityMapperProvider()
-        {
-
-        }
-
         /// <summary>
         /// 获取实体序列化器的hashkey
         /// </summary>
@@ -275,9 +270,6 @@ namespace SqlBatis
         /// <summary>
         /// 获取动态映射值
         /// </summary>
-        /// <param name="record"></param>
-        /// <param name="i"></param>
-        /// <returns></returns>
         protected virtual object GetDynamicValue(IDataRecord record, int i)
         {
             return record.GetValue(i);
