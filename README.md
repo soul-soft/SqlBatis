@@ -127,6 +127,12 @@ var list1 = context.Students
 var (list2,count) = context.Students
     .Page(1,10)
     .SelectMany();
+var row = context.Students
+    .Set(a=>a.Name,"zs")
+    .Set(a=>a.Age,a=>a.Age+1)
+    .Set(a=>a.Gender,gender,gerder!=null)
+    .Where(a=>a.Id==1)
+    .Update();
 var row = context.Student.Insert(new Student
 {
     Name="zs",
