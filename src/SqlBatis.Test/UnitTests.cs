@@ -28,7 +28,7 @@ namespace SqlBatis.Test
             {
                 var arr = new int[] { 1, 2 };
                 
-                db.From<Student>().Where(a => arr.Contains(a.Id)).Single();
+                db.From<Student>().Where(a => Operator.In(a.Id,arr)).Single();
              
             }
         }

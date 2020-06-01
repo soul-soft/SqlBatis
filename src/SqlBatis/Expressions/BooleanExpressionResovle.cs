@@ -201,15 +201,11 @@ namespace SqlBatis.Expressions
 
         private bool IsLikeExpression(MethodCallExpression node)
         {
-            var array = new string[]
-            {
-                nameof(string.Contains),
-                nameof(string.StartsWith),
-                nameof(string.EndsWith)
-            };
-            return node.Method.DeclaringType == typeof(string)
-                && array.Contains(node.Method.Name)
-                && node.Arguments.Count == 1;
+            return node.Arguments.Count == 1 
+                && nameof(string.Contains).Equals(node.Method.Name)
+                && nameof(string.StartsWith).Equals(node.Method.Name)
+                && nameof(string.EndsWith).Equals(node.Method.Name)
+                && node.Method.DeclaringType == typeof(string);
         }
 
         private bool IsParameterExpression(Expression expression)
@@ -220,9 +216,9 @@ namespace SqlBatis.Expressions
 
         private bool IsInExpression(MethodCallExpression node)
         {
-            return node.Method.DeclaringType.IsAssignableFrom(typeof(Enumerable))
+            return node.Arguments.Count == 2
                 && node.Method.Name == nameof(Enumerable.Contains)
-                && node.Arguments.Count == 2;
+                && node.Method.DeclaringType.IsAssignableFrom(typeof(Enumerable));
         }
     }
 }
