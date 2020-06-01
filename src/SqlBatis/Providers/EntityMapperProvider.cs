@@ -24,7 +24,7 @@ namespace SqlBatis
         /// 获取动态实体列化转换器
         /// </summary>
         /// <returns></returns>
-        Func<IDataRecord, dynamic> GetSerializer(IDataRecord record);
+        Func<IDataRecord, dynamic> GetSerializer();
         /// <summary>
         /// 获取参数解码器
         /// </summary>
@@ -104,7 +104,7 @@ namespace SqlBatis
         /// <typeparam name="T"></typeparam>
         /// <param name="record"></param>
         /// <returns></returns>
-        public Func<IDataRecord, T> GetSerializer<T>(IDataRecord record)
+        public virtual Func<IDataRecord, T> GetSerializer<T>(IDataRecord record)
         {
             string[] names = new string[record.FieldCount];
             for (int i = 0; i < record.FieldCount; i++)
@@ -121,16 +121,16 @@ namespace SqlBatis
         /// <summary>
         /// 获取动态实体序列化器
         /// </summary>
-        public Func<IDataRecord, dynamic> GetSerializer(IDataRecord record)
+        public virtual Func<IDataRecord, dynamic> GetSerializer()
         {
             return (reader) =>
             {
-                dynamic obj = new System.Dynamic.ExpandoObject();
+                var obj = new System.Dynamic.ExpandoObject();
                 var row = (IDictionary<string, object>)obj;
                 for (int i = 0; i < reader.FieldCount; i++)
                 {
                     var name = reader.GetName(i);
-                    var value = GetDynamicValue(record, i);
+                    var value = GetDynamicValue(reader, i);
                     row.Add(name, value);
                 }
                 return row;
@@ -428,7 +428,6 @@ namespace SqlBatis
             var underlyingType = Nullable.GetUnderlyingType(type);
             return underlyingType ?? type;
         }
-
         /// <summary>
         /// 判断是否是可以为null的类型
         /// </summary>
@@ -812,7 +811,6 @@ namespace SqlBatis
                 return ConvertToGuid(dr, i);
             }
             #endregion
-
 
             #region Exception
             private static Exception ThrowException<T>(IDataRecord dr, int i)

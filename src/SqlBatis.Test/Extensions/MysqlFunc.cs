@@ -6,7 +6,7 @@ using System.Text;
 namespace SqlBatis.Test
 {
     [Function]
-    public static class Func
+    public static class MysqlFunc
     {
         public static T COUNT<T>(T column) => default;
         public static string GROUP_CONCAT<T>(T column) => default;

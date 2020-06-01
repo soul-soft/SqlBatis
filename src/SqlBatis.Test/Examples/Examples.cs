@@ -2,6 +2,7 @@ using MySql.Data.MySqlClient;
 using NUnit.Framework;
 using SqlBatis.Attributes;
 using SqlBatis.Expressions;
+using SqlBatis.Test.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -13,11 +14,9 @@ using System.Threading.Tasks;
 
 namespace SqlBatis.Test
 {
-    public class Tests
+    public class Examples
     {
-        //public MysqlDbContext db = new MysqlDbContext();
-        public SqlDbContext db = new SqlDbContext(new DbContextBuilder { });
-
+        private DefaultDbContext db;
         [SetUp]
         public void Setup()
         {
@@ -109,7 +108,7 @@ namespace SqlBatis.Test
                 .Select(s => new
                 {
                     s.Age,
-                    Id = Func.COUNT(1)
+                    Id = MysqlFunc.COUNT(1)
                 });
         }
 
@@ -208,15 +207,15 @@ namespace SqlBatis.Test
         {
             var stop = new Stopwatch();
             stop.Start();
-            var func = GlobalSettings.EntityMapperProvider.GetDeserializer(typeof(Student));
+            var func = GlobalSettings.EntityMapperProvider.GetDeserializer(typeof(Student2Dot));
             for (int i = 0; i < 100000; i++)
             {
-                func(new Student() { id=i,stu_name="ff"+i});
+                func(new Student2Dot() { id=i,stu_name="ff"+i});
             }
             stop.Stop();
             object c = 10;
             //加载嵌入式配置
-            GlobalSettings.EntityMapperProvider = new MyMapper();
+            GlobalSettings.EntityMapperProvider = new DefaultEntityMapperProvider();
             //var db = new DbContext(new DbContextBuilder
             //{
             //    Connection = new MySqlConnection("server=127.0.0.1;port=3306;user id=root;password=1024;database=test;"),
@@ -261,10 +260,10 @@ namespace SqlBatis.Test
                 table.Rows.Add(row);
             }
             //自定义的内存数据源，
-            var reader = new DataReader(table);
+            var reader = new MemoryDataReader(table);
             var stopwatch = new Stopwatch();
-            var func = GlobalSettings.EntityMapperProvider.GetSerializer<Student>(reader);
-            var pops = typeof(Student).GetProperties();
+            var func = GlobalSettings.EntityMapperProvider.GetSerializer<Student2Dot>(reader);
+            var pops = typeof(Student2Dot).GetProperties();
             stopwatch.Start();
             while (reader.Read())
             {
@@ -308,10 +307,11 @@ namespace SqlBatis.Test
             }
             stopwatch.Stop();
         }
+       
         [Test]
         public void AutoOpenConnectionAsync()
         {
-            GlobalSettings.EntityMapperProvider = new MyMapper();
+            GlobalSettings.EntityMapperProvider = new DefaultEntityMapperProvider();
             var builder = new DbContextBuilder
             {
                 Connection = new MySqlConnection("server=127.0.0.1;port=3306;user id=root;password=1024;database=test;"),
@@ -320,23 +320,17 @@ namespace SqlBatis.Test
             {
                 //db.Open();
                 db.BeginTransaction();
-                var list = db.Query("select * from student");
+                var list = db.Query("SELECT * FROM `student` a JOIN student_score b on a.id=b.student_id");
                 db.CommitTransaction();
             }
         }
-
-        private void Db_Logging(string message, Dictionary<string, object> parameters = null, int? commandTimeout = null, CommandType? commandType = null)
-        {
-
-        }
-
     }
     class P
     {
         public int Id { get; set; }
         public int? Age { get; set; }//Age type must be int?
     }
-    public class Student
+    public class Student2Dot
     {
         public int id { get; set; }
 
@@ -349,37 +343,5 @@ namespace SqlBatis.Test
         public int Id { get; set; }
         public double Score { get; set; }
     }
-    public class StudentDto
-    {
-        public int? Id { get; set; }
-        [Column("stu_name")]
-        public string Name { get; set; }
-        public int? Age { get; set; }
-        public bool? IsDelete { get; set; }
-    }
-
-    public class MyMapper : EntityMapperProvider
-    {
-        static class ConvertMethod
-        {
-            public static MethodInfo ConvertToBooleanMethod = typeof(ConvertMethod).GetMethod(nameof(ConvertToBoolean));
-            public static bool ConvertToBoolean(IDataRecord record, int i)
-            {
-                if (record.IsDBNull(i))
-                {
-                    return false;
-                }
-                return record.GetValue(i).ToString() == "Ok";
-            }
-        }
-
-        protected override MethodInfo FindConvertMethod(Type returnType, Type fieldType)
-        {
-            if (typeof(Student) == returnType && fieldType == typeof(bool))
-            {
-                return ConvertMethod.ConvertToBooleanMethod;
-            }
-            return base.FindTypeMethod(returnType, fieldType);
-        }
-    }
+    
 }

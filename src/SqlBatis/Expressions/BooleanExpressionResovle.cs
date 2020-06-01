@@ -220,7 +220,7 @@ namespace SqlBatis.Expressions
 
         private bool IsInExpression(MethodCallExpression node)
         {
-            return node.Method.DeclaringType == typeof(Enumerable)
+            return node.Method.DeclaringType.IsAssignableFrom(typeof(Enumerable))
                 && node.Method.Name == nameof(Enumerable.Contains)
                 && node.Arguments.Count == 2;
         }

@@ -211,7 +211,7 @@ namespace SqlBatis
                 var list = new List<dynamic>();
                 using (var reader = cmd.ExecuteReader())
                 {
-                    var handler = GlobalSettings.EntityMapperProvider.GetSerializer(reader);
+                    var handler = GlobalSettings.EntityMapperProvider.GetSerializer();
                     while (reader.Read())
                     {
                         list.Add(handler(reader));
@@ -227,7 +227,7 @@ namespace SqlBatis
                 using (var reader = await cmd.ExecuteReaderAsync())
                 {
                     var list = new List<dynamic>();
-                    var handler = GlobalSettings.EntityMapperProvider.GetSerializer(reader);
+                    var handler = GlobalSettings.EntityMapperProvider.GetSerializer();
                     while (reader.Read())
                     {
                         list.Add(handler(reader));

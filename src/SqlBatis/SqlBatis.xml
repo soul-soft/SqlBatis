@@ -461,7 +461,7 @@
             <param name="record"></param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IEntityMapperProvider.GetSerializer(System.Data.IDataRecord)">
+        <member name="M:SqlBatis.IEntityMapperProvider.GetSerializer">
             <summary>
             获取动态实体列化转换器
             </summary>
@@ -502,7 +502,7 @@
             <param name="record"></param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.EntityMapperProvider.GetSerializer(System.Data.IDataRecord)">
+        <member name="M:SqlBatis.EntityMapperProvider.GetSerializer">
             <summary>
             获取动态实体序列化器
             </summary>
@@ -517,19 +517,24 @@
             查找构造函数如果存在带参构造则获取参数最多的构造器进行实体的创建
             </summary>
         </member>
-        <member name="M:SqlBatis.EntityMapperProvider.FindParameterOrdinal(SqlBatis.DbFieldInfo[],System.Reflection.ParameterInfo)">
+        <member name="M:SqlBatis.EntityMapperProvider.FindTypeParameter(SqlBatis.DbFieldInfo[],System.Reflection.ParameterInfo)">
             <summary>
             获取参数在DataReader中的顺序
             </summary>
         </member>
-        <member name="M:SqlBatis.EntityMapperProvider.FindMember(System.Reflection.MemberInfo[],SqlBatis.DbFieldInfo)">
+        <member name="M:SqlBatis.EntityMapperProvider.FindTypeMember(System.Reflection.MemberInfo[],SqlBatis.DbFieldInfo)">
             <summary>
             获取成员信息
             </summary>
         </member>
-        <member name="M:SqlBatis.EntityMapperProvider.FindConvertMethod(System.Type,System.Type)">
+        <member name="M:SqlBatis.EntityMapperProvider.FindTypeMethod(System.Type,System.Type)">
             <summary>
             获取映射实体成员的转换方法
+            </summary>
+        </member>
+        <member name="M:SqlBatis.EntityMapperProvider.GetDynamicValue(System.Data.IDataRecord,System.Int32)">
+            <summary>
+            获取动态映射值
             </summary>
         </member>
         <member name="M:SqlBatis.EntityMapperProvider.CreateTypeDeserializerHandler(System.Type)">

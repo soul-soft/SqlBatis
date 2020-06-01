@@ -6,9 +6,9 @@ using System.Text;
 
 namespace SqlBatis.Test
 {
-    public class DataReader : IDataReader
+    public class MemoryDataReader : IDataReader
     {
-        public DataReader(DataTable table)
+        public MemoryDataReader(DataTable table)
         {
             this.table = table;
         }
