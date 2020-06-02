@@ -333,7 +333,7 @@ namespace SqlBatis
                 var typename = record.GetDataTypeName(i);
                 dataInfos[i] = new DbFieldInfo(i, typename, datatype, dataname);
             }
-            if (dataInfos.Length == 1 && (type.IsValueType || type == typeof(string) || type == typeof(object)))
+            if (type == typeof(object) || dataInfos.Length == 1 && (type.IsValueType || type == typeof(string)))
             {
                 var convertMethod = FindTypeMethod(type, type);
                 generator.Emit(OpCodes.Ldarg_0);

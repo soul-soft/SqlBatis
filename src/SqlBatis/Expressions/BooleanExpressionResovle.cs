@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -109,7 +110,19 @@ namespace SqlBatis.Expressions
             else if (IsInExpression(node))
             {
                 _textBuilder.Append("(");
-                SetParameterName(node.Arguments[1] as MemberExpression);
+                Expression arguments1 = null;
+                Expression arguments2 = null;
+                if (node.Arguments.Count == 1)
+                {
+                    arguments1 = node.Object;
+                    arguments2 = node.Arguments[0];
+                }
+                else
+                {
+                    arguments1 = node.Arguments[0];
+                    arguments2 = node.Arguments[1];
+                }
+                SetParameterName(arguments2 as MemberExpression);
                 if (_isNotExpression)
                 {
                     _isNotExpression = false;
@@ -119,7 +132,7 @@ namespace SqlBatis.Expressions
                 {
                     _textBuilder.Append(" IN ");
                 }
-                SetParameterValue(node.Arguments[0] as MemberExpression);
+                SetParameterValue(arguments1 as MemberExpression);
                 _textBuilder.Append(")");
             }
             else if (node.Method.DeclaringType.GetCustomAttribute(typeof(FunctionAttribute), true) != null)
@@ -201,7 +214,7 @@ namespace SqlBatis.Expressions
 
         private bool IsLikeExpression(MethodCallExpression node)
         {
-            return node.Arguments.Count == 1 
+            return node.Arguments.Count == 1
                 && nameof(string.Contains).Equals(node.Method.Name)
                 && nameof(string.StartsWith).Equals(node.Method.Name)
                 && nameof(string.EndsWith).Equals(node.Method.Name)
@@ -216,9 +229,14 @@ namespace SqlBatis.Expressions
 
         private bool IsInExpression(MethodCallExpression node)
         {
-            return node.Arguments.Count == 2
-                && node.Method.Name == nameof(Enumerable.Contains)
-                && node.Method.DeclaringType.IsAssignableFrom(typeof(Enumerable));
+            if (typeof(IEnumerable).IsAssignableFrom(node.Method.DeclaringType))
+            {
+                return node.Method.Name == nameof(Enumerable.Contains) && node.Arguments.Count == 1;
+            }
+            else
+            {
+                return node.Method.Name == nameof(Enumerable.Contains) && node.Arguments.Count == 2;
+            }
         }
     }
 }

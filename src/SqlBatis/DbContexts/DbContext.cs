@@ -439,7 +439,7 @@ namespace SqlBatis
                     {
                         var name = Regex.Match(cmd.CommandText, pattern, options).Groups[1].Value;
                         var list = new List<object>();
-                        if (item.Value is IEnumerable<object> || item.Value is Array)
+                        if (item.Value is IEnumerable<object> || item.Value is Array || item.Value is IEnumerable)
                         {
                             list = (item.Value as IEnumerable).Cast<object>().Where(a => a != null && a != DBNull.Value).ToList();
                         }

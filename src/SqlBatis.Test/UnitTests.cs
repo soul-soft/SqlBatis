@@ -26,9 +26,10 @@ namespace SqlBatis.Test
             };
             using (var db = new DbContext(builder))
             {
-                var arr = new int[] { 1, 2 };
-                
-                db.From<Student>().Where(a => Operator.In(a.Id,arr)).Single();
+                var arr = new List<int>() { 1, 2 }.ToArray();
+                var list = db.From<Student>()
+                    .Where(a => arr.Contains(a.Id))
+                    .Select();
              
             }
         }
