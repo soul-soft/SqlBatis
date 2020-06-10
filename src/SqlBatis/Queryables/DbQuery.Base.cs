@@ -306,8 +306,15 @@ namespace SqlBatis
             var where = ResolveWhere();
             var group = ResolveGroup();
             var having = ResolveHaving();
-            var sql = $"SELECT 1 WHERE EXISTS(SELECT 1 FROM {table}{where}{group}{having})";
-            return sql;
+            if (_context.DbContextType!=DbContextType.Mysql)
+            {
+                return $"SELECT 1 WHERE EXISTS(SELECT 1 FROM {table}{where}{group}{having})";
+
+            }
+            else
+            {
+                return $"SELECT EXISTS(SELECT 1 FROM {table}{where}{group}{having}) as flag";
+            }
         }
         private string ResovleColumns()
         {
@@ -400,7 +407,6 @@ namespace SqlBatis
             public bool Asc { get; set; } = true;
             public Expression Expression { get; set; }
         }
-
         class SetExpression
         {
             public Expression Column { get; set; }
