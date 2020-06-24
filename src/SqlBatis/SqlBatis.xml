@@ -1046,20 +1046,22 @@
             <param name="expression">字段列表</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQuery`1.OrderBy``1(System.Linq.Expressions.Expression{System.Func{`0,``0}})">
+        <member name="M:SqlBatis.IDbQuery`1.OrderBy``1(System.Linq.Expressions.Expression{System.Func{`0,``0}},System.Boolean)">
             <summary>
             orderby查询，升序
             </summary>
             <typeparam name="TResult">类型推断</typeparam>
             <param name="expression">字段列表</param>
+            <param name="condition">是否有效</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQuery`1.OrderByDescending``1(System.Linq.Expressions.Expression{System.Func{`0,``0}})">
+        <member name="M:SqlBatis.IDbQuery`1.OrderByDescending``1(System.Linq.Expressions.Expression{System.Func{`0,``0}},System.Boolean)">
             <summary>
             orderby查询，降序
             </summary>
             <typeparam name="TResult">类型推断</typeparam>
             <param name="expression">字段列表</param>
+            <param name="condition">是否有效</param>
             <returns></returns>
         </member>
         <member name="M:SqlBatis.IDbQuery`1.Sum``1(System.Linq.Expressions.Expression{System.Func{`0,``0}},System.Nullable{System.Int32})">

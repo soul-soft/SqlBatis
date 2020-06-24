@@ -146,23 +146,29 @@ namespace SqlBatis
             return this;
         }
 
-        public IDbQuery<T> OrderBy<TResult>(Expression<Func<T, TResult>> expression)
+        public IDbQuery<T> OrderBy<TResult>(Expression<Func<T, TResult>> expression, bool condition=true)
         {
-            _orderExpressions.Add(new OrderExpression
+            if (condition)
             {
-                Asc = true,
-                Expression = expression
-            });
+                _orderExpressions.Add(new OrderExpression
+                {
+                    Asc = true,
+                    Expression = expression
+                });
+            }
             return this;
         }
 
-        public IDbQuery<T> OrderByDescending<TResult>(Expression<Func<T, TResult>> expression)
+        public IDbQuery<T> OrderByDescending<TResult>(Expression<Func<T, TResult>> expression, bool condition = true)
         {
-            _orderExpressions.Add(new OrderExpression
+            if (condition)
             {
-                Asc = false,
-                Expression = expression
-            });
+                _orderExpressions.Add(new OrderExpression
+                {
+                    Asc = false,
+                    Expression = expression
+                });
+            }
             return this;
         }
 

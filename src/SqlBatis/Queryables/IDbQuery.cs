@@ -325,15 +325,17 @@ namespace SqlBatis
         /// </summary>
         /// <typeparam name="TResult">类型推断</typeparam>
         /// <param name="expression">字段列表</param>
+        /// <param name="condition">是否有效</param>
         /// <returns></returns>
-        IDbQuery<T> OrderBy<TResult>(Expression<Func<T, TResult>> expression);
+        IDbQuery<T> OrderBy<TResult>(Expression<Func<T, TResult>> expression, bool condition = true);
         /// <summary>
         /// orderby查询，降序
         /// </summary>
         /// <typeparam name="TResult">类型推断</typeparam>
         /// <param name="expression">字段列表</param>
+        /// <param name="condition">是否有效</param>
         /// <returns></returns>
-        IDbQuery<T> OrderByDescending<TResult>(Expression<Func<T, TResult>> expression);
+        IDbQuery<T> OrderByDescending<TResult>(Expression<Func<T, TResult>> expression, bool condition = true);
         /// <summary>
         /// 求和
         /// </summary>

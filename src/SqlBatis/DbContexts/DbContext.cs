@@ -479,12 +479,9 @@ namespace SqlBatis
         }
         public virtual void Dispose()
         {
-            if (_transaction != null)
+            if (DbContextState == DbContextState.Open)
             {
-                if (DbContextState == DbContextState.Open)
-                {
-                    RollbackTransaction();
-                }
+                RollbackTransaction();
             }
             Close();
         }

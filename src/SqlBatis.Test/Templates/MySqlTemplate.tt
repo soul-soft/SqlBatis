@@ -2,30 +2,25 @@
 <#@ assembly name="System.Core" #>
 <#@ assembly name="System.Data" #>
 <#@ assembly name="System.Data.Common" #>
-<#@ assembly name="$(SolutionDir)\SqlBatis.Test\References\Sqlbatis.dll" #>
-<#@ assembly name="$(SolutionDir)\SqlBatis.Test\References\MySql.Data.dll" #>
+<#@ assembly name="$(SolutionDir)\References\MySql.Data.dll" #>
 <#@ import namespace="System.Linq" #>
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.Collections.Generic" #>
 <#@ import namespace="System.Data" #>
 <#@ import namespace="System.Data.Common" #>
 <#@ import namespace="MySql.Data.MySqlClient" #>
-<#@ import namespace="SqlBatis" #>
 <#@ output extension=".cs" #>
 <#
 	//数据库连接字符串
 	var connectionString = "server=127.0.0.1;user id=root;password=1024;database=test;";
 #>
 <#
-    var context = new DbContext(new DbContextBuilder()
-    {
-        Connection = new MySqlConnection(connectionString)
-    });
-	var tablesql = string.Format("SELECT TABLE_NAME as TableName,TABLE_TYPE as TableType,TABLE_COMMENT as TableComment from INFORmation_schema.TABLES WHERE TABLE_SCHEMA='{0}'", context.Connection.Database);
-	var columnsql = string.Format("SELECT TABLE_NAME as TableName,COLUMN_NAME as ColumnName,COLUMN_COMMENT as ColumnComment,COLUMN_DEFAULT as ColumnDefault,IS_NULLABLE as IsNullable,DATA_TYPE as DataType,COLUMN_TYPE as ColumnType,COLUMN_KEY as ColumnKey,EXTRA as Extra FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA='{0}' ORDER BY ORDINAL_POSITION", context.Connection.Database);
-	var tables = context.Query<Table>(tablesql).ToList();
-	var columns = context.Query<Column>(columnsql).ToList();	
-    context.Close();
+    var connection = new MySqlConnection(connectionString);
+	var tablesql = string.Format("SELECT TABLE_NAME as TableName,TABLE_TYPE as TableType,TABLE_COMMENT as TableComment from INFORmation_schema.TABLES WHERE TABLE_SCHEMA='{0}'", connection.Database);
+	var columnsql = string.Format("SELECT TABLE_NAME as TableName,COLUMN_NAME as ColumnName,COLUMN_COMMENT as ColumnComment,COLUMN_DEFAULT as ColumnDefault,IS_NULLABLE as IsNullable,DATA_TYPE as DataType,COLUMN_TYPE as ColumnType,COLUMN_KEY as ColumnKey,EXTRA as Extra FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA='{0}' ORDER BY ORDINAL_POSITION", connection.Database);
+	var tables = Utils.Query<Table>(connection,tablesql);
+	var columns = Utils.Query<Column>(connection,columnsql);
+    connection.Close();
 #>
 using System;
 using SqlBatis.Attributes;
@@ -36,7 +31,6 @@ namespace YC51.Models
 	
 	/// <summary>
     /// <#=table.TableComment#>
-	/// 更新时间：<#=DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")#>
     /// </summary>
 	[Table("<#=table.TableName#>")]
 	public partial class <#=Utils.Pascal(table.TableName)#>
@@ -44,15 +38,12 @@ namespace YC51.Models
 		<#foreach(var column in columns.FindAll(f => f.TableName == table.TableName)){#>		
 		/// <summary>
         /// <#=column.ColumnComment#>
-		/// ColumnType：<#= column.ColumnType #>, IsNull：<#= column.IsNullable #>, Default：<#= column.ColumnDefault ?? "NULL" #>
-		/// JsName:<#=Utils.Camel(column.ColumnName)#>
 		/// </summary>
 		[Column("<#= column.ColumnName #>")]
-        <# if(column.ColumnKey == "PRI") #>
-[PrimaryKey]  
-        <# if(column.Extra == "auto_increment") #>
-[Identity]
-        public <#= Utils.GetCSharpType(column.DataType) #> <#= Utils.Pascal(column.ColumnName) #> { get; set; }
+        <# if(column.ColumnKey == "PRI") #>[PrimaryKey]  
+        <# if(column.Extra == "auto_increment") #>[Identity]
+        <# if(column.ColumnDefault != null) #>[Default]
+        <#= "public "+Utils.GetCSharpType(column.DataType) #> <#= Utils.Pascal(column.ColumnName) #> { get; set; }
 	<#}#>}
 <#}#>
 }
@@ -120,5 +111,33 @@ namespace YC51.Models
 			name = Pascal(name);			
             return char.ToLower(name[0]) + name.Substring(1);
 		}
+        //数据库查询
+        public static List<T> Query<T>(IDbConnection connection, string sql,object param=null)
+        {
+            if (connection.State!=ConnectionState.Open)
+            {
+                connection.Open();
+            }
+            var cmd = connection.CreateCommand();
+            cmd.CommandText = sql;
+            var list = new List<T>();
+            using (var reader = cmd.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    var obj = Activator.CreateInstance(typeof(T));
+                    foreach (var item in obj.GetType().GetProperties())
+                    {
+                        var i = reader.GetOrdinal(item.Name);
+                        if (!reader.IsDBNull(i))
+                        {
+                            item.SetValue(obj,reader.GetValue(i));
+                        }
+                    }
+                    list.Add((T)obj);
+                }
+            }
+            return list;
+        }
     }
 #>
