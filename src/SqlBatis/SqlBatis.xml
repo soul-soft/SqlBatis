@@ -115,13 +115,6 @@
             </summary>
             <param name="level">事务隔离级别</param>
         </member>
-        <member name="M:SqlBatis.IDbContext.BeginTransactionAsync(System.Data.IsolationLevel)">
-            <summary>
-            异步开启事务会话
-            </summary>
-            <param name="level"></param>
-            <returns></returns>
-        </member>
         <member name="M:SqlBatis.IDbContext.Close">
             <summary>
             关闭连接和事务

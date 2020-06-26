@@ -61,12 +61,6 @@ namespace SqlBatis
         /// <param name="level">事务隔离级别</param>
         void BeginTransaction(IsolationLevel level);
         /// <summary>
-        /// 异步开启事务会话
-        /// </summary>
-        /// <param name="level"></param>
-        /// <returns></returns>
-        Task BeginTransactionAsync(IsolationLevel level);
-        /// <summary>
         /// 关闭连接和事务
         /// </summary>
         void Close();
@@ -322,17 +316,6 @@ namespace SqlBatis
                 _transaction = Connection.BeginTransaction();
             });
         }
-        public virtual async Task BeginTransactionAsync(IsolationLevel level)
-        {
-            await Task.Run(() =>
-            {
-                if (Connection.State == ConnectionState.Closed)
-                {
-                    Open();
-                }
-                _transaction = Connection.BeginTransaction(level);
-            });
-        }
         public virtual void BeginTransaction()
         {
             if (Connection.State == ConnectionState.Closed)
@@ -353,6 +336,7 @@ namespace SqlBatis
         {
             _transaction?.Dispose();
             Connection?.Close();
+            _transaction = null;
             DbContextState = DbContextState.Closed;
         }
         public virtual void CommitTransaction()
@@ -360,6 +344,7 @@ namespace SqlBatis
             if (_transaction != null)
             {
                 _transaction.Commit();
+                _transaction = null;
                 DbContextState = DbContextState.Commit;
             }
         }
@@ -378,6 +363,7 @@ namespace SqlBatis
             if (_transaction != null)
             {
                 _transaction.Rollback();
+                _transaction = null;
                 DbContextState = DbContextState.Rollback;
             }
         }
@@ -479,10 +465,7 @@ namespace SqlBatis
         }
         public virtual void Dispose()
         {
-            if (DbContextState == DbContextState.Open)
-            {
-                RollbackTransaction();
-            }
+            RollbackTransaction();
             Close();
         }
     }
