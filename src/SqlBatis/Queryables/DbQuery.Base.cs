@@ -193,6 +193,16 @@ namespace SqlBatis
                         {
                             buffer.Append(Convert.ToBoolean(value) == true ? 1 : 0);
                         }
+                        else if (column.CsharpType == typeof(Guid) || column.CsharpType == typeof(Guid?))
+                        {
+                            buffer.Append($"'{value}'");
+                        }
+                        else if (column.CsharpType == typeof(byte[]))
+                        {
+                            var bytes = value as byte[];
+                            var hexstr = string.Join("", bytes.Select(s => Convert.ToString(s, 16).PadLeft(2, '0')));
+                            buffer.Append($"0x{hexstr}");
+                        }
                         else if (column.CsharpType == typeof(DateTime) || column.CsharpType == typeof(DateTime?))
                         {
                             buffer.Append($"'{value}'");
@@ -306,7 +316,7 @@ namespace SqlBatis
             var where = ResolveWhere();
             var group = ResolveGroup();
             var having = ResolveHaving();
-            if (_context.DbContextType!=DbContextType.Mysql)
+            if (_context.DbContextType != DbContextType.Mysql)
             {
                 return $"SELECT 1 WHERE EXISTS(SELECT 1 FROM {table}{where}{group}{having})";
 

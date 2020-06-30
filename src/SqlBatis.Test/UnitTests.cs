@@ -26,12 +26,11 @@ namespace SqlBatis.Test
             };
             using (var db = new DbContext(builder))
             {
-                var flag = db.From<Student>().Exists(a => a.Id > 999999);
-                var arr = new List<int>() { 1, 2 }.ToArray();
-                var list = db.From<Student>()
-                    .Where(a => arr.Contains(a.Id))
-                    .Select();
-             
+                db.From<Student>().Insert(new Student[]{ new  Student
+                {
+                    IsDel = new byte[] { 1, 1, 2 }
+                } });
+
             }
         }
 
@@ -39,5 +38,7 @@ namespace SqlBatis.Test
     public class Student
     {
         public int Id { get; set; }
+        [Column("is_del")]
+        public byte[] IsDel { get; set; }
     }
 }
