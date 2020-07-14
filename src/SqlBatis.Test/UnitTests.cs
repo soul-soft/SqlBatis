@@ -24,13 +24,11 @@ namespace SqlBatis.Test
             {
                 Connection = new MySqlConnection("server=127.0.0.1;port=3306;user id=root;password=1024;database=test;"),
             };
+            GlobalSettings.XmlCommandsProvider.Load(@"D:\SqlBatis\src\SqlBatis.Test\Student.xml");
+
             using (var db = new DbContext(builder))
             {
-                db.From<Student>().Insert(new Student[]{ new  Student
-                {
-                    IsDel = new byte[] { 1, 1, 2 }
-                } });
-
+                db.From("student.aa",new Student { Id=2}).Query();
             }
         }
 

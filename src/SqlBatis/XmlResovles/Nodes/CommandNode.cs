@@ -34,13 +34,37 @@ namespace SqlBatis.XmlResovles
             }
             return string.Empty;
         }
-
-        private string ResolveWhereNode<T>(WhereNode node, T parameter) where T :class
+        private string ResolveOrderNode<T>(OrderNode node, T parameter) where T : class
         {
             var buffer = new StringBuilder();
             foreach (var item in node.Nodes)
             {
-                if (parameter!=default && item is IfNode)
+                if (parameter != default && item is IfNode)
+                {
+                    var text = ResolveIfNode(item as IfNode, parameter);
+                    buffer.Append($"{text} ");
+                }
+                else if (item is TextNode)
+                {
+                    var text = ResolveTextNode(item as TextNode);
+                    buffer.Append($"{text} ");
+                }
+            }
+            var sql = buffer.ToString().Trim();
+            sql = sql.StartsWith(",") ? sql.TrimStart(',') : sql;
+            if (sql.Length>0)
+            {
+                return "ORDER BY " + sql;
+            }
+            return string.Empty;
+        }
+        
+        private string ResolveWhereNode<T>(WhereNode node, T parameter) where T : class
+        {
+            var buffer = new StringBuilder();
+            foreach (var item in node.Nodes)
+            {
+                if (parameter != default && item is IfNode)
                 {
                     var text = ResolveIfNode(item as IfNode, parameter);
                     buffer.Append($"{text} ");
@@ -74,6 +98,14 @@ namespace SqlBatis.XmlResovles
                     if (txt.Length > 0)
                     {
                         buffer.AppendFormat($" {txt}");
+                    }
+                }
+                else if (item is OrderNode)
+                {
+                    var ordersql = ResolveOrderNode(item as OrderNode, parameter);
+                    if (ordersql.Length > 0)
+                    {
+                        buffer.AppendFormat($" {ordersql}");
                     }
                 }
                 else if (item is WhereNode)

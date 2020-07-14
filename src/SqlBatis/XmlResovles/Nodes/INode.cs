@@ -8,4 +8,8 @@ namespace SqlBatis.XmlResovles
     {
 
     }
+    interface INodeList: INode
+    {
+        List<INode> Nodes { get; }
+    }
 }

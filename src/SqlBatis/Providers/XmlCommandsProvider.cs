@@ -113,14 +113,22 @@ namespace SqlBatis
                         Value = item.Value
                     });
                 }
-                else if (item.NodeType == XmlNodeType.Element && item.Name == "where")
+                else if (item.NodeType == XmlNodeType.Element && (item.Name == "where" || item.Name == "order-by"))
                 {
-                    var whereNode = new WhereNode();
+                    INodeList nodeList;
+                    if (item.Name == "where")
+                    {
+                        nodeList = new WhereNode();
+                    }
+                    else
+                    {
+                        nodeList = new OrderNode();
+                    }
                     foreach (XmlNode iitem in item.ChildNodes)
                     {
                         if (iitem.NodeType == XmlNodeType.Text)
                         {
-                            whereNode.Nodes.Add(new TextNode
+                            nodeList.Nodes.Add(new TextNode
                             {
                                 Value = iitem.Value
                             });
@@ -130,14 +138,14 @@ namespace SqlBatis
                             var test = iitem.Attributes["test"].Value;
                             var value = string.IsNullOrEmpty(iitem.InnerText) ?
                                 (iitem.Attributes["value"]?.Value ?? string.Empty) : iitem.InnerText;
-                            whereNode.Nodes.Add(new IfNode
+                            nodeList.Nodes.Add(new IfNode
                             {
                                 Test = test,
                                 Value = value
                             });
                         }
                     }
-                    cmd.Nodes.Add(whereNode);
+                    cmd.Nodes.Add(nodeList);
                 }
                 else if (item.NodeType == XmlNodeType.Element && item.Name == "if")
                 {
@@ -166,7 +174,7 @@ namespace SqlBatis
 
         public string Build(string id)
         {
-            return Build(id, (object)null);
+            return Build(id, new object());
         }
         private void Resolve(XmlDocument document)
         {

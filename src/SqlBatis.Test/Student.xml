@@ -2,30 +2,37 @@
 
 <commands namespace="student">
 
-  <!--
+	<!--
     框架只定义了if,var,where等标签
     insert,select可以随意，并没有实际意义
   -->
-  
-  <var id="offset">
-    LIMIT 0,10
-  </var>
 
-  <select id="list">   
-    <!-- 定义局部变量 -->
-     <var id="where">
-      <where>
-        <if test="Id!=null" value="Id=@Id"/>
-      </where>
-    </var>
-    
-    select * from student ${where}${offset};
-    select count(1) from student ${where}
+	<var id="offset">
+		LIMIT 0,10
+	</var>
 
-  </select>
+	<select id="aa">
+		select * from student
+		<order-by>
+			<if test="Id==3" value=",age"/>
+			<if test="Id==4" value=",name"/>
+		</order-by>
+	</select>
+	<select id="list">
+		<!-- 定义局部变量 -->
+		<var id="where">
+			<where>
+				<if test="Id!=null" value="Id=@Id"/>
+			</where>
+		</var>
 
-  <insert id="add">
-    insert into student(name,age)values(@Name,@age)
-  </insert>
+		select * from student ${where}${offset};
+		select count(1) from student ${where}
+
+	</select>
+
+	<insert id="add">
+		insert into student(name,age)values(@Name,@age)
+	</insert>
 
 </commands>
