@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -51,11 +52,6 @@ namespace SqlBatis
         /// </summary>
         void BeginTransaction();
         /// <summary>
-        /// 异步开启事务会话
-        /// </summary>
-        /// <returns></returns>
-        Task BeginTransactionAsync();
-        /// <summary>
         /// 开启事务会话
         /// </summary>
         /// <param name="level">事务隔离级别</param>
@@ -94,7 +90,7 @@ namespace SqlBatis
         /// <param name="commandTimeout">超时时间</param>
         /// <param name="commandType">命令类型</param>
         /// <returns></returns>
-        Task<IEnumerable<dynamic>> QueryAsync(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null);
+        Task<List<dynamic>> QueryAsync(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null);
         /// <summary>
         /// 执行单结果集查询，并返回T类型的结果集
         /// </summary>
@@ -214,7 +210,7 @@ namespace SqlBatis
                 }
             }
         }
-        public virtual async Task<IEnumerable<dynamic>> QueryAsync(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null)
+        public virtual async Task<List<dynamic>> QueryAsync(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null)
         {
             using (var cmd = CreateCommand(sql, parameter, commandTimeout, commandType) as DbCommand)
             {
@@ -305,17 +301,7 @@ namespace SqlBatis
                 return (T)Convert.ChangeType(result, typeof(T));
             }
         }
-        public virtual async Task BeginTransactionAsync()
-        {
-            await Task.Run(() =>
-            {
-                if (Connection.State == ConnectionState.Closed)
-                {
-                    Open();
-                }
-                _transaction = Connection.BeginTransaction();
-            });
-        }
+       
         public virtual void BeginTransaction()
         {
             if (Connection.State == ConnectionState.Closed)
@@ -413,15 +399,11 @@ namespace SqlBatis
             }
             if (dbParameters.Count > 0)
             {
+                var options = RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Multiline;
                 foreach (IDataParameter item in dbParameters)
                 {
-                    if (item.Value == null)
-                    {
-                        item.Value = DBNull.Value;
-                    }
                     var pattern = $@"in\s+([\@,\:,\?]?{item.ParameterName})";
-                    var options = RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Multiline;
-                    if (cmd.CommandText.IndexOf("in", StringComparison.OrdinalIgnoreCase) != -1 && Regex.IsMatch(cmd.CommandText, pattern, options))
+                    if (cmd.CommandText.IndexOf("in", StringComparison.OrdinalIgnoreCase) > -1 && Regex.IsMatch(cmd.CommandText, pattern, options))
                     {
                         var name = Regex.Match(cmd.CommandText, pattern, options).Groups[1].Value;
                         var list = new List<object>();
@@ -429,26 +411,28 @@ namespace SqlBatis
                         {
                             list = (item.Value as IEnumerable).Cast<object>().Where(a => a != null && a != DBNull.Value).ToList();
                         }
-                        else
+                        else if(item.Value != DBNull.Value)
                         {
                             list.Add(item.Value);
                         }
                         if (list.Count() > 0)
                         {
-                            cmd.CommandText = Regex.Replace(cmd.CommandText, name, $"({string.Join(",", list.Select(s => $"{name}{list.IndexOf(s)}"))})");
-                            foreach (var iitem in list)
+                            var plist = new List<string>();
+                            for (int i = 0; i < list.Count; i++)
                             {
-                                var key = $"{item.ParameterName}{list.IndexOf(iitem)}";
-                                var param = CreateParameter(cmd, key, iitem);
+                                plist.Add($"{name}{i}");
+                                var key = $"{item.ParameterName}{i}";
+                                var param = CreateParameter(cmd, key, list[i]);
                                 cmd.Parameters.Add(param);
                             }
+                            cmd.CommandText = Regex.Replace(cmd.CommandText, name, $"({string.Join(",", plist)})");
                         }
                         else
                         {
                             cmd.CommandText = Regex.Replace(cmd.CommandText, name, $"(SELECT 1 WHERE 1 = 0)");
                         }
                     }
-                    else
+                    else if (Regex.IsMatch(cmd.CommandText, $@"([\@,\:,\?]+{item.ParameterName})", options))
                     {
                         cmd.Parameters.Add(item);
                     }
@@ -460,7 +444,7 @@ namespace SqlBatis
         {
             var parameter = command.CreateParameter();
             parameter.ParameterName = name;
-            parameter.Value = value;
+            parameter.Value = value ?? DBNull.Value;
             return parameter;
         }
         public virtual void Dispose()

@@ -103,12 +103,6 @@
             开启事务会话
             </summary>
         </member>
-        <member name="M:SqlBatis.IDbContext.BeginTransactionAsync">
-            <summary>
-            异步开启事务会话
-            </summary>
-            <returns></returns>
-        </member>
         <member name="M:SqlBatis.IDbContext.BeginTransaction(System.Data.IsolationLevel)">
             <summary>
             开启事务会话

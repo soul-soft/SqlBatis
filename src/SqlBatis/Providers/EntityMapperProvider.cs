@@ -125,15 +125,15 @@ namespace SqlBatis
         {
             return (reader) =>
             {
-                var obj = new System.Dynamic.ExpandoObject();
-                var row = (IDictionary<string, object>)obj;
+                var expando = new System.Dynamic.ExpandoObject();
+                var entity = (IDictionary<string, dynamic>)expando;
                 for (int i = 0; i < reader.FieldCount; i++)
                 {
                     var name = reader.GetName(i);
                     var value = GetDynamicValue(reader, i);
-                    row.Add(name, value);
+                    entity.Add(name, value);
                 }
-                return row;
+                return entity;
             };
         }
         /// <summary>

@@ -31,7 +31,7 @@ namespace SqlBatis
         /// <param name="commandTimeout">超时时间</param>
         /// <param name="commandType">命令类型</param>
         /// <returns></returns>
-        Task<IEnumerable<dynamic>> QueryAsync(int? commandTimeout = null, CommandType? commandType = null);
+        Task<List<dynamic>> QueryAsync(int? commandTimeout = null, CommandType? commandType = null);
         /// <summary>
         /// 执行单结果集查询，并返回T类型的结果集
         /// </summary>
@@ -134,7 +134,7 @@ namespace SqlBatis
             return _mapper.QueryAsync<T>(_sql, _parameters, commandTimeout, commandType);
         }
 
-        public Task<IEnumerable<dynamic>> QueryAsync(int? commandTimeout = null, CommandType? commandType = null)
+        public Task<List<dynamic>> QueryAsync(int? commandTimeout = null, CommandType? commandType = null)
         {
             return _mapper.QueryAsync(_sql, _parameters, commandTimeout, commandType);
         }
