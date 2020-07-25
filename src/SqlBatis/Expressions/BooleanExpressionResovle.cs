@@ -214,11 +214,14 @@ namespace SqlBatis.Expressions
 
         private bool IsLikeExpression(MethodCallExpression node)
         {
-            return node.Arguments.Count == 1
-                && nameof(string.Contains).Equals(node.Method.Name)
-                && nameof(string.StartsWith).Equals(node.Method.Name)
-                && nameof(string.EndsWith).Equals(node.Method.Name)
-                && node.Method.DeclaringType == typeof(string);
+            return 
+                node.Arguments.Count == 1 && node.Method.DeclaringType == typeof(string) 
+                && 
+                (
+                    nameof(string.Contains).Equals(node.Method.Name) 
+                    || nameof(string.StartsWith).Equals(node.Method.Name) 
+                    || nameof(string.EndsWith).Equals(node.Method.Name)
+                );
         }
 
         private bool IsParameterExpression(Expression expression)

@@ -13,6 +13,7 @@ using System.Dynamic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using System.Text.RegularExpressions;
 
 namespace SqlBatis.Test
 {
@@ -29,6 +30,17 @@ namespace SqlBatis.Test
             GlobalSettings.XmlCommandsProvider.Load(@"D:\SqlBatis\src\SqlBatis.Test\Student.xml");
             try
             {
+                var sql = "insert into advert_banners(banner_img,banner_sort,banner_group) values(@img,@sort,@group)";
+                var list = new List<int>();
+                var stopwatch = new Stopwatch();
+                stopwatch.Start();
+                for (int i = 0; i < 30; i++)
+                {
+                    Regex.IsMatch(sql, $@"([\@,\:,\?]+{"fff"})");
+                }
+                stopwatch.Stop();
+                list = list.Distinct().ToList();
+                Debug.Write("ºÄÊ±£º"+stopwatch.ElapsedMilliseconds);
                 using (var db = new DbContext(builder))
                 {
                     var ff = db.Execute("insert into advert_banners(banner_img,banner_sort,banner_group) values(@img,@sort,@group)", new { img=(string)null,sort=20, group=1 });
