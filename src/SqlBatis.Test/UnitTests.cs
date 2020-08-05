@@ -25,7 +25,7 @@ namespace SqlBatis.Test
         {
             var builder = new DbContextBuilder
             {
-                Connection = new MySqlConnection("server=rm-bp16hgp1ext33r96b2o.mysql.rds.aliyuncs.com;user id=mammothcode;password=Jiuxian20180920;database=mammothcode_xiaoyema;"),
+                Connection = new MySqlConnection("server=127.0.0.1;user id=root;password=1024;database=test;"),
             };
             GlobalSettings.XmlCommandsProvider.Load(@"D:\SqlBatis\src\SqlBatis.Test\Student.xml");
             try
@@ -53,74 +53,35 @@ namespace SqlBatis.Test
             }
         }
 
+        [Test]
+        public void TestDynamicConvert()
+        {
+            var builder = new DbContextBuilder
+            {
+                Connection = new MySqlConnection("server=127.0.0.1;user id=root;password=1024;database=test;"),
+            };
+            try
+            {
+                var db = new DbContext(builder);
+                var list = db.Query("select balance from  student");
+                foreach (var item in list)
+                {
+                    decimal b = item.balance;
+                }
+            }
+            catch (Exception e)
+            {
+
+                throw;
+            }
+           
+        }
     }
     public class Student
     {
         public int Id { get; set; }
-        [Column("is_del")]
+        [Column("stu_name")]
         public byte[] IsDel { get; set; }
     }
-    public class QueryProductGoodsListModel
-    {
-        /// <summary>
-        /// 品牌id
-        /// </summary>
-        public int? BrandId { get; set; }
-        /// <summary>
-        /// 供应商id
-        /// </summary>
-        public int? SupplierId { get; set; }
-        /// <summary>
-        /// 商品分类：1级
-        /// </summary>
-        public int[] CategoryId1 { get; set; }
-        /// <summary>
-        /// 商品分类：2级
-        /// </summary>
-        public int[] CategoryId2 { get; set; }
-        /// <summary>
-        /// 供应商地区id第一级
-        /// </summary>
-        public int[] SupplierRegionId1 { get; set; }
-        /// <summary>
-        /// 供应商地区id第二级
-        /// </summary>
-        public int[] SupplierRegionId2 { get; set; }
-        /// <summary>
-        /// 供应商类目
-        /// </summary>
-        public int? SupplierCategoryId { get; set; }
-        /// <summary>
-        /// 是否特价促销
-        /// </summary>
-        public bool? IsPromoteSales { get; set; }
-        /// <summary>
-        /// 是否新品上架
-        /// </summary>
-        public bool? IsNewArrivals { get; set; }
-        /// <summary>
-        /// 用户经度
-        /// </summary>
-        public double? LocationLng { get; set; }
-        /// <summary>
-        /// 用户维度
-        /// </summary>
-        public double? LocationLat { get; set; }
-        /// <summary>
-        /// 0降序，1升序
-        /// </summary>
-        public int? SortType { get; set; }
-        /// <summary>
-        /// 0浏览量，1价格
-        /// </summary>
-        public int? SortName { get; set; }
-        /// <summary>
-        /// 页码
-        /// </summary>
-        public int PageIndex { get; set; }
-        /// <summary>
-        /// 页长
-        /// </summary>
-        public int PageSize { get; set; }
-    }
+   
 }

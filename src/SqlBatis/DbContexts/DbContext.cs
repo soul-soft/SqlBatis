@@ -301,7 +301,6 @@ namespace SqlBatis
                 return (T)Convert.ChangeType(result, typeof(T));
             }
         }
-       
         public virtual void BeginTransaction()
         {
             if (Connection.State == ConnectionState.Closed)

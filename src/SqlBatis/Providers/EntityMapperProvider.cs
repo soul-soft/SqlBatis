@@ -270,9 +270,13 @@ namespace SqlBatis
         /// <summary>
         /// 获取动态映射值
         /// </summary>
-        protected virtual object GetDynamicValue(IDataRecord record, int i)
+        protected virtual dynamic GetDynamicValue(IDataRecord record, int i)
         {
-            return record.GetValue(i);
+            if (record.IsDBNull(i))
+            {
+                return null;
+            }
+            return record.GetValue(i);            
         }
         #endregion
 
@@ -816,7 +820,7 @@ namespace SqlBatis
             private static Exception ThrowException<T>(IDataRecord dr, int i)
             {
                 var inner = new InvalidCastException($"Column of [{dr.GetFieldType(i)}][{dr.GetName(i)}] = [{dr.GetValue(i)}] was not recognized as a valid {typeof(T)}.");
-                return new InvalidCastException($"Unable to cast object of type '{dr.GetFieldType(i).Name}' to type '{typeof(T)}'.", inner);
+                return new Microsoft.CSharp.RuntimeBinder.RuntimeBinderException($"Unable to cast object of type '{dr.GetFieldType(i).Name}' to type '{typeof(T)}'.", inner);
             }
             #endregion
         }
@@ -840,4 +844,5 @@ namespace SqlBatis
             DataName = dataName;
         }
     }
+
 }
