@@ -23,7 +23,7 @@ namespace SqlBatis.Expressions
         /// </summary>
         /// <param name="expression"></param>
         /// <returns></returns>
-        public object VisitConstantValue(Expression expression)
+        public object VisitExpressionValue(Expression expression)
         {
             var names = new Stack<string>();
             var exps = new Stack<Expression>();

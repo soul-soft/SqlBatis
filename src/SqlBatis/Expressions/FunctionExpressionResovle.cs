@@ -31,7 +31,7 @@ namespace SqlBatis.Expressions
 
         protected override Expression VisitConstant(ConstantExpression node)
         {
-            var value = VisitConstantValue(node);
+            var value = VisitExpressionValue(node);
             if (value == null)
             {
                 value = "NULL";

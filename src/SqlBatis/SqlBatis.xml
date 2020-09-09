@@ -311,7 +311,7 @@
             表达式树生成器
             </summary>
         </member>
-        <member name="M:SqlBatis.Expressions.ExpressionResovle.VisitConstantValue(System.Linq.Expressions.Expression)">
+        <member name="M:SqlBatis.Expressions.ExpressionResovle.VisitExpressionValue(System.Linq.Expressions.Expression)">
             <summary>
             解析表达式参数
             </summary>
@@ -1185,7 +1185,7 @@
             <summary>
             解析表达式
             </summary>
-            <param name="type"></param>
+            <param name="name"></param>
             <returns></returns>
         </member>
         <member name="T:SqlBatis.IXmlQuery">

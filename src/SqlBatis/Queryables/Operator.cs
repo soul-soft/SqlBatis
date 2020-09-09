@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq.Expressions;
 
 namespace SqlBatis
@@ -160,42 +161,63 @@ namespace SqlBatis
                 case ExpressionType.Not:
                     condition = "NOT";
                     break;
+                case ExpressionType.Or:
+                    condition = "|";
+                    break;
+                case ExpressionType.And:
+                    condition = "&";
+                    break;
+                case ExpressionType.ExclusiveOr:
+                    condition = "^";
+                    break;
+                case ExpressionType.LeftShift:
+                    condition = "<<";
+                    break;
+                case ExpressionType.RightShift:
+                    condition = ">>";
+                    break;
             }
             return condition;
         }
         /// <summary>
         /// 解析表达式
         /// </summary>
-        /// <param name="type"></param>
+        /// <param name="name"></param>
         /// <returns></returns>
-        internal static string ResovleExpressionType(string type)
+        internal static string ResovleExpressionType(string name)
         {
-            switch (type)
+            switch (name)
             {
                 case nameof(Operator.In):
-                    type = "IN";
+                    name = "IN";
                     break;
                 case nameof(Operator.NotIn):
-                    type = "NOT IN";
+                    name = "NOT IN";
                     break;
                 case nameof(Operator.Contains):
                 case nameof(Operator.StartsWith):
                 case nameof(Operator.EndsWith):
-                    type = "LIKE";
+                    name = "LIKE";
                     break;
                 case nameof(Operator.NotContains):
                 case nameof(Operator.NotStartsWith):
                 case nameof(Operator.NotEndsWith):
-                    type = "NOT LIKE";
+                    name = "NOT LIKE";
                     break;
                 case nameof(Operator.Regexp):
-                    type = "REGEXP";
+                    name = "REGEXP";
                     break;
                 case nameof(Operator.NotRegexp):
-                    type = "NOT REGEXP";
+                    name = "NOT REGEXP";
+                    break;
+                case "NOT":
+                    name = "NOT";
+                    break;
+                case "~":
+                    name = "~";
                     break;
             }
-            return type;
+            return name;
         }
     }
 }

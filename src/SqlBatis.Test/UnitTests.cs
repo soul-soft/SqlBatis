@@ -63,11 +63,9 @@ namespace SqlBatis.Test
             try
             {
                 var db = new DbContext(builder);
-                var list = db.Query("select balance from  student");
-                foreach (var item in list)
-                {
-                    decimal b = item.balance;
-                }
+                var list = db.From<Student>()
+                    .Where(a=>!a.Del)
+                    .Select();
             }
             catch (Exception e)
             {
@@ -80,8 +78,10 @@ namespace SqlBatis.Test
     public class Student
     {
         public int Id { get; set; }
-        [Column("stu_name")]
-        public byte[] IsDel { get; set; }
+        [Column("age")]
+        public int? Age { get; set; }
+        [Column("del")]
+        public bool Del { get; set; }
     }
    
 }

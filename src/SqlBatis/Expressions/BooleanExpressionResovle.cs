@@ -48,9 +48,8 @@ namespace SqlBatis.Expressions
                 {
                     _textBuilder.Append("(");
                     SetParameterName(node.Arguments[0] as MemberExpression);
-                    var type = Operator.ResovleExpressionType(node.Method.Name);
-                    _textBuilder.Append($" {type} ");
-                    var value = VisitConstantValue(node.Arguments[1]);
+                    _textBuilder.Append($" {Operator.ResovleExpressionType(node.Method.Name)} ");
+                    var value = VisitExpressionValue(node.Arguments[1]);
                     if (node.Method.Name == nameof(Operator.StartsWith) || node.Method.Name == nameof(Operator.NotStartsWith))
                     {
                         SetParameterValue(Expression.Constant($"{value}%", typeof(string)));
@@ -77,12 +76,12 @@ namespace SqlBatis.Expressions
                 if (IsParameterExpression(node.Object))
                 {
                     SetParameterName(node.Object as MemberExpression);
-                    value = VisitConstantValue(node.Arguments[0]);
+                    value = VisitExpressionValue(node.Arguments[0]);
                 }
                 else
                 {
                     SetParameterName(node.Arguments[0] as MemberExpression);
-                    value = VisitConstantValue(node.Object);
+                    value = VisitExpressionValue(node.Object);
                 }
                 if (_isNotExpression)
                 {
@@ -181,7 +180,14 @@ namespace SqlBatis.Expressions
                 }
                 else
                 {
-                    _textBuilder.AppendFormat("{0} ", Operator.ResovleExpressionType(ExpressionType.Not));
+                    if (node.Type == typeof(int) || node.Type == typeof(int?))
+                    {
+                        _textBuilder.AppendFormat("{0} ", Operator.ResovleExpressionType("~"));
+                    }
+                    else
+                    {
+                        _textBuilder.AppendFormat("{0} ", Operator.ResovleExpressionType("NOT"));
+                    }
                 }
                 Visit(node.Operand);
             }
@@ -206,7 +212,7 @@ namespace SqlBatis.Expressions
 
         private void SetParameterValue(Expression expression)
         {
-            var value = VisitConstantValue(expression);
+            var value = VisitExpressionValue(expression);
             var parameterName = $"P_{_parameters.Count}";
             _parameters.Add(parameterName, value);
             _textBuilder.Append($"{_prefix}{parameterName}");
@@ -214,12 +220,12 @@ namespace SqlBatis.Expressions
 
         private bool IsLikeExpression(MethodCallExpression node)
         {
-            return 
-                node.Arguments.Count == 1 && node.Method.DeclaringType == typeof(string) 
-                && 
+            return
+                node.Arguments.Count == 1 && node.Method.DeclaringType == typeof(string)
+                &&
                 (
-                    nameof(string.Contains).Equals(node.Method.Name) 
-                    || nameof(string.StartsWith).Equals(node.Method.Name) 
+                    nameof(string.Contains).Equals(node.Method.Name)
+                    || nameof(string.StartsWith).Equals(node.Method.Name)
                     || nameof(string.EndsWith).Equals(node.Method.Name)
                 );
         }
