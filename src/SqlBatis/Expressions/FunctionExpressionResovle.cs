@@ -1,15 +1,22 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Text;
 
 namespace SqlBatis.Expressions
 {
+    /// <summary>
+    /// 数据库函数解析
+    /// </summary>
     public class FunctionExpressionResovle : ExpressionResovle
     {
-        public FunctionExpressionResovle(Expression expression)
-           : base(expression)
+        private readonly StringBuilder _textBuilder = new StringBuilder();
+        
+        private readonly Expression _expression;
+      
+        public FunctionExpressionResovle(bool single, Expression expression)
+           : base(single)
         {
+            _expression = expression;
         }
 
         protected override Expression VisitMethodCall(MethodCallExpression node)
@@ -50,7 +57,7 @@ namespace SqlBatis.Expressions
 
         protected override Expression VisitMember(MemberExpression node)
         {
-            var name = GetColumnName(node.Member.DeclaringType, node.Member.Name);
+            var name = GetDbColumnNameAsAlias(node);
             _textBuilder.Append($"{name},");
             return node;
         }
@@ -73,5 +80,10 @@ namespace SqlBatis.Expressions
             return node;
         }
 
+        public override string Resovle()
+        {
+            Visit(_expression);
+            return _textBuilder.ToString();
+        }
     }
 }

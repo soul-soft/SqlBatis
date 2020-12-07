@@ -11,7 +11,7 @@ namespace SqlBatis.Test.Extensions
         {
 
         }
-        public IDbQuery<StudentDto> Students =>
-            new DbQuery<StudentDto>(this);
+        public IDbQueryable<StudentDto> Students =>
+            new DbQueryable<StudentDto>(this);
     }
 }

@@ -1,21 +1,18 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq.Expressions;
 
 namespace SqlBatis.Expressions
 {
-    /// <summary>
-    /// 分组表达式解析解析
-    /// </summary>
-    public class GroupExpressionResovle : ExpressionResovle
+    public class IgnoreExpressionResovle : ExpressionResovle
     {
-        private readonly bool _single;
-        private readonly Expression _expression;
         private readonly List<string> _list = new List<string>();
-
-        public GroupExpressionResovle(bool isSingleTable, Expression expression)
-            : base(isSingleTable)
+     
+        private readonly Expression _expression;
+    
+        public IgnoreExpressionResovle(Expression expression)
+            : base(true)
         {
-            _single = isSingleTable;
             _expression = expression;
         }
 
@@ -35,17 +32,15 @@ namespace SqlBatis.Expressions
             return node;
         }
 
-        protected override Expression VisitMethodCall(MethodCallExpression node)
+        public List<string> Resovles()
         {
-            var result = new FunctionExpressionResovle(_single,node).Resovle();
-            _list.Add(result);
-            return node;
+            Visit(_expression);
+            return _list;
         }
 
         public override string Resovle()
         {
-            Visit(_expression);
-            return string.Join(",",_list);
+            throw new NotImplementedException();
         }
     }
 }

@@ -63,9 +63,13 @@ namespace SqlBatis.Test
             try
             {
                 var db = new DbContext(builder);
-                var list = db.From<Student>()
-                    .Where(a=>!a.Del)
-                    .Select();
+                var ids = new int[] { 1,2,3};
+                var (list, count) = db.From<Student, StudentSchool, StudentLike>()
+                    .Join<Student, StudentSchool>((a, b) => a.SchoolId == b.Id)
+                    .LeftJoin<Student, StudentLike>((a,c)=>a.LikeId==c.Id)
+                    .Page(1,2)
+                    .SelectMany((a,b,c)=> new{a.Id,a.Sname,b.SchoolName,c.LikeName });                      
+
             }
             catch (Exception e)
             {
@@ -75,13 +79,40 @@ namespace SqlBatis.Test
            
         }
     }
-    public class Student
+    [Table("student_school")]
+    public class StudentSchool
     {
         public int Id { get; set; }
+        [Column("school_name")]
+        public string SchoolName { get; set; }
+    }
+    [Table("sutdent_like")]
+    public class StudentLike
+    {
+        public int Id { get; set; }
+        [Column("like_name")]
+        public string LikeName { get; set; }
+    }
+    public class Student
+    {
+        public string Sname { get; set; }
+        public int Id { get; set; }
+        [Column("school_id")]
+        public int SchoolId { get; set; }
+        [Column("like_id")]
+        public int LikeId { get; set; }
         [Column("age")]
         public int? Age { get; set; }
         [Column("del")]
         public bool Del { get; set; }
     }
-   
+    [Function]
+    public static class DbFuns
+    {
+
+        public static int Count(object j)
+        {
+            return default;
+        }
+    }
 }

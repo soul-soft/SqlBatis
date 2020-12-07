@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 
@@ -12,39 +13,35 @@ namespace SqlBatis
         /// <summary>
         /// in
         /// </summary>
-        /// <typeparam name="T">类型推断</typeparam>
         /// <param name="column">字段</param>
         /// <param name="values">参数</param>
         /// <returns></returns>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("样式", "IDE0060:删除未使用的参数", Justification = "<挂起>")]
-        public static bool In<T>(T column, IEnumerable<T> values) => default;
+        public static bool In(object column, IEnumerable values) => default;
         /// <summary>
-        /// in(低性能)
+        /// in
         /// </summary>
-        /// <typeparam name="T">类型推断</typeparam>
         /// <param name="column">字段</param>
         /// <param name="values">参数</param>
         /// <returns></returns>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("样式", "IDE0060:删除未使用的参数", Justification = "<挂起>")]
-        public static bool In<T>(T column, params T[] values) => default;
+        public static bool In(object column, params object[] values) => default;
         /// <summary>
         /// not in
         /// </summary>
-        /// <typeparam name="T">类型推断</typeparam>
         /// <param name="column">字段</param>
         /// <param name="values">参数</param>
         /// <returns></returns>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("样式", "IDE0060:删除未使用的参数", Justification = "<挂起>")]
-        public static bool NotIn<T>(T column, IEnumerable<T> values) => default;
+        public static bool NotIn(object column, IEnumerable values) => default;
         /// <summary>
-        /// not in(低性能)
+        /// not in
         /// </summary>
-        /// <typeparam name="T">类型推断</typeparam>
         /// <param name="column">字段</param>
         /// <param name="values">参数</param>
         /// <returns></returns>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("样式", "IDE0060:删除未使用的参数", Justification = "<挂起>")]
-        public static bool NotIn<T>(T column, params T[] values) => default;
+        public static bool NotIn(object column, params object[] values) => default;
         /// <summary>
         /// like %value%
         /// </summary>

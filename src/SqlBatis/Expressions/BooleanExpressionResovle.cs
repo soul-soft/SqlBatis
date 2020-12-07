@@ -3,27 +3,40 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Text;
 using SqlBatis.Attributes;
 
 namespace SqlBatis.Expressions
 {
+    /// <summary>
+    /// 条件表达式解析
+    /// </summary>
     public class BooleanExpressionResovle : ExpressionResovle
     {
         private readonly string _prefix = "@";
 
+        private readonly Expression _expression;
+
         private bool _isNotExpression = false;
 
-        private readonly Dictionary<string, object> _parameters = new Dictionary<string, object>();
+        private readonly bool _single;
 
-        public BooleanExpressionResovle(Expression expression)
-            : base(expression)
+        private readonly StringBuilder _textBuilder = new StringBuilder();
+
+        private readonly Dictionary<string, object> _parameters;
+
+        public BooleanExpressionResovle(bool single, Expression expression)
+            : base(single)
         {
+            _single = single;
+            _expression = expression;
             _parameters = new Dictionary<string, object>();
         }
 
-        public BooleanExpressionResovle(Expression expression, Dictionary<string, object> parameters)
-            : base(expression)
+        public BooleanExpressionResovle(bool single, Expression expression, Dictionary<string, object> parameters)
+            : base(single)
         {
+            _expression = expression;
             _parameters = parameters;
         }
 
@@ -47,7 +60,7 @@ namespace SqlBatis.Expressions
                 if (node.Arguments.Count == 2)
                 {
                     _textBuilder.Append("(");
-                    SetParameterName(node.Arguments[0] as MemberExpression);
+                    Visit(node.Arguments[0]);
                     _textBuilder.Append($" {Operator.ResovleExpressionType(node.Method.Name)} ");
                     var value = VisitExpressionValue(node.Arguments[1]);
                     if (node.Method.Name == nameof(Operator.StartsWith) || node.Method.Name == nameof(Operator.NotStartsWith))
@@ -64,7 +77,7 @@ namespace SqlBatis.Expressions
                     }
                     else
                     {
-                        SetParameterValue(Expression.Constant(value));
+                        Visit(Expression.Constant(value));
                     }
                     _textBuilder.Append(")");
                 }
@@ -75,12 +88,12 @@ namespace SqlBatis.Expressions
                 object value = null;
                 if (IsParameterExpression(node.Object))
                 {
-                    SetParameterName(node.Object as MemberExpression);
+                    Visit(node.Object);
                     value = VisitExpressionValue(node.Arguments[0]);
                 }
                 else
                 {
-                    SetParameterName(node.Arguments[0] as MemberExpression);
+                    Visit(node.Object);
                     value = VisitExpressionValue(node.Object);
                 }
                 if (_isNotExpression)
@@ -121,7 +134,7 @@ namespace SqlBatis.Expressions
                     arguments1 = node.Arguments[0];
                     arguments2 = node.Arguments[1];
                 }
-                SetParameterName(arguments2 as MemberExpression);
+                Visit(arguments2);
                 if (_isNotExpression)
                 {
                     _isNotExpression = false;
@@ -131,12 +144,12 @@ namespace SqlBatis.Expressions
                 {
                     _textBuilder.Append(" IN ");
                 }
-                SetParameterValue(arguments1 as MemberExpression);
+                Visit(arguments1);
                 _textBuilder.Append(")");
             }
             else if (node.Method.DeclaringType.GetCustomAttribute(typeof(FunctionAttribute), true) != null)
             {
-                var function = new FunctionExpressionResovle(node).Resovle();
+                var function = new FunctionExpressionResovle(_single, node).Resovle();
                 _textBuilder.Append(function);
             }
             else
@@ -206,7 +219,7 @@ namespace SqlBatis.Expressions
 
         private void SetParameterName(MemberExpression expression)
         {
-            var name = GetColumnName(expression.Member.DeclaringType, expression.Member.Name);
+            var name = GetDbColumnNameAsAlias(expression);
             _textBuilder.Append(name);
         }
 
@@ -246,6 +259,12 @@ namespace SqlBatis.Expressions
             {
                 return node.Method.Name == nameof(Enumerable.Contains) && node.Arguments.Count == 2;
             }
+        }
+
+        public override string Resovle()
+        {
+            Visit(_expression);
+            return _textBuilder.ToString();
         }
     }
 }

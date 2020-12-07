@@ -1074,38 +1074,34 @@
             数据库操作符
             </summary>
         </member>
-        <member name="M:SqlBatis.Operator.In``1(``0,System.Collections.Generic.IEnumerable{``0})">
+        <member name="M:SqlBatis.Operator.In(System.Object,System.Collections.IEnumerable)">
             <summary>
             in
             </summary>
-            <typeparam name="T">类型推断</typeparam>
             <param name="column">字段</param>
             <param name="values">参数</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.Operator.In``1(``0,``0[])">
+        <member name="M:SqlBatis.Operator.In(System.Object,System.Object[])">
             <summary>
             in(低性能)
             </summary>
-            <typeparam name="T">类型推断</typeparam>
             <param name="column">字段</param>
             <param name="values">参数</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.Operator.NotIn``1(``0,System.Collections.Generic.IEnumerable{``0})">
+        <member name="M:SqlBatis.Operator.NotIn(System.Object,System.Collections.IEnumerable)">
             <summary>
             not in
             </summary>
-            <typeparam name="T">类型推断</typeparam>
             <param name="column">字段</param>
             <param name="values">参数</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.Operator.NotIn``1(``0,``0[])">
+        <member name="M:SqlBatis.Operator.NotIn(System.Object,System.Object[])">
             <summary>
             not in(低性能)
             </summary>
-            <typeparam name="T">类型推断</typeparam>
             <param name="column">字段</param>
             <param name="values">参数</param>
             <returns></returns>

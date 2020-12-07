@@ -46,7 +46,7 @@ namespace SqlBatis
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        IDbQuery<T> From<T>();
+        IDbQueryable<T> From<T>();
         /// <summary>
         /// 开启事务会话
         /// </summary>
@@ -190,9 +190,17 @@ namespace SqlBatis
             var sql = GlobalSettings.XmlCommandsProvider.Build(id);
             return new XmlQuery(this, sql);
         }
-        public virtual IDbQuery<T> From<T>()
+        public virtual IDbQueryable<T> From<T>()
         {
-            return new DbQuery<T>(this);
+            return new DbQueryable<T>(this);
+        }
+        public virtual IDbQueryable<T1, T2> From<T1, T2>()
+        {
+            return new DbQueryable<T1, T2>(this);
+        }
+        public virtual IDbQueryable<T1, T2, T3> From<T1, T2, T3>()
+        {
+            return new DbQueryable<T1, T2, T3>(this);
         }
         public virtual IEnumerable<dynamic> Query(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null)
         {
@@ -410,7 +418,7 @@ namespace SqlBatis
                         {
                             list = (item.Value as IEnumerable).Cast<object>().Where(a => a != null && a != DBNull.Value).ToList();
                         }
-                        else if(item.Value != DBNull.Value)
+                        else if (item.Value != DBNull.Value)
                         {
                             list.Add(item.Value);
                         }
@@ -446,6 +454,7 @@ namespace SqlBatis
             parameter.Value = value ?? DBNull.Value;
             return parameter;
         }
+
         public virtual void Dispose()
         {
             RollbackTransaction();

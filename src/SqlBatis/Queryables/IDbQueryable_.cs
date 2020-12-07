@@ -9,20 +9,8 @@ namespace SqlBatis
     /// linq 查询
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public interface IDbQuery<T>
+    public interface IDbQueryable<T>
     {
-        /// <summary>
-        /// 通过主键检索数据
-        /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
-        T Get(object id);
-        /// <summary>
-        /// 异步通过主键检索数据
-        /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
-        Task<T> GetAsync(object id);
         /// <summary>
         /// count查询
         /// </summary>
@@ -251,7 +239,7 @@ namespace SqlBatis
         /// <typeparam name="TResult">类型推断</typeparam>
         /// <param name="expression">字段列表</param>
         /// <returns></returns>
-        IDbQuery<T> Filter<TResult>(Expression<Func<T, TResult>> expression);
+        IDbQueryable<T> Filter<TResult>(Expression<Func<T, TResult>> expression);
         /// <summary>
         /// set查询
         /// </summary>
@@ -260,7 +248,7 @@ namespace SqlBatis
         /// <param name="value">参数</param>
         /// <param name="condition">是否有效</param>
         /// <returns></returns>
-        IDbQuery<T> Set<TResult>(Expression<Func<T, TResult>> column, TResult value, bool condition = true);
+        IDbQueryable<T> Set<TResult>(Expression<Func<T, TResult>> column, TResult value, bool condition = true);
         /// <summary>
         /// set查询
         /// </summary>
@@ -269,14 +257,14 @@ namespace SqlBatis
         /// <param name="expression">表达式</param>
         /// <param name="condition">是否有效</param>
         /// <returns></returns>
-        IDbQuery<T> Set<TResult>(Expression<Func<T, TResult>> column, Expression<Func<T, TResult>> expression, bool condition = true);
+        IDbQueryable<T> Set<TResult>(Expression<Func<T, TResult>> column, Expression<Func<T, TResult>> expression, bool condition = true);
         /// <summary>
         /// take查询，从下标为0的行获取count条记录
         /// </summary>
         /// <param name="count">记录个数</param>
         /// <param name="condition">条件</param>
         /// <returns></returns>
-        IDbQuery<T> Take(int count, bool condition = true);
+        IDbQueryable<T> Take(int count, bool condition = true);
         /// <summary>
         /// skip，从下标为index的行获取count条记录
         /// </summary>
@@ -284,7 +272,7 @@ namespace SqlBatis
         /// <param name="count">记录个数</param>
         /// <param name="condition">条件</param>
         /// <returns></returns>
-        IDbQuery<T> Skip(int index, int count, bool condition = true);
+        IDbQueryable<T> Skip(int index, int count, bool condition = true);
         /// <summary>
         /// page查询，从下标为(index-1)*count的行获取count条记录
         /// </summary>
@@ -292,34 +280,34 @@ namespace SqlBatis
         /// <param name="count">记录个数</param>
         /// <param name="condition">条件</param>
         /// <returns></returns>
-        IDbQuery<T> Page(int index, int count, bool condition = true);
+        IDbQueryable<T> Page(int index, int count, bool condition = true);
         /// <summary>
         /// 指定读锁
         /// </summary>
         /// <param name="lockname"></param>
         /// <returns></returns>
-        IDbQuery<T> With(string lockname);
+        IDbQueryable<T> With(string lockname);
         /// <summary>
         /// where查询，多个where有效使用and连接
         /// </summary>
         /// <param name="expression">表达式</param>
         /// <param name="condition">是否有效</param>
         /// <returns></returns>
-        IDbQuery<T> Where(Expression<Func<T, bool>> expression, bool condition = true);
+        IDbQueryable<T> Where(Expression<Func<T, bool>> expression, bool condition = true);
         /// <summary>
         /// having查询，多个having查询有效使用and连接
         /// </summary>
         /// <param name="expression">表达式</param>
         /// <param name="condition">是否有效</param>
         /// <returns></returns>
-        IDbQuery<T> Having(Expression<Func<T, bool>> expression, bool condition = true);
+        IDbQueryable<T> Having(Expression<Func<T, bool>> expression, bool condition = true);
         /// <summary>
         /// group查询
         /// </summary>
         /// <typeparam name="TResult">类型推断</typeparam>
         /// <param name="expression">字段列表</param>
         /// <returns></returns>
-        IDbQuery<T> GroupBy<TResult>(Expression<Func<T, TResult>> expression);
+        IDbQueryable<T> GroupBy<TResult>(Expression<Func<T, TResult>> expression);
         /// <summary>
         /// orderby查询，升序
         /// </summary>
@@ -327,7 +315,7 @@ namespace SqlBatis
         /// <param name="expression">字段列表</param>
         /// <param name="condition">是否有效</param>
         /// <returns></returns>
-        IDbQuery<T> OrderBy<TResult>(Expression<Func<T, TResult>> expression, bool condition = true);
+        IDbQueryable<T> OrderBy<TResult>(Expression<Func<T, TResult>> expression, bool condition = true);
         /// <summary>
         /// orderby查询，降序
         /// </summary>
@@ -335,7 +323,7 @@ namespace SqlBatis
         /// <param name="expression">字段列表</param>
         /// <param name="condition">是否有效</param>
         /// <returns></returns>
-        IDbQuery<T> OrderByDescending<TResult>(Expression<Func<T, TResult>> expression, bool condition = true);
+        IDbQueryable<T> OrderByDescending<TResult>(Expression<Func<T, TResult>> expression, bool condition = true);
         /// <summary>
         /// 求和
         /// </summary>

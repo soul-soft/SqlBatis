@@ -1,13 +1,21 @@
-﻿using System.Linq.Expressions;
+﻿using System.Collections.Generic;
+using System.Linq.Expressions;
 
 namespace SqlBatis.Expressions
 {
     public class SelectExpressionResovle : ExpressionResovle
     {
-        public SelectExpressionResovle(Expression expression)
-         : base(expression)
-        {
+        private readonly bool _single;
 
+        private readonly List<string> _list = new List<string>();
+
+        private readonly Expression _expression;
+      
+        public SelectExpressionResovle(bool single, Expression expression)
+         : base(single)
+        {
+            _single = single;
+            _expression = expression;
         }
 
         protected override Expression VisitMemberInit(MemberInitExpression node)
@@ -16,19 +24,15 @@ namespace SqlBatis.Expressions
             {
                 var item = node.Bindings[i] as MemberAssignment;
 
-                if (item.Expression is MemberExpression member)
+                if (item.Expression is MemberExpression mExp)
                 {
-                    var name = GetColumnName(member.Member.DeclaringType, member.Member.Name);
-                    _textBuilder.Append($"{name} AS {item.Member.Name}");
+                    var name = GetDbColumnNameAsAlias(mExp);
+                    _list.Add($"{name} AS {item.Member.Name}");
                 }
                 else if (item.Expression is MethodCallExpression)
                 {
-                    var expression = new FunctionExpressionResovle(item.Expression).Resovle();
-                    _textBuilder.Append($"{expression} AS {item.Member.Name}");
-                }
-                if (i != node.Bindings.Count - 1)
-                {
-                    _textBuilder.Append(",");
+                    var expression = new FunctionExpressionResovle(_single, item.Expression).Resovle();
+                    _list.Add($"{expression} AS {item.Member.Name}");
                 }
             }
             return node;
@@ -42,24 +46,20 @@ namespace SqlBatis.Expressions
                 var column = node.Members[i].Name;
                 if (item is MemberExpression member)
                 {
-                    var name = GetColumnName(member.Member.DeclaringType, member.Member.Name);
+                    var name = GetDbColumnNameAsAlias(member);
                     if (name != column)
                     {
-                        _textBuilder.Append($"{name} AS {column}");
+                        _list.Add($"{name} AS {column}");
                     }
                     else
                     {
-                        _textBuilder.Append($"{name}");
+                        _list.Add(name);
                     }
                 }
                 else if (item is MethodCallExpression)
                 {
-                    var expression = new FunctionExpressionResovle(item).Resovle();
-                    _textBuilder.Append($"{expression} AS {column}");
-                }
-                if (i != node.Arguments.Count - 1)
-                {
-                    _textBuilder.Append(",");
+                    var expression = new FunctionExpressionResovle(_single, item).Resovle();
+                    _list.Add($"{expression} AS {column}");
                 }
             }
             return node;
@@ -67,17 +67,25 @@ namespace SqlBatis.Expressions
 
         protected override Expression VisitMember(MemberExpression node)
         {
-            var name = GetColumnName(node.Member.DeclaringType, node.Member.Name);
-            _textBuilder.Append($"{name}");
+            var name = GetDbColumnNameAsAlias(node);
+            _list.Add(name);
             return node;
         }
 
         protected override Expression VisitMethodCall(MethodCallExpression node)
         {
-            var result = new FunctionExpressionResovle(node).Resovle();
-            _textBuilder.Append($"{result} AS expr");
+            var result = new FunctionExpressionResovle(_single, node).Resovle();
+            _list.Add($"{result} AS expr");
             return node;
+        }        
+        public override string Resovle()
+        {
+            if (_expression is ConstantExpression constantExpression)
+            {
+                return constantExpression.Value.ToString();
+            }
+            Visit(_expression);
+            return string.Join(",", _list);
         }
-
     }
 }
