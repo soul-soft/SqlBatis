@@ -21,13 +21,13 @@ namespace SqlBatis.Test
             }
         }
 
-        protected override MethodInfo FindTypeMethod(Type returnType, Type memberType)
+        protected override MethodInfo FindDataRecordConvertMethodInfo(Type returnType, Type memberType, DbFieldInfo fieldInfo)
         {
             if (typeof(Student2Dot) == returnType && memberType == typeof(bool))
             {
                 return ConvertMethod.ConvertToBooleanMethod;
             }
-            return base.FindTypeMethod(returnType, memberType);
+            return base.FindDataRecordConvertMethodInfo(returnType, memberType, fieldInfo);
         }
     }
 }

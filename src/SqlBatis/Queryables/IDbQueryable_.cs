@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 namespace SqlBatis
 {
     /// <summary>
-    /// linq 查询
+    /// 单表查询
     /// </summary>
     /// <typeparam name="T"></typeparam>
     public interface IDbQueryable<T>
@@ -141,7 +141,7 @@ namespace SqlBatis
         /// <param name="entitys">参数集合</param>
         /// <param name="commandTimeout">超时时间</param>
         /// <returns></returns>
-        int Insert(IEnumerable<T> entitys,int? commandTimeout = null);
+        int Insert(IEnumerable<T> entitys, int? commandTimeout = null);
         /// <summary>
         /// 异步批量insert查询，该接口会忽略identity字段
         /// </summary>
@@ -239,7 +239,7 @@ namespace SqlBatis
         /// <typeparam name="TResult">类型推断</typeparam>
         /// <param name="expression">字段列表</param>
         /// <returns></returns>
-        IDbQueryable<T> Filter<TResult>(Expression<Func<T, TResult>> expression);
+        IDbQueryable<T> Ignore<TResult>(Expression<Func<T, TResult>> expression);
         /// <summary>
         /// set查询
         /// </summary>

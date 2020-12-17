@@ -22,7 +22,6 @@ namespace SqlBatis
         {
             SetViewName(GetSingleTableName<T>());
         }
-
         #endregion
 
         #region resovles
@@ -408,7 +407,7 @@ namespace SqlBatis
             return this;
         }
 
-        public IDbQueryable<T> Filter<TResult>(Expression<Func<T, TResult>> column)
+        public IDbQueryable<T> Ignore<TResult>(Expression<Func<T, TResult>> column)
         {
             _filterExpression = column;
             return this;
@@ -510,12 +509,6 @@ namespace SqlBatis
         }
 
         #endregion
-    }
-    /// <summary>
-    /// 异步linq查询
-    /// </summary>
-    public partial class DbQueryable<T>
-    {
 
         #region async
         public Task<int> CountAsync(int? commandTimeout = null)
@@ -655,6 +648,5 @@ namespace SqlBatis
         }
         #endregion
     }
-
 
 }

@@ -59,7 +59,7 @@ namespace SqlBatis
             private Type Type { get; set; }
             public override bool Equals(object obj)
             {
-                return obj is SerializerKey && Equals((SerializerKey)obj);
+                return obj is SerializerKey key && Equals(key);
             }
             public bool Equals(SerializerKey other)
             {
@@ -130,7 +130,7 @@ namespace SqlBatis
                 for (int i = 0; i < reader.FieldCount; i++)
                 {
                     var name = reader.GetName(i);
-                    var value = GetDynamicValue(reader, i);
+                    var value = GetDataRecordValue(reader, i);
                     entity.Add(name, value);
                 }
                 return entity;
@@ -156,15 +156,20 @@ namespace SqlBatis
         #region 一组可以被重写的策略
 
         /// <summary>
-        /// 查找构造函数如果存在带参构造则获取参数最多的构造器进行实体的创建
+        /// 获取参数最多的构造器
         /// </summary>
-        protected virtual ConstructorInfo FindConstructor(Type csharpType)
+        /// <param name="entityType"></param>
+        /// <returns></returns>
+        protected virtual ConstructorInfo FindConstructor(Type entityType)
         {
-            var constructor = csharpType.GetConstructor(Type.EmptyTypes);
+            var constructor = entityType.GetConstructor(Type.EmptyTypes);
             if (constructor == null)
             {
-                var constructors = csharpType.GetConstructors();
-                constructor = constructors.Where(a => a.GetParameters().Length == constructors.Max(s => s.GetParameters().Length)).FirstOrDefault();
+                var constructors = entityType.GetConstructors();
+                var maxLength = constructors.Max(s => s.GetParameters().Length);
+                constructor = constructors
+                    .Where(a => a.GetParameters().Length == maxLength)
+                    .FirstOrDefault();
             }
             return constructor;
         }
@@ -172,9 +177,13 @@ namespace SqlBatis
         /// <summary>
         /// 获取参数在DataReader中的顺序
         /// </summary>
-        protected virtual DbFieldInfo FindTypeParameter(DbFieldInfo[] dataInfos, ParameterInfo parameterInfo)
+        /// <param name=""></param>
+        /// <param name="parameterInfo"></param>
+        /// <param name="fieldInfos"></param>
+        /// <returns></returns>
+        protected virtual DbFieldInfo FindClassConstructorParameter(ParameterInfo parameterInfo, DbFieldInfo[] fieldInfos)
         {
-            foreach (var item in dataInfos)
+            foreach (var item in fieldInfos)
             {
                 if (item.DataName.Equals(parameterInfo.Name, StringComparison.OrdinalIgnoreCase))
                 {
@@ -191,15 +200,19 @@ namespace SqlBatis
         /// <summary>
         /// 获取成员信息
         /// </summary>
-        protected virtual MemberInfo FindTypeMember(MemberInfo[] properties, DbFieldInfo dataInfo)
+        /// <param name="entityType">实体类型</param>
+        /// <param name="fieldInfo">数据字段信息</param>
+        /// <returns></returns>
+        protected virtual MemberInfo FindClassMemberInfo(Type entityType, DbFieldInfo fieldInfo)
         {
+            var properties = entityType.GetProperties();
             foreach (var item in properties)
             {
-                if (item.Name.Equals(dataInfo.DataName, StringComparison.OrdinalIgnoreCase))
+                if (item.Name.Equals(fieldInfo.DataName, StringComparison.OrdinalIgnoreCase))
                 {
                     return item;
                 }
-                else if (item.Name.Equals(dataInfo.DataName.Replace("_", ""), StringComparison.OrdinalIgnoreCase))
+                else if (item.Name.Equals(fieldInfo.DataName.Replace("_", ""), StringComparison.OrdinalIgnoreCase))
                 {
                     return item;
                 }
@@ -210,73 +223,100 @@ namespace SqlBatis
         /// <summary>
         /// 获取映射实体成员的转换方法
         /// </summary>
-        protected virtual MethodInfo FindTypeMethod(Type returnType, Type memberType)
+        /// <param name="entityType">实体类型</param>
+        /// <param name="entityMemberType">实体的成员类型</param>
+        /// <param name="fieldInfo">数据库字信息</param>
+        /// <returns></returns>
+        protected virtual MethodInfo FindDataRecordConvertMethodInfo(Type entityType, Type entityMemberType, DbFieldInfo fieldInfo)
         {
-            if (GetUnderlyingType(memberType) == typeof(bool))
+            if (GetUnderlyingType(entityMemberType) == typeof(bool))
             {
-                return !IsNullableType(memberType) ? MemberMapperMethod.ToBooleanMethod : MemberMapperMethod.ToBooleanNullableMethod;
+                return !IsNullableType(entityMemberType)
+                    ? EntityMemberConvertMethods.ToBooleanMethod
+                    : EntityMemberConvertMethods.ToBooleanNullableMethod;
             }
-            if (GetUnderlyingType(memberType).IsEnum)
+            if (GetUnderlyingType(entityMemberType).IsEnum)
             {
-                return !IsNullableType(memberType) ? MemberMapperMethod.ToEnumMethod.MakeGenericMethod(memberType) : MemberMapperMethod.ToEnumNullableMethod.MakeGenericMethod(GetUnderlyingType(memberType));
+                return !IsNullableType(entityMemberType)
+                    ? EntityMemberConvertMethods.ToEnumMethod.MakeGenericMethod(entityMemberType)
+                    : EntityMemberConvertMethods.ToEnumNullableMethod.MakeGenericMethod(GetUnderlyingType(entityMemberType));
             }
-            if (GetUnderlyingType(memberType) == typeof(char))
+            if (GetUnderlyingType(entityMemberType) == typeof(char))
             {
-                return !IsNullableType(memberType) ? MemberMapperMethod.ToCharMethod : MemberMapperMethod.ToCharNullableMethod;
+                return !IsNullableType(entityMemberType)
+                    ? EntityMemberConvertMethods.ToCharMethod
+                    : EntityMemberConvertMethods.ToCharNullableMethod;
             }
-            if (memberType == typeof(string))
+            if (entityMemberType == typeof(string))
             {
-                return MemberMapperMethod.ToStringMethod;
+                return EntityMemberConvertMethods.ToStringMethod;
             }
-            if (GetUnderlyingType(memberType) == typeof(Guid))
+            if (GetUnderlyingType(entityMemberType) == typeof(Guid))
             {
-                return !IsNullableType(memberType) ? MemberMapperMethod.ToGuidMethod : MemberMapperMethod.ToGuidNullableMethod;
+                return !IsNullableType(entityMemberType) ? EntityMemberConvertMethods.ToGuidMethod
+                    : EntityMemberConvertMethods.ToGuidNullableMethod;
             }
-            if (GetUnderlyingType(memberType) == typeof(DateTime))
+            if (GetUnderlyingType(entityMemberType) == typeof(DateTime))
             {
-                return !IsNullableType(memberType) ? MemberMapperMethod.ToDateTimeMethod : MemberMapperMethod.ToDateTimeNullableMethod;
+                return !IsNullableType(entityMemberType)
+                    ? EntityMemberConvertMethods.ToDateTimeMethod
+                    : EntityMemberConvertMethods.ToDateTimeNullableMethod;
             }
-            if (GetUnderlyingType(memberType) == typeof(byte) || GetUnderlyingType(memberType) == typeof(sbyte))
+            if (GetUnderlyingType(entityMemberType) == typeof(byte) || GetUnderlyingType(entityMemberType) == typeof(sbyte))
             {
-                return !IsNullableType(memberType) ? MemberMapperMethod.ToByteMethod : MemberMapperMethod.ToByteNullableMethod;
+                return !IsNullableType(entityMemberType)
+                    ? EntityMemberConvertMethods.ToByteMethod
+                    : EntityMemberConvertMethods.ToByteNullableMethod;
             }
-            if (GetUnderlyingType(memberType) == typeof(short) || GetUnderlyingType(memberType) == typeof(ushort))
+            if (GetUnderlyingType(entityMemberType) == typeof(short) || GetUnderlyingType(entityMemberType) == typeof(ushort))
             {
-                return !IsNullableType(memberType) ? MemberMapperMethod.ToIn16Method : MemberMapperMethod.ToIn16NullableMethod;
+                return !IsNullableType(entityMemberType)
+                    ? EntityMemberConvertMethods.ToIn16Method
+                    : EntityMemberConvertMethods.ToIn16NullableMethod;
             }
-            if (GetUnderlyingType(memberType) == typeof(int) || GetUnderlyingType(memberType) == typeof(uint))
+            if (GetUnderlyingType(entityMemberType) == typeof(int) || GetUnderlyingType(entityMemberType) == typeof(uint))
             {
-                return !IsNullableType(memberType) ? MemberMapperMethod.ToIn32Method : MemberMapperMethod.ToIn32NullableMethod;
+                return !IsNullableType(entityMemberType)
+                    ? EntityMemberConvertMethods.ToIn32Method
+                    : EntityMemberConvertMethods.ToIn32NullableMethod;
             }
-            if (GetUnderlyingType(memberType) == typeof(long) || GetUnderlyingType(memberType) == typeof(ulong))
+            if (GetUnderlyingType(entityMemberType) == typeof(long) || GetUnderlyingType(entityMemberType) == typeof(ulong))
             {
-                return !IsNullableType(memberType) ? MemberMapperMethod.ToIn64Method : MemberMapperMethod.ToIn64NullableMethod;
+                return !IsNullableType(entityMemberType)
+                    ? EntityMemberConvertMethods.ToIn64Method
+                    : EntityMemberConvertMethods.ToIn64NullableMethod;
             }
-            if (GetUnderlyingType(memberType) == typeof(float))
+            if (GetUnderlyingType(entityMemberType) == typeof(float))
             {
-                return !IsNullableType(memberType) ? MemberMapperMethod.ToFloatMethod : MemberMapperMethod.ToFloatNullableMethod;
+                return !IsNullableType(entityMemberType)
+                    ? EntityMemberConvertMethods.ToFloatMethod
+                    : EntityMemberConvertMethods.ToFloatNullableMethod;
             }
-            if (GetUnderlyingType(memberType) == typeof(double))
+            if (GetUnderlyingType(entityMemberType) == typeof(double))
             {
-                return !IsNullableType(memberType) ? MemberMapperMethod.ToDoubleMethod : MemberMapperMethod.ToDoubleNullableMethod;
+                return !IsNullableType(entityMemberType)
+                    ? EntityMemberConvertMethods.ToDoubleMethod
+                    : EntityMemberConvertMethods.ToDoubleNullableMethod;
             }
-            if (GetUnderlyingType(memberType) == typeof(decimal))
+            if (GetUnderlyingType(entityMemberType) == typeof(decimal))
             {
-                return !IsNullableType(memberType) ? MemberMapperMethod.ToDecimalMethod : MemberMapperMethod.ToDecimalNullableMethod;
+                return !IsNullableType(entityMemberType)
+                    ? EntityMemberConvertMethods.ToDecimalMethod
+                    : EntityMemberConvertMethods.ToDecimalNullableMethod;
             }
-            return MemberMapperMethod.ToObjectMethod;
+            return EntityMemberConvertMethods.ToObjectMethod;
         }
 
         /// <summary>
         /// 获取动态映射值
         /// </summary>
-        protected virtual dynamic GetDynamicValue(IDataRecord record, int i)
+        protected virtual dynamic GetDataRecordValue(IDataRecord record, int i)
         {
             if (record.IsDBNull(i))
             {
                 return null;
             }
-            return record.GetValue(i);            
+            return record.GetValue(i);
         }
         #endregion
 
@@ -339,7 +379,7 @@ namespace SqlBatis
             }
             if (type == typeof(object) || dataInfos.Length == 1 && (type.IsValueType || type == typeof(string)))
             {
-                var convertMethod = FindTypeMethod(type, type);
+                var convertMethod = FindDataRecordConvertMethodInfo(type, type, dataInfos[0]);
                 generator.Emit(OpCodes.Ldarg_0);
                 generator.Emit(OpCodes.Ldc_I4, 0);
                 if (convertMethod.IsVirtual)
@@ -366,12 +406,12 @@ namespace SqlBatis
                 }
                 for (int i = 0; i < locals.Length; i++)
                 {
-                    var item = FindTypeParameter(dataInfos, parameters[i]);
+                    var item = FindClassConstructorParameter(parameters[i], dataInfos);
                     if (item == null)
                     {
                         continue;
                     }
-                    var convertMethod = FindTypeMethod(type, parameters[i].ParameterType);
+                    var convertMethod = FindDataRecordConvertMethodInfo(type, parameters[i].ParameterType, item);
                     generator.Emit(OpCodes.Ldarg_0);
                     generator.Emit(OpCodes.Ldc_I4, item.Ordinal);
                     if (convertMethod.IsVirtual)
@@ -392,17 +432,16 @@ namespace SqlBatis
             }
             else
             {
-                var properties = type.GetProperties();
                 generator.Emit(OpCodes.Newobj, constructor);
                 generator.Emit(OpCodes.Stloc, local);
                 foreach (var item in dataInfos)
                 {
-                    var property = FindTypeMember(properties, item) as PropertyInfo;
+                    var property = FindClassMemberInfo(type, item) as PropertyInfo;
                     if (property == null)
                     {
                         continue;
                     }
-                    var convertMethod = FindTypeMethod(type, property.PropertyType);
+                    var convertMethod = FindDataRecordConvertMethodInfo(type, property.PropertyType, item);
                     if (convertMethod == null)
                     {
                         continue;
@@ -433,7 +472,7 @@ namespace SqlBatis
             return underlyingType ?? type;
         }
         /// <summary>
-        /// 判断是否是可以为null的类型
+        /// 判断是否是null的类型
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
@@ -451,38 +490,38 @@ namespace SqlBatis
         /// <summary>
         /// 定义映射到成员的转换器
         /// </summary>
-        static class MemberMapperMethod
+        static class EntityMemberConvertMethods
         {
             #region Method Field
-            public static MethodInfo ToObjectMethod = typeof(MemberMapperMethod).GetMethod(nameof(MemberMapperMethod.ConvertToObject));
-            public static MethodInfo ToByteMethod = typeof(MemberMapperMethod).GetMethod(nameof(MemberMapperMethod.ConvertToByte));
-            public static MethodInfo ToIn16Method = typeof(MemberMapperMethod).GetMethod(nameof(MemberMapperMethod.ConvertToInt16));
-            public static MethodInfo ToIn32Method = typeof(MemberMapperMethod).GetMethod(nameof(MemberMapperMethod.ConvertToInt32));
-            public static MethodInfo ToIn64Method = typeof(MemberMapperMethod).GetMethod(nameof(MemberMapperMethod.ConvertToInt64));
-            public static MethodInfo ToFloatMethod = typeof(MemberMapperMethod).GetMethod(nameof(MemberMapperMethod.ConvertToFloat));
-            public static MethodInfo ToDoubleMethod = typeof(MemberMapperMethod).GetMethod(nameof(MemberMapperMethod.ConvertToDouble));
-            public static MethodInfo ToDecimalMethod = typeof(MemberMapperMethod).GetMethod(nameof(MemberMapperMethod.ConvertToDecimal));
-            public static MethodInfo ToBooleanMethod = typeof(MemberMapperMethod).GetMethod(nameof(MemberMapperMethod.ConvertToBoolean));
-            public static MethodInfo ToCharMethod = typeof(MemberMapperMethod).GetMethod(nameof(MemberMapperMethod.ConvertToChar));
-            public static MethodInfo ToStringMethod = typeof(MemberMapperMethod).GetMethod(nameof(MemberMapperMethod.ConvertToString));
-            public static MethodInfo ToDateTimeMethod = typeof(MemberMapperMethod).GetMethod(nameof(MemberMapperMethod.ConvertToDateTime));
-            public static MethodInfo ToEnumMethod = typeof(MemberMapperMethod).GetMethod(nameof(MemberMapperMethod.ConvertToEnum));
-            public static MethodInfo ToGuidMethod = typeof(MemberMapperMethod).GetMethod(nameof(MemberMapperMethod.ConvertToGuid));
+            public static MethodInfo ToObjectMethod = typeof(EntityMemberConvertMethods).GetMethod(nameof(EntityMemberConvertMethods.ConvertToObject));
+            public static MethodInfo ToByteMethod = typeof(EntityMemberConvertMethods).GetMethod(nameof(EntityMemberConvertMethods.ConvertToByte));
+            public static MethodInfo ToIn16Method = typeof(EntityMemberConvertMethods).GetMethod(nameof(EntityMemberConvertMethods.ConvertToInt16));
+            public static MethodInfo ToIn32Method = typeof(EntityMemberConvertMethods).GetMethod(nameof(EntityMemberConvertMethods.ConvertToInt32));
+            public static MethodInfo ToIn64Method = typeof(EntityMemberConvertMethods).GetMethod(nameof(EntityMemberConvertMethods.ConvertToInt64));
+            public static MethodInfo ToFloatMethod = typeof(EntityMemberConvertMethods).GetMethod(nameof(EntityMemberConvertMethods.ConvertToFloat));
+            public static MethodInfo ToDoubleMethod = typeof(EntityMemberConvertMethods).GetMethod(nameof(EntityMemberConvertMethods.ConvertToDouble));
+            public static MethodInfo ToDecimalMethod = typeof(EntityMemberConvertMethods).GetMethod(nameof(EntityMemberConvertMethods.ConvertToDecimal));
+            public static MethodInfo ToBooleanMethod = typeof(EntityMemberConvertMethods).GetMethod(nameof(EntityMemberConvertMethods.ConvertToBoolean));
+            public static MethodInfo ToCharMethod = typeof(EntityMemberConvertMethods).GetMethod(nameof(EntityMemberConvertMethods.ConvertToChar));
+            public static MethodInfo ToStringMethod = typeof(EntityMemberConvertMethods).GetMethod(nameof(EntityMemberConvertMethods.ConvertToString));
+            public static MethodInfo ToDateTimeMethod = typeof(EntityMemberConvertMethods).GetMethod(nameof(EntityMemberConvertMethods.ConvertToDateTime));
+            public static MethodInfo ToEnumMethod = typeof(EntityMemberConvertMethods).GetMethod(nameof(EntityMemberConvertMethods.ConvertToEnum));
+            public static MethodInfo ToGuidMethod = typeof(EntityMemberConvertMethods).GetMethod(nameof(EntityMemberConvertMethods.ConvertToGuid));
             #endregion
 
             #region NullableMethod Field
-            public static MethodInfo ToByteNullableMethod = typeof(MemberMapperMethod).GetMethod(nameof(MemberMapperMethod.ConvertToByteNullable));
-            public static MethodInfo ToIn16NullableMethod = typeof(MemberMapperMethod).GetMethod(nameof(MemberMapperMethod.ConvertToInt16Nullable));
-            public static MethodInfo ToIn32NullableMethod = typeof(MemberMapperMethod).GetMethod(nameof(MemberMapperMethod.ConvertToInt32Nullable));
-            public static MethodInfo ToIn64NullableMethod = typeof(MemberMapperMethod).GetMethod(nameof(MemberMapperMethod.ConvertToInt64Nullable));
-            public static MethodInfo ToFloatNullableMethod = typeof(MemberMapperMethod).GetMethod(nameof(MemberMapperMethod.ConvertToFloatNullable));
-            public static MethodInfo ToDoubleNullableMethod = typeof(MemberMapperMethod).GetMethod(nameof(MemberMapperMethod.ConvertToDoubleNullable));
-            public static MethodInfo ToBooleanNullableMethod = typeof(MemberMapperMethod).GetMethod(nameof(MemberMapperMethod.ConvertToBooleanNullable));
-            public static MethodInfo ToDecimalNullableMethod = typeof(MemberMapperMethod).GetMethod(nameof(MemberMapperMethod.ConvertToDecimalNullable));
-            public static MethodInfo ToCharNullableMethod = typeof(MemberMapperMethod).GetMethod(nameof(MemberMapperMethod.ConvertToCharNullable));
-            public static MethodInfo ToDateTimeNullableMethod = typeof(MemberMapperMethod).GetMethod(nameof(MemberMapperMethod.ConvertToDateTimeNullable));
-            public static MethodInfo ToEnumNullableMethod = typeof(MemberMapperMethod).GetMethod(nameof(MemberMapperMethod.ConvertToEnumNullable));
-            public static MethodInfo ToGuidNullableMethod = typeof(MemberMapperMethod).GetMethod(nameof(MemberMapperMethod.ConvertToGuidNullable));
+            public static MethodInfo ToByteNullableMethod = typeof(EntityMemberConvertMethods).GetMethod(nameof(EntityMemberConvertMethods.ConvertToByteNullable));
+            public static MethodInfo ToIn16NullableMethod = typeof(EntityMemberConvertMethods).GetMethod(nameof(EntityMemberConvertMethods.ConvertToInt16Nullable));
+            public static MethodInfo ToIn32NullableMethod = typeof(EntityMemberConvertMethods).GetMethod(nameof(EntityMemberConvertMethods.ConvertToInt32Nullable));
+            public static MethodInfo ToIn64NullableMethod = typeof(EntityMemberConvertMethods).GetMethod(nameof(EntityMemberConvertMethods.ConvertToInt64Nullable));
+            public static MethodInfo ToFloatNullableMethod = typeof(EntityMemberConvertMethods).GetMethod(nameof(EntityMemberConvertMethods.ConvertToFloatNullable));
+            public static MethodInfo ToDoubleNullableMethod = typeof(EntityMemberConvertMethods).GetMethod(nameof(EntityMemberConvertMethods.ConvertToDoubleNullable));
+            public static MethodInfo ToBooleanNullableMethod = typeof(EntityMemberConvertMethods).GetMethod(nameof(EntityMemberConvertMethods.ConvertToBooleanNullable));
+            public static MethodInfo ToDecimalNullableMethod = typeof(EntityMemberConvertMethods).GetMethod(nameof(EntityMemberConvertMethods.ConvertToDecimalNullable));
+            public static MethodInfo ToCharNullableMethod = typeof(EntityMemberConvertMethods).GetMethod(nameof(EntityMemberConvertMethods.ConvertToCharNullable));
+            public static MethodInfo ToDateTimeNullableMethod = typeof(EntityMemberConvertMethods).GetMethod(nameof(EntityMemberConvertMethods.ConvertToDateTimeNullable));
+            public static MethodInfo ToEnumNullableMethod = typeof(EntityMemberConvertMethods).GetMethod(nameof(EntityMemberConvertMethods.ConvertToEnumNullable));
+            public static MethodInfo ToGuidNullableMethod = typeof(EntityMemberConvertMethods).GetMethod(nameof(EntityMemberConvertMethods.ConvertToGuidNullable));
             #endregion
 
             #region Define Convert
@@ -832,9 +871,21 @@ namespace SqlBatis
     /// </summary>
     public class DbFieldInfo
     {
+        /// <summary>
+        /// 数据库类型名称
+        /// </summary>
         public string TypeName { get; set; }
+        /// <summary>
+        /// 数据库对应的C#属性类型
+        /// </summary>
         public Type DataType { get; set; }
+        /// <summary>
+        /// 字段名称
+        /// </summary>
         public string DataName { get; set; }
+        /// <summary>
+        /// 列序列
+        /// </summary>
         public int Ordinal { get; set; }
         public DbFieldInfo(int ordinal, string typeName, Type dataType, string dataName)
         {
@@ -844,5 +895,4 @@ namespace SqlBatis
             DataName = dataName;
         }
     }
-
 }

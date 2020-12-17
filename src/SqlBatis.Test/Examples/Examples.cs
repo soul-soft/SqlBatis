@@ -27,13 +27,13 @@ namespace SqlBatis.Test
         public void TestInsert()
         {
             var row = db.Students
-                .Filter(a => a.Id)
+                .Ignore(a => a.Id)
                 .Insert(new StudentDto()
                 {
                     Name = "zs"
                 });
             var id = db.Students
-                .Filter(a => a.Id)
+                .Ignore(a => a.Id)
                 .InsertReturnId(new StudentDto()
                 {
                     Name = "zs"
@@ -45,7 +45,7 @@ namespace SqlBatis.Test
         public void TestUpdate()
         {
             var row = db.Students
-                .Filter(a => a.Id)
+                .Ignore(a => a.Id)
                 .Where(a => a.Id == 1)
                 .Update(new StudentDto()
                 {

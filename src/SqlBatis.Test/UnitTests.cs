@@ -68,7 +68,8 @@ namespace SqlBatis.Test
                     .Join<Student, StudentSchool>((a, b) => a.SchoolId == b.Id)
                     .LeftJoin<Student, StudentLike>((a,c)=>a.LikeId==c.Id)
                     .Page(1,2)
-                    .SelectMany((a,b,c)=> new{a.Id,a.Sname,b.SchoolName,c.LikeName });                      
+                    .SelectMany((a,b,c)=> new{a.Id,a.Sname,b.SchoolName,c.LikeName });
+            
 
             }
             catch (Exception e)
