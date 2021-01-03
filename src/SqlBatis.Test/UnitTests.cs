@@ -11,7 +11,7 @@ namespace SqlBatis.Test
         [Test]
         public void FFFFFFFFFFF()
         {
-            var connectionString = @"Data Source=114.55.84.249;Initial Catalog=juzhen_mes_chengbang;User ID=sa;Password=p@ssw0rd";
+            var connectionString = @"Data Source=127.0.0.1;Initial Catalog=test;User ID=sa;Password=1024";
             var connection = new SqlConnection(connectionString);
             var context = new DbContext(new DbContextBuilder
             {
