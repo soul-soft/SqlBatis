@@ -30,9 +30,19 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Templates\MySqlTemplate.tt">
+    <None Update="Templates\MySqlDbContext.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>MySqlTemplate.cs</LastGenOutput>
+    </None>
+    <None Update="Templates\MySqlEntities.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>MySqlEntities.cs</LastGenOutput>
+    </None>
+    <None Update="Templates\SqlServerDbContext.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+    </None>
+    <None Update="Templates\SqlServerEntities.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>SqlServerEntities.cs</LastGenOutput>
     </None>
   </ItemGroup>
 
@@ -41,10 +51,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="Templates\MySqlTemplate.cs">
+    <Compile Update="Templates\SqlServerEntities.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
-      <DependentUpon>MySqlTemplate.tt</DependentUpon>
+      <DependentUpon>SqlServerEntities.tt</DependentUpon>
     </Compile>
   </ItemGroup>
 

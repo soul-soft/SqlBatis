@@ -70,6 +70,11 @@
             设置数据库类型
             </summary>
         </member>
+        <member name="P:SqlBatis.DbContextBuilder.EntityMapper">
+            <summary>
+            实体映射
+            </summary>
+        </member>
         <member name="T:SqlBatis.IDbMultipleResult">
             <summary>
             DataReader多个结果集
@@ -127,19 +132,180 @@
             <typeparam name="T">结果集类型</typeparam>
             <returns></returns>
         </member>
+        <member name="T:SqlBatis.IEntityMapper">
+            <summary>
+            实体转换映射器
+            </summary>
+        </member>
+        <member name="M:SqlBatis.IEntityMapper.GetSerializer``1(System.Data.IDataRecord)">
+            <summary>
+            获取实体序列化转换器
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="record"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.IEntityMapper.GetSerializer">
+            <summary>
+            获取动态实体列化转换器
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.IEntityMapper.GetDeserializer(System.Type)">
+            <summary>
+            获取参数解码器
+            </summary>
+            <param name="type"></param>
+            <returns></returns>
+        </member>
+        <member name="T:SqlBatis.DefaultEntityMapper">
+            <summary>
+            默认实体映射器
+            </summary>
+        </member>
+        <member name="F:SqlBatis.DefaultEntityMapper._serializers">
+            <summary>
+            序列化器
+            </summary>
+        </member>
+        <member name="F:SqlBatis.DefaultEntityMapper._deserializers">
+            <summary>
+            参数解序列化器
+            </summary>
+        </member>
+        <member name="T:SqlBatis.DefaultEntityMapper.SerializerKey">
+            <summary>
+            获取实体序列化器的hashkey
+            </summary>
+        </member>
+        <member name="M:SqlBatis.DefaultEntityMapper.GetSerializer``1(System.Data.IDataRecord)">
+            <summary>
+            获取实体序列化器
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="record"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.DefaultEntityMapper.GetSerializer">
+            <summary>
+            获取动态实体序列化器
+            </summary>
+        </member>
+        <member name="M:SqlBatis.DefaultEntityMapper.GetDeserializer(System.Type)">
+            <summary>
+            获取实体解构器
+            </summary>
+        </member>
+        <member name="M:SqlBatis.DefaultEntityMapper.MatchEntityConstructor(System.Type)">
+            <summary>
+            获取参数最多的构造器
+            </summary>
+            <param name="entityType"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.DefaultEntityMapper.MatchEntityConstructorParameter(System.Reflection.ParameterInfo,SqlBatis.DbFieldInfo[])">
+            <summary>
+            获取参数在DataReader中的顺序
+            </summary>
+            <param name=""></param>
+            <param name="parameterInfo"></param>
+            <param name="fieldInfos"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.DefaultEntityMapper.MatchClassMemberInfo(System.Type,SqlBatis.DbFieldInfo)">
+            <summary>
+            获取成员信息
+            </summary>
+            <param name="entityType">实体类型</param>
+            <param name="fieldInfo">数据字段信息</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.DefaultEntityMapper.MatchDataRecordConvertMethod(System.Type,System.Type,SqlBatis.DbFieldInfo)">
+            <summary>
+            获取映射实体成员的转换方法
+            </summary>
+            <param name="entityType">实体类型</param>
+            <param name="entityMemberType">实体的成员类型</param>
+            <param name="fieldInfo">数据库字信息</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.DefaultEntityMapper.GetDataRecordDynamicValue(System.Data.IDataRecord,System.Int32)">
+            <summary>
+            获取动态映射值
+            </summary>
+        </member>
+        <member name="M:SqlBatis.DefaultEntityMapper.CreateTypeDeserializerHandler(System.Type)">
+            <summary>
+            创建动态方法
+            </summary>
+            <param name="type"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.DefaultEntityMapper.CreateTypeSerializerHandler``1(System.Data.IDataRecord)">
+            <summary>
+            创建动态方法
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="record"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.DefaultEntityMapper.GetUnderlyingType(System.Type)">
+            <summary>
+            获取类型的非Nullable类型
+            </summary>
+            <param name="type"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.DefaultEntityMapper.IsNullableType(System.Type)">
+            <summary>
+            判断是否是null的类型
+            </summary>
+            <param name="type"></param>
+            <returns></returns>
+        </member>
+        <member name="T:SqlBatis.EntityMemberConvertMethods">
+            <summary>
+            定义映射到成员的转换器
+            </summary>
+        </member>
+        <member name="T:SqlBatis.DbFieldInfo">
+            <summary>
+            DataReader中的行信息
+            </summary>
+        </member>
+        <member name="P:SqlBatis.DbFieldInfo.TypeName">
+            <summary>
+            数据库类型名称
+            </summary>
+        </member>
+        <member name="P:SqlBatis.DbFieldInfo.DataType">
+            <summary>
+            数据库对应的C#属性类型
+            </summary>
+        </member>
+        <member name="P:SqlBatis.DbFieldInfo.DataName">
+            <summary>
+            字段名称
+            </summary>
+        </member>
+        <member name="P:SqlBatis.DbFieldInfo.Ordinal">
+            <summary>
+            列序列
+            </summary>
+        </member>
         <member name="T:SqlBatis.IDbContext">
             <summary>
             数据库上下文
             </summary>
         </member>
+        <member name="P:SqlBatis.IDbContext.EntityMapper">
+            <summary>
+            实体射器
+            </summary>
+        </member>
         <member name="P:SqlBatis.IDbContext.DbContextState">
             <summary>
             数据库上下文状态
-            </summary>
-        </member>
-        <member name="P:SqlBatis.IDbContext.Connection">
-            <summary>
-            数据库连接
             </summary>
         </member>
         <member name="P:SqlBatis.IDbContext.DbContextType">
@@ -346,7 +512,7 @@
         </member>
         <member name="M:SqlBatis.Expressions.ExpressionResovle.GetDbColumnNameAsAlias(System.Linq.Expressions.MemberExpression)">
             <summary>
-            获取数据库字段名
+            获取数据库字段名转换成别名
             </summary>
             <param name="expression"></param>
             <returns></returns>
@@ -387,11 +553,6 @@
         <member name="P:SqlBatis.GlobalSettings.DbMetaInfoProvider">
             <summary>
             数据库元信息提供程序
-            </summary>
-        </member>
-        <member name="P:SqlBatis.GlobalSettings.EntityMapperProvider">
-            <summary>
-            实体映射器提供程序
             </summary>
         </member>
         <member name="P:SqlBatis.GlobalSettings.XmlCommandsProvider">
@@ -486,167 +647,6 @@
         <member name="P:SqlBatis.DbColumnMetaInfo.IsComplexType">
             <summary>
             是否为计算列
-            </summary>
-        </member>
-        <member name="T:SqlBatis.IEntityMapperProvider">
-            <summary>
-            实体转换映射器
-            </summary>
-        </member>
-        <member name="M:SqlBatis.IEntityMapperProvider.GetSerializer``1(System.Data.IDataRecord)">
-            <summary>
-            获取实体序列化转换器
-            </summary>
-            <typeparam name="T"></typeparam>
-            <param name="record"></param>
-            <returns></returns>
-        </member>
-        <member name="M:SqlBatis.IEntityMapperProvider.GetSerializer">
-            <summary>
-            获取动态实体列化转换器
-            </summary>
-            <returns></returns>
-        </member>
-        <member name="M:SqlBatis.IEntityMapperProvider.GetDeserializer(System.Type)">
-            <summary>
-            获取参数解码器
-            </summary>
-            <param name="type"></param>
-            <returns></returns>
-        </member>
-        <member name="T:SqlBatis.EntityMapperProvider">
-            <summary>
-            默认实体映射器
-            </summary>
-        </member>
-        <member name="F:SqlBatis.EntityMapperProvider._serializers">
-            <summary>
-            序列化器
-            </summary>
-        </member>
-        <member name="F:SqlBatis.EntityMapperProvider._deserializers">
-            <summary>
-            参数解序列化器
-            </summary>
-        </member>
-        <member name="T:SqlBatis.EntityMapperProvider.SerializerKey">
-            <summary>
-            获取实体序列化器的hashkey
-            </summary>
-        </member>
-        <member name="M:SqlBatis.EntityMapperProvider.GetSerializer``1(System.Data.IDataRecord)">
-            <summary>
-            获取实体序列化器
-            </summary>
-            <typeparam name="T"></typeparam>
-            <param name="record"></param>
-            <returns></returns>
-        </member>
-        <member name="M:SqlBatis.EntityMapperProvider.GetSerializer">
-            <summary>
-            获取动态实体序列化器
-            </summary>
-        </member>
-        <member name="M:SqlBatis.EntityMapperProvider.GetDeserializer(System.Type)">
-            <summary>
-            获取实体解构器
-            </summary>
-        </member>
-        <member name="M:SqlBatis.EntityMapperProvider.FindConstructor(System.Type)">
-            <summary>
-            获取参数最多的构造器
-            </summary>
-            <param name="entityType"></param>
-            <returns></returns>
-        </member>
-        <member name="M:SqlBatis.EntityMapperProvider.FindClassConstructorParameter(System.Reflection.ParameterInfo,SqlBatis.DbFieldInfo[])">
-            <summary>
-            获取参数在DataReader中的顺序
-            </summary>
-            <param name=""></param>
-            <param name="parameterInfo"></param>
-            <param name="fieldInfos"></param>
-            <returns></returns>
-        </member>
-        <member name="M:SqlBatis.EntityMapperProvider.FindClassMemberInfo(System.Type,SqlBatis.DbFieldInfo)">
-            <summary>
-            获取成员信息
-            </summary>
-            <param name="entityType">实体类型</param>
-            <param name="fieldInfo">数据字段信息</param>
-            <returns></returns>
-        </member>
-        <member name="M:SqlBatis.EntityMapperProvider.FindDataRecordConvertMethodInfo(System.Type,System.Type,SqlBatis.DbFieldInfo)">
-            <summary>
-            获取映射实体成员的转换方法
-            </summary>
-            <param name="entityType">实体类型</param>
-            <param name="entityMemberType">实体的成员类型</param>
-            <param name="fieldInfo">数据库字信息</param>
-            <returns></returns>
-        </member>
-        <member name="M:SqlBatis.EntityMapperProvider.GetDataRecordValue(System.Data.IDataRecord,System.Int32)">
-            <summary>
-            获取动态映射值
-            </summary>
-        </member>
-        <member name="M:SqlBatis.EntityMapperProvider.CreateTypeDeserializerHandler(System.Type)">
-            <summary>
-            创建动态方法
-            </summary>
-            <param name="type"></param>
-            <returns></returns>
-        </member>
-        <member name="M:SqlBatis.EntityMapperProvider.CreateTypeSerializerHandler``1(System.Data.IDataRecord)">
-            <summary>
-            创建动态方法
-            </summary>
-            <typeparam name="T"></typeparam>
-            <param name="record"></param>
-            <returns></returns>
-        </member>
-        <member name="M:SqlBatis.EntityMapperProvider.GetUnderlyingType(System.Type)">
-            <summary>
-            获取类型的非Nullable类型
-            </summary>
-            <param name="type"></param>
-            <returns></returns>
-        </member>
-        <member name="M:SqlBatis.EntityMapperProvider.IsNullableType(System.Type)">
-            <summary>
-            判断是否是null的类型
-            </summary>
-            <param name="type"></param>
-            <returns></returns>
-        </member>
-        <member name="T:SqlBatis.EntityMapperProvider.EntityMemberConvertMethods">
-            <summary>
-            定义映射到成员的转换器
-            </summary>
-        </member>
-        <member name="T:SqlBatis.DbFieldInfo">
-            <summary>
-            DataReader中的行信息
-            </summary>
-        </member>
-        <member name="P:SqlBatis.DbFieldInfo.TypeName">
-            <summary>
-            数据库类型名称
-            </summary>
-        </member>
-        <member name="P:SqlBatis.DbFieldInfo.DataType">
-            <summary>
-            数据库对应的C#属性类型
-            </summary>
-        </member>
-        <member name="P:SqlBatis.DbFieldInfo.DataName">
-            <summary>
-            字段名称
-            </summary>
-        </member>
-        <member name="P:SqlBatis.DbFieldInfo.Ordinal">
-            <summary>
-            列序列
             </summary>
         </member>
         <member name="T:SqlBatis.IXmlCommandsProvider">
@@ -749,7 +749,7 @@
             <param name="assembly">程序集</param>
             <param name="pattern">匹配模式</param>
         </member>
-        <member name="T:SqlBatis.DbQueryable`1">
+        <member name="T:SqlBatis.Queryables.DbQueryable`1">
             <summary>
             基础操作
             </summary>
@@ -758,72 +758,72 @@
             同步linq查询
             </summary>
         </member>
-        <member name="M:SqlBatis.DbQueryable`1.DefaultColumnsExpression">
+        <member name="M:SqlBatis.Queryables.DbQueryable`1.DefaultColumnsExpression">
             <summary>
             默认查询字段列表表达式
             </summary>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.DbQueryable`1.EntityToDbParameters(`0)">
+        <member name="M:SqlBatis.Queryables.DbQueryable`1.EntityToDbParameters(`0)">
             <summary>
             实体属性转换成字典
             </summary>
             <param name="entity"></param>
         </member>
-        <member name="M:SqlBatis.DbQueryable`1.BuildInsertCommand(System.Boolean)">
+        <member name="M:SqlBatis.Queryables.DbQueryable`1.BuildInsertCommand(System.Boolean)">
             <summary>
             构建新增命令
             </summary>
             <param name="identity"></param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.DbQueryable`1.BuildBatchInsertCommand(System.Collections.Generic.IEnumerable{`0})">
+        <member name="M:SqlBatis.Queryables.DbQueryable`1.BuildBatchInsertCommand(System.Collections.Generic.IEnumerable{`0})">
             <summary>
             构建批量新增命令
             </summary>
             <param name="entitys"></param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.DbQueryable`1.BuildUpdateCommand">
+        <member name="M:SqlBatis.Queryables.DbQueryable`1.BuildUpdateCommand">
             <summary>
             构建更新命令
             </summary>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.DbQueryable`1.BuildDeleteCommand">
+        <member name="M:SqlBatis.Queryables.DbQueryable`1.BuildDeleteCommand">
             <summary>
             构建删除命令
             </summary>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.DbQueryable`1.CheckSql(System.String)">
+        <member name="M:SqlBatis.Queryables.DbQueryable`1.CheckSql(System.String)">
             <summary>
             防止注入检测
             </summary>
             <param name="sql"></param>
             <returns></returns>
         </member>
-        <member name="T:SqlBatis.IDbQueryable`1">
+        <member name="T:SqlBatis.Queryables.IDbQueryable`1">
             <summary>
             单表查询
             </summary>
             <typeparam name="T"></typeparam>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`1.Count(System.Nullable{System.Int32})">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`1.Count(System.Nullable{System.Int32})">
             <summary>
             count查询
             </summary>
             <param name="commandTimeout">超时时间</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`1.CountAsync(System.Nullable{System.Int32})">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`1.CountAsync(System.Nullable{System.Int32})">
             <summary>
             异步count查询
             </summary>
             <param name="commandTimeout">超时时间</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`1.Count``1(System.Linq.Expressions.Expression{System.Func{`0,``0}})">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`1.Count``1(System.Linq.Expressions.Expression{System.Func{`0,``0}})">
             <summary>
             count查询
             </summary>
@@ -831,7 +831,7 @@
             <param name="expression">字段列表</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`1.CountAsync``1(System.Linq.Expressions.Expression{System.Func{`0,``0}})">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`1.CountAsync``1(System.Linq.Expressions.Expression{System.Func{`0,``0}})">
             <summary>
             异步count查询
             </summary>
@@ -839,77 +839,77 @@
             <param name="expression">字段列表</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`1.Delete(System.Nullable{System.Int32})">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`1.Delete(System.Nullable{System.Int32})">
             <summary>
             delete查询
             </summary>
             <param name="commandTimeout"></param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`1.DeleteAsync(System.Nullable{System.Int32})">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`1.DeleteAsync(System.Nullable{System.Int32})">
             <summary>
             异步delete查询
             </summary>
             <param name="commandTimeout"></param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`1.Delete(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}})">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`1.Delete(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}})">
             <summary>
             delete查询
             </summary>
             <param name="expression">查询条件</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`1.DeleteAsync(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}})">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`1.DeleteAsync(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}})">
             <summary>
             异步delete查询
             </summary>
             <param name="expression">查询条件</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`1.Exists(System.Nullable{System.Int32})">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`1.Exists(System.Nullable{System.Int32})">
             <summary>
             exists查询
             </summary>
             <param name="commandTimeout">超时时间</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`1.ExistsAsync(System.Nullable{System.Int32})">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`1.ExistsAsync(System.Nullable{System.Int32})">
             <summary>
             异步exists查询
             </summary>
             <param name="commandTimeout">超时时间</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`1.Exists(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}})">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`1.Exists(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}})">
             <summary>
             exists查询
             </summary>
             <param name="expression">查询条件</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`1.ExistsAsync(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}})">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`1.ExistsAsync(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}})">
             <summary>
             异步exists查询
             </summary>
             <param name="expression">查询条件</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`1.Update(System.Nullable{System.Int32})">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`1.Update(System.Nullable{System.Int32})">
             <summary>
             update查询，如果没有指定where则应用到所有记录
             </summary>
             <param name="commandTimeout">超时时间</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`1.UpdateAsync(System.Nullable{System.Int32})">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`1.UpdateAsync(System.Nullable{System.Int32})">
             <summary>
             异步update查询，如果没有指定where则应用到所有记录
             </summary>
             <param name="commandTimeout">超时时间</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`1.Update(`0)">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`1.Update(`0)">
             <summary>
             update查询，默认根据Primarkey更新，如果存在where则仅使用指定更新条件，
             无法通过该接口更新主键字段和主键字段
@@ -917,7 +917,7 @@
             <param name="entity">参数</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`1.UpdateAsync(`0)">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`1.UpdateAsync(`0)">
             <summary>
             异步update查询，默认根据Primarkey更新，如果存在where则仅使用指定更新条件，
             无法通过该接口更新主键字段和主键字段
@@ -925,35 +925,35 @@
             <param name="entity">参数</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`1.Insert(`0)">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`1.Insert(`0)">
             <summary>
             insert查询，该接口会忽略identity字段
             </summary>
             <param name="entity">参数</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`1.InsertAsync(`0)">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`1.InsertAsync(`0)">
             <summary>
             异步insert查询，该接口会忽略identity字段
             </summary>
             <param name="entity">参数</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`1.InsertReturnId(`0)">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`1.InsertReturnId(`0)">
             <summary>
             insert查询，并返回id，该接口会忽略identity字段
             </summary>
             <param name="entity">参数</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`1.InsertReturnIdAsync(`0)">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`1.InsertReturnIdAsync(`0)">
             <summary>
             异步insert查询，并返回id，该接口会忽略identity字段
             </summary>
             <param name="entity"></param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`1.Insert(System.Collections.Generic.IEnumerable{`0},System.Nullable{System.Int32})">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`1.Insert(System.Collections.Generic.IEnumerable{`0},System.Nullable{System.Int32})">
             <summary>
             批量insert查询，该接口会忽略identity字段
             </summary>
@@ -961,7 +961,7 @@
             <param name="commandTimeout">超时时间</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`1.InsertAsync(System.Collections.Generic.IEnumerable{`0},System.Nullable{System.Int32})">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`1.InsertAsync(System.Collections.Generic.IEnumerable{`0},System.Nullable{System.Int32})">
             <summary>
             异步批量insert查询，该接口会忽略identity字段
             </summary>
@@ -969,35 +969,35 @@
             <param name="commandTimeout">超时时间</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`1.Select(System.Nullable{System.Int32})">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`1.Select(System.Nullable{System.Int32})">
             <summary>
             select查询
             </summary>
             <param name="commandTimeout">超时时间</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`1.SelectAsync(System.Nullable{System.Int32})">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`1.SelectAsync(System.Nullable{System.Int32})">
             <summary>
             异步select查询
             </summary>
             <param name="commandTimeout">超时时间</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`1.SelectMany(System.Nullable{System.Int32})">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`1.SelectMany(System.Nullable{System.Int32})">
             <summary>
             分页select查询
             </summary>
             <param name="commandTimeout">超时时间</param>
             <returns>结果集，总记录数</returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`1.SelectManyAsync(System.Nullable{System.Int32})">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`1.SelectManyAsync(System.Nullable{System.Int32})">
             <summary>
             异步分页select查询
             </summary>
             <param name="commandTimeout">超时时间</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`1.Select``1(System.Linq.Expressions.Expression{System.Func{`0,``0}},System.Nullable{System.Int32})">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`1.Select``1(System.Linq.Expressions.Expression{System.Func{`0,``0}},System.Nullable{System.Int32})">
             <summary>
             select查询
             </summary>
@@ -1006,7 +1006,7 @@
             <param name="commandTimeout">超时时间</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`1.SelectAsync``1(System.Linq.Expressions.Expression{System.Func{`0,``0}},System.Nullable{System.Int32})">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`1.SelectAsync``1(System.Linq.Expressions.Expression{System.Func{`0,``0}},System.Nullable{System.Int32})">
             <summary>
             异步select查询
             </summary>
@@ -1015,7 +1015,7 @@
             <param name="commandTimeout">超时时间</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`1.SelectMany``1(System.Linq.Expressions.Expression{System.Func{`0,``0}},System.Nullable{System.Int32})">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`1.SelectMany``1(System.Linq.Expressions.Expression{System.Func{`0,``0}},System.Nullable{System.Int32})">
             <summary>
             分页select查询
             </summary>
@@ -1024,7 +1024,7 @@
             <param name="commandTimeout">超时时间</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`1.SelectManyAsync``1(System.Linq.Expressions.Expression{System.Func{`0,``0}},System.Nullable{System.Int32})">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`1.SelectManyAsync``1(System.Linq.Expressions.Expression{System.Func{`0,``0}},System.Nullable{System.Int32})">
             <summary>
             异步分页select查询
             </summary>
@@ -1033,21 +1033,21 @@
             <param name="commandTimeout">超时时间</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`1.Single(System.Nullable{System.Int32})">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`1.Single(System.Nullable{System.Int32})">
             <summary>
             select查询
             </summary>
             <param name="commandTimeout">超时时间</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`1.SingleAsync(System.Nullable{System.Int32})">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`1.SingleAsync(System.Nullable{System.Int32})">
             <summary>
             异步select查询
             </summary>
             <param name="commandTimeout">超时时间</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`1.Single``1(System.Linq.Expressions.Expression{System.Func{`0,``0}},System.Nullable{System.Int32})">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`1.Single``1(System.Linq.Expressions.Expression{System.Func{`0,``0}},System.Nullable{System.Int32})">
             <summary>
             select查询
             </summary>
@@ -1056,7 +1056,7 @@
             <param name="commandTimeout">超时时间</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`1.SingleAsync``1(System.Linq.Expressions.Expression{System.Func{`0,``0}},System.Nullable{System.Int32})">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`1.SingleAsync``1(System.Linq.Expressions.Expression{System.Func{`0,``0}},System.Nullable{System.Int32})">
             <summary>
             异步select查询
             </summary>
@@ -1065,7 +1065,7 @@
             <param name="commandTimeout">超时时间</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`1.Ignore``1(System.Linq.Expressions.Expression{System.Func{`0,``0}})">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`1.Ignore``1(System.Linq.Expressions.Expression{System.Func{`0,``0}})">
             <summary>
             在insert,update,select时过滤字段
             </summary>
@@ -1073,7 +1073,7 @@
             <param name="expression">字段列表</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`1.Set``1(System.Linq.Expressions.Expression{System.Func{`0,``0}},``0,System.Boolean)">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`1.Set``1(System.Linq.Expressions.Expression{System.Func{`0,``0}},``0,System.Boolean)">
             <summary>
             set查询
             </summary>
@@ -1083,7 +1083,7 @@
             <param name="condition">是否有效</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`1.Set``1(System.Linq.Expressions.Expression{System.Func{`0,``0}},System.Linq.Expressions.Expression{System.Func{`0,``0}},System.Boolean)">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`1.Set``1(System.Linq.Expressions.Expression{System.Func{`0,``0}},System.Linq.Expressions.Expression{System.Func{`0,``0}},System.Boolean)">
             <summary>
             set查询
             </summary>
@@ -1093,7 +1093,7 @@
             <param name="condition">是否有效</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`1.Take(System.Int32,System.Boolean)">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`1.Take(System.Int32,System.Boolean)">
             <summary>
             take查询，从下标为0的行获取count条记录
             </summary>
@@ -1101,7 +1101,7 @@
             <param name="condition">条件</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`1.Skip(System.Int32,System.Int32,System.Boolean)">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`1.Skip(System.Int32,System.Int32,System.Boolean)">
             <summary>
             skip，从下标为index的行获取count条记录
             </summary>
@@ -1110,7 +1110,7 @@
             <param name="condition">条件</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`1.Page(System.Int32,System.Int32,System.Boolean)">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`1.Page(System.Int32,System.Int32,System.Boolean)">
             <summary>
             page查询，从下标为(index-1)*count的行获取count条记录
             </summary>
@@ -1119,14 +1119,14 @@
             <param name="condition">条件</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`1.With(System.String)">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`1.With(System.String)">
             <summary>
             指定读锁
             </summary>
             <param name="lockname"></param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`1.Where(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Boolean)">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`1.Where(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Boolean)">
             <summary>
             where查询，多个where有效使用and连接
             </summary>
@@ -1134,7 +1134,7 @@
             <param name="condition">是否有效</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`1.Having(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Boolean)">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`1.Having(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}},System.Boolean)">
             <summary>
             having查询，多个having查询有效使用and连接
             </summary>
@@ -1142,7 +1142,7 @@
             <param name="condition">是否有效</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`1.GroupBy``1(System.Linq.Expressions.Expression{System.Func{`0,``0}})">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`1.GroupBy``1(System.Linq.Expressions.Expression{System.Func{`0,``0}})">
             <summary>
             group查询
             </summary>
@@ -1150,7 +1150,7 @@
             <param name="expression">字段列表</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`1.OrderBy``1(System.Linq.Expressions.Expression{System.Func{`0,``0}},System.Boolean)">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`1.OrderBy``1(System.Linq.Expressions.Expression{System.Func{`0,``0}},System.Boolean)">
             <summary>
             orderby查询，升序
             </summary>
@@ -1159,7 +1159,7 @@
             <param name="condition">是否有效</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`1.OrderByDescending``1(System.Linq.Expressions.Expression{System.Func{`0,``0}},System.Boolean)">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`1.OrderByDescending``1(System.Linq.Expressions.Expression{System.Func{`0,``0}},System.Boolean)">
             <summary>
             orderby查询，降序
             </summary>
@@ -1168,7 +1168,7 @@
             <param name="condition">是否有效</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`1.Sum``1(System.Linq.Expressions.Expression{System.Func{`0,``0}},System.Nullable{System.Int32})">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`1.Sum``1(System.Linq.Expressions.Expression{System.Func{`0,``0}},System.Nullable{System.Int32})">
             <summary>
             求和
             </summary>
@@ -1177,7 +1177,7 @@
             <param name="commandTimeout">超时时间</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`1.SumAsync``1(System.Linq.Expressions.Expression{System.Func{`0,``0}},System.Nullable{System.Int32})">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`1.SumAsync``1(System.Linq.Expressions.Expression{System.Func{`0,``0}},System.Nullable{System.Int32})">
             <summary>
             异步求和
             </summary>
@@ -1186,49 +1186,49 @@
             <param name="commandTimeout">超时时间</param>
             <returns></returns>
         </member>
-        <member name="T:SqlBatis.IDbQueryable`2">
+        <member name="T:SqlBatis.Queryables.IDbQueryable`2">
             <summary>
             linq 查询
             </summary>
             <typeparam name="T1"></typeparam>
             <typeparam name="T2"></typeparam>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`2.Join(System.Linq.Expressions.Expression{System.Func{`0,`1,System.Boolean}})">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`2.Join(System.Linq.Expressions.Expression{System.Func{`0,`1,System.Boolean}})">
             <summary>
             内连接
             </summary>
             <param name="expression"></param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`2.LeftJoin(System.Linq.Expressions.Expression{System.Func{`0,`1,System.Boolean}})">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`2.LeftJoin(System.Linq.Expressions.Expression{System.Func{`0,`1,System.Boolean}})">
             <summary>
             左外连接
             </summary>
             <param name="expression"></param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`2.RightJoin(System.Linq.Expressions.Expression{System.Func{`0,`1,System.Boolean}})">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`2.RightJoin(System.Linq.Expressions.Expression{System.Func{`0,`1,System.Boolean}})">
             <summary>
             右外连接
             </summary>
             <param name="expression"></param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`2.Count(System.Nullable{System.Int32})">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`2.Count(System.Nullable{System.Int32})">
             <summary>
             count查询
             </summary>
             <param name="commandTimeout">超时时间</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`2.CountAsync(System.Nullable{System.Int32})">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`2.CountAsync(System.Nullable{System.Int32})">
             <summary>
             异步count查询
             </summary>
             <param name="commandTimeout">超时时间</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`2.Count``1(System.Linq.Expressions.Expression{System.Func{`0,`1,``0}})">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`2.Count``1(System.Linq.Expressions.Expression{System.Func{`0,`1,``0}})">
             <summary>
             count查询
             </summary>
@@ -1236,7 +1236,7 @@
             <param name="expression">字段列表</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`2.CountAsync``1(System.Linq.Expressions.Expression{System.Func{`0,`1,``0}})">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`2.CountAsync``1(System.Linq.Expressions.Expression{System.Func{`0,`1,``0}})">
             <summary>
             异步count查询
             </summary>
@@ -1244,7 +1244,7 @@
             <param name="expression">字段列表</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`2.Select``1(System.Linq.Expressions.Expression{System.Func{`0,`1,``0}},System.Nullable{System.Int32})">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`2.Select``1(System.Linq.Expressions.Expression{System.Func{`0,`1,``0}},System.Nullable{System.Int32})">
             <summary>
             select查询
             </summary>
@@ -1253,7 +1253,7 @@
             <param name="commandTimeout">超时时间</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`2.SelectAsync``1(System.Linq.Expressions.Expression{System.Func{`0,`1,``0}},System.Nullable{System.Int32})">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`2.SelectAsync``1(System.Linq.Expressions.Expression{System.Func{`0,`1,``0}},System.Nullable{System.Int32})">
             <summary>
             异步select查询
             </summary>
@@ -1262,7 +1262,7 @@
             <param name="commandTimeout">超时时间</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`2.SelectMany``1(System.Linq.Expressions.Expression{System.Func{`0,`1,``0}},System.Nullable{System.Int32})">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`2.SelectMany``1(System.Linq.Expressions.Expression{System.Func{`0,`1,``0}},System.Nullable{System.Int32})">
             <summary>
             分页select查询
             </summary>
@@ -1271,7 +1271,7 @@
             <param name="commandTimeout">超时时间</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`2.SelectManyAsync``1(System.Linq.Expressions.Expression{System.Func{`0,`1,``0}},System.Nullable{System.Int32})">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`2.SelectManyAsync``1(System.Linq.Expressions.Expression{System.Func{`0,`1,``0}},System.Nullable{System.Int32})">
             <summary>
             异步分页select查询
             </summary>
@@ -1280,7 +1280,7 @@
             <param name="commandTimeout">超时时间</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`2.Single``1(System.Linq.Expressions.Expression{System.Func{`0,`1,``0}},System.Nullable{System.Int32})">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`2.Single``1(System.Linq.Expressions.Expression{System.Func{`0,`1,``0}},System.Nullable{System.Int32})">
             <summary>
             select查询
             </summary>
@@ -1289,7 +1289,7 @@
             <param name="commandTimeout">超时时间</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`2.SingleAsync``1(System.Linq.Expressions.Expression{System.Func{`0,`1,``0}},System.Nullable{System.Int32})">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`2.SingleAsync``1(System.Linq.Expressions.Expression{System.Func{`0,`1,``0}},System.Nullable{System.Int32})">
             <summary>
             异步select查询
             </summary>
@@ -1298,7 +1298,7 @@
             <param name="commandTimeout">超时时间</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`2.Take(System.Int32,System.Boolean)">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`2.Take(System.Int32,System.Boolean)">
             <summary>
             take查询，从下标为0的行获取count条记录
             </summary>
@@ -1306,7 +1306,7 @@
             <param name="condition">条件</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`2.Skip(System.Int32,System.Int32,System.Boolean)">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`2.Skip(System.Int32,System.Int32,System.Boolean)">
             <summary>
             skip，从下标为index的行获取count条记录
             </summary>
@@ -1315,7 +1315,7 @@
             <param name="condition">条件</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`2.Page(System.Int32,System.Int32,System.Boolean)">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`2.Page(System.Int32,System.Int32,System.Boolean)">
             <summary>
             page查询，从下标为(index-1)*count的行获取count条记录
             </summary>
@@ -1324,14 +1324,14 @@
             <param name="condition">条件</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`2.With(System.String)">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`2.With(System.String)">
             <summary>
             指定读锁
             </summary>
             <param name="lockname"></param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`2.Where(System.Linq.Expressions.Expression{System.Func{`0,`1,System.Boolean}},System.Boolean)">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`2.Where(System.Linq.Expressions.Expression{System.Func{`0,`1,System.Boolean}},System.Boolean)">
             <summary>
             where查询，多个where有效使用and连接
             </summary>
@@ -1339,7 +1339,7 @@
             <param name="condition">是否有效</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`2.Having(System.Linq.Expressions.Expression{System.Func{`0,`1,System.Boolean}},System.Boolean)">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`2.Having(System.Linq.Expressions.Expression{System.Func{`0,`1,System.Boolean}},System.Boolean)">
             <summary>
             having查询，多个having查询有效使用and连接
             </summary>
@@ -1347,7 +1347,7 @@
             <param name="condition">是否有效</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`2.GroupBy``1(System.Linq.Expressions.Expression{System.Func{`0,`1,``0}})">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`2.GroupBy``1(System.Linq.Expressions.Expression{System.Func{`0,`1,``0}})">
             <summary>
             group查询
             </summary>
@@ -1355,7 +1355,7 @@
             <param name="expression">字段列表</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`2.OrderBy``1(System.Linq.Expressions.Expression{System.Func{`0,`1,``0}},System.Boolean)">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`2.OrderBy``1(System.Linq.Expressions.Expression{System.Func{`0,`1,``0}},System.Boolean)">
             <summary>
             orderby查询，升序
             </summary>
@@ -1364,7 +1364,7 @@
             <param name="condition">是否有效</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`2.OrderByDescending``1(System.Linq.Expressions.Expression{System.Func{`0,`1,``0}},System.Boolean)">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`2.OrderByDescending``1(System.Linq.Expressions.Expression{System.Func{`0,`1,``0}},System.Boolean)">
             <summary>
             orderby查询，降序
             </summary>
@@ -1373,7 +1373,7 @@
             <param name="condition">是否有效</param>
             <returns></returns>
         </member>
-        <member name="T:SqlBatis.IDbQueryable`3">
+        <member name="T:SqlBatis.Queryables.IDbQueryable`3">
             <summary>
             linq 查询
             </summary>
@@ -1381,49 +1381,49 @@
             <typeparam name="T2"></typeparam>
             <typeparam name="T3"></typeparam>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`3.Join(System.Linq.Expressions.Expression{System.Func{`0,`1,`2,System.Boolean}})">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`3.Join(System.Linq.Expressions.Expression{System.Func{`0,`1,`2,System.Boolean}})">
             <summary>
             内连接
             </summary>
             <param name="expression"></param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`3.Join``2(System.Linq.Expressions.Expression{System.Func{``0,``1,System.Boolean}})">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`3.Join``2(System.Linq.Expressions.Expression{System.Func{``0,``1,System.Boolean}})">
             <summary>
             内连接
             </summary>
             <param name="expression"></param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`3.LeftJoin``2(System.Linq.Expressions.Expression{System.Func{``0,``1,System.Boolean}})">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`3.LeftJoin``2(System.Linq.Expressions.Expression{System.Func{``0,``1,System.Boolean}})">
             <summary>
             左外连接
             </summary>
             <param name="expression"></param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`3.RightJoin``2(System.Linq.Expressions.Expression{System.Func{``0,``1,System.Boolean}})">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`3.RightJoin``2(System.Linq.Expressions.Expression{System.Func{``0,``1,System.Boolean}})">
             <summary>
             右外连接
             </summary>
             <param name="expression"></param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`3.Count(System.Nullable{System.Int32})">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`3.Count(System.Nullable{System.Int32})">
             <summary>
             count查询
             </summary>
             <param name="commandTimeout">超时时间</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`3.CountAsync(System.Nullable{System.Int32})">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`3.CountAsync(System.Nullable{System.Int32})">
             <summary>
             异步count查询
             </summary>
             <param name="commandTimeout">超时时间</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`3.Count``1(System.Linq.Expressions.Expression{System.Func{`0,`1,`2,``0}})">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`3.Count``1(System.Linq.Expressions.Expression{System.Func{`0,`1,`2,``0}})">
             <summary>
             count查询
             </summary>
@@ -1431,7 +1431,7 @@
             <param name="expression">字段列表</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`3.CountAsync``1(System.Linq.Expressions.Expression{System.Func{`0,`1,`2,``0}})">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`3.CountAsync``1(System.Linq.Expressions.Expression{System.Func{`0,`1,`2,``0}})">
             <summary>
             异步count查询
             </summary>
@@ -1439,7 +1439,7 @@
             <param name="expression">字段列表</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`3.Select``1(System.Linq.Expressions.Expression{System.Func{`0,`1,`2,``0}},System.Nullable{System.Int32})">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`3.Select``1(System.Linq.Expressions.Expression{System.Func{`0,`1,`2,``0}},System.Nullable{System.Int32})">
             <summary>
             select查询
             </summary>
@@ -1448,7 +1448,7 @@
             <param name="commandTimeout">超时时间</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`3.SelectAsync``1(System.Linq.Expressions.Expression{System.Func{`0,`1,`2,``0}},System.Nullable{System.Int32})">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`3.SelectAsync``1(System.Linq.Expressions.Expression{System.Func{`0,`1,`2,``0}},System.Nullable{System.Int32})">
             <summary>
             异步select查询
             </summary>
@@ -1457,7 +1457,7 @@
             <param name="commandTimeout">超时时间</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`3.SelectMany``1(System.Linq.Expressions.Expression{System.Func{`0,`1,`2,``0}},System.Nullable{System.Int32})">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`3.SelectMany``1(System.Linq.Expressions.Expression{System.Func{`0,`1,`2,``0}},System.Nullable{System.Int32})">
             <summary>
             分页select查询
             </summary>
@@ -1466,7 +1466,7 @@
             <param name="commandTimeout">超时时间</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`3.SelectManyAsync``1(System.Linq.Expressions.Expression{System.Func{`0,`1,`2,``0}},System.Nullable{System.Int32})">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`3.SelectManyAsync``1(System.Linq.Expressions.Expression{System.Func{`0,`1,`2,``0}},System.Nullable{System.Int32})">
             <summary>
             异步分页select查询
             </summary>
@@ -1475,7 +1475,7 @@
             <param name="commandTimeout">超时时间</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`3.Single``1(System.Linq.Expressions.Expression{System.Func{`0,`1,`2,``0}},System.Nullable{System.Int32})">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`3.Single``1(System.Linq.Expressions.Expression{System.Func{`0,`1,`2,``0}},System.Nullable{System.Int32})">
             <summary>
             select查询
             </summary>
@@ -1484,7 +1484,7 @@
             <param name="commandTimeout">超时时间</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`3.SingleAsync``1(System.Linq.Expressions.Expression{System.Func{`0,`1,`2,``0}},System.Nullable{System.Int32})">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`3.SingleAsync``1(System.Linq.Expressions.Expression{System.Func{`0,`1,`2,``0}},System.Nullable{System.Int32})">
             <summary>
             异步select查询
             </summary>
@@ -1493,7 +1493,7 @@
             <param name="commandTimeout">超时时间</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`3.Take(System.Int32,System.Boolean)">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`3.Take(System.Int32,System.Boolean)">
             <summary>
             take查询，从下标为0的行获取count条记录
             </summary>
@@ -1501,7 +1501,7 @@
             <param name="condition">条件</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`3.Skip(System.Int32,System.Int32,System.Boolean)">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`3.Skip(System.Int32,System.Int32,System.Boolean)">
             <summary>
             skip，从下标为index的行获取count条记录
             </summary>
@@ -1510,7 +1510,7 @@
             <param name="condition">条件</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`3.Page(System.Int32,System.Int32,System.Boolean)">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`3.Page(System.Int32,System.Int32,System.Boolean)">
             <summary>
             page查询，从下标为(index-1)*count的行获取count条记录
             </summary>
@@ -1519,14 +1519,14 @@
             <param name="condition">条件</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`3.With(System.String)">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`3.With(System.String)">
             <summary>
             指定读锁
             </summary>
             <param name="lockname"></param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`3.Where(System.Linq.Expressions.Expression{System.Func{`0,`1,`2,System.Boolean}},System.Boolean)">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`3.Where(System.Linq.Expressions.Expression{System.Func{`0,`1,`2,System.Boolean}},System.Boolean)">
             <summary>
             where查询，多个where有效使用and连接
             </summary>
@@ -1534,7 +1534,7 @@
             <param name="condition">是否有效</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`3.Having(System.Linq.Expressions.Expression{System.Func{`0,`1,`2,System.Boolean}},System.Boolean)">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`3.Having(System.Linq.Expressions.Expression{System.Func{`0,`1,`2,System.Boolean}},System.Boolean)">
             <summary>
             having查询，多个having查询有效使用and连接
             </summary>
@@ -1542,7 +1542,7 @@
             <param name="condition">是否有效</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`3.GroupBy``1(System.Linq.Expressions.Expression{System.Func{`0,`1,`2,``0}})">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`3.GroupBy``1(System.Linq.Expressions.Expression{System.Func{`0,`1,`2,``0}})">
             <summary>
             group查询
             </summary>
@@ -1550,7 +1550,7 @@
             <param name="expression">字段列表</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`3.OrderBy``1(System.Linq.Expressions.Expression{System.Func{`0,`1,`2,``0}},System.Boolean)">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`3.OrderBy``1(System.Linq.Expressions.Expression{System.Func{`0,`1,`2,``0}},System.Boolean)">
             <summary>
             orderby查询，升序
             </summary>
@@ -1559,7 +1559,7 @@
             <param name="condition">是否有效</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbQueryable`3.OrderByDescending``1(System.Linq.Expressions.Expression{System.Func{`0,`1,`2,``0}},System.Boolean)">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`3.OrderByDescending``1(System.Linq.Expressions.Expression{System.Func{`0,`1,`2,``0}},System.Boolean)">
             <summary>
             orderby查询，降序
             </summary>

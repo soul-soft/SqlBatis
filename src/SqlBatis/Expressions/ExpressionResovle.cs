@@ -19,7 +19,7 @@ namespace SqlBatis.Expressions
         /// <summary>
         /// 表别名
         /// </summary>
-        private readonly Dictionary<Type, string> _tableAliasNames 
+        private readonly Dictionary<Type, string> _tableAliasNames
             = new Dictionary<Type, string>();
         /// <summary>
         /// 数据库表达式解析基类
@@ -73,7 +73,7 @@ namespace SqlBatis.Expressions
         }
 
         /// <summary>
-        /// 获取数据库字段名
+        /// 获取数据库字段名转换成别名
         /// </summary>
         /// <param name="expression"></param>
         /// <returns></returns>
@@ -95,7 +95,7 @@ namespace SqlBatis.Expressions
             }
             return $"{aliasName}.{column}";
         }
-       
+
         /// <summary>
         /// 获取数据库表转换成别名名称
         /// </summary>
@@ -111,12 +111,11 @@ namespace SqlBatis.Expressions
             var aliasName = _tableAliasNames[type];
             return $"{tableName} AS {aliasName}";
         }
-       
+
         /// <summary>
         /// 解析出一个字符串
         /// </summary>
         /// <returns></returns>
         public abstract string Resovle();
-
     }
 }

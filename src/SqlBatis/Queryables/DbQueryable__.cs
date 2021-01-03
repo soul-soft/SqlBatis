@@ -5,7 +5,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 
-namespace SqlBatis
+namespace SqlBatis.Queryables
 {
     public class DbQueryable<T1, T2> : Queryable, IDbQueryable<T1, T2>
     {

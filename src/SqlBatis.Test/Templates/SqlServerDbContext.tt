@@ -1,0 +1,183 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #><#@ assembly name="System.Core" #><#@ assembly name="System.Data" #><#@ import namespace="System.Linq" #><#@ import namespace="System.Text" #><#@ import namespace="System.Collections.Generic" #><#@ import namespace="System.Data" #><#@ output extension=".cs" #>
+<#
+	//数据库连接字符串
+	var connectionString = @"Data Source=127.0.0.1;Initial Catalog=mytest;User ID=sa;Password=1024";
+	var connection = new System.Data.SqlClient.SqlConnection(connectionString);
+	var tables = Utils.GetTables(connection);
+    var columns = Utils.GetColumns(connection);
+#>
+using SqlBatis;
+using System.Data;
+
+namespace ConsoleApp18
+{
+    /// <summary>
+    /// 数据库上下文
+    /// </summary>
+    public class MyDbContext : DbContext
+    {
+         public MyDbContext(DbContextBuilder builder)
+            :base(builder)
+         {
+         }
+         
+         protected override IDbCommand CreateDbCommand(string sql, object parameter, int? commandTimeout = null, CommandType? commandType = null)
+         {
+             return base.CreateDbCommand(sql, parameter, commandTimeout, commandType);
+         }
+        <#foreach(var table in tables){#>
+       
+        /// <summary>
+        /// <#=table.Description ?? ""#>
+        /// </summary>
+        public IDbQueryable<<#=Utils.Pascal(table.TableName)#>Dto> <#=Utils.Pascal(table.TableName)#>
+        {
+            get
+            {
+                return new DbQueryable<<#=Utils.Pascal(table.TableName)#>Dto>(this);
+            }
+        }
+<#}#>
+    }
+}
+<#+
+	public class Table
+    {
+        public int? TableId { get; set; }
+        public string TableTypeDesc { get; set; }
+        public string TableName { get; set; }
+        public string SchemaName { get; set; }
+        public string Description { get; set; }
+    }
+    public class Column
+    {
+        public int? TableId { get; set; }
+        public string ColumnName { get; set; }
+        public string SystemTypeName { get; set; }
+        public short MaxLength { get; set; }
+        public bool IsNullable { get; set; }
+        public bool IsIdentity { get; set; }
+        public bool IsComputed { get; set; }
+        public bool IsDefault { get; set; }
+        public string Description { get; set; }
+    }
+    public static class Utils
+    {
+		//字段类型映射
+        public static string GetCSharpType(string columnType)
+        {
+            var type = "object";
+            switch (columnType)
+            {
+                case "varchar": type = "string"; break;
+                case "text": type = "string"; break;
+				case "char": type = "string"; break;
+				case "tinyint": type = "int?"; break;
+				case "smallint": type = "int?"; break;
+                case "int": type = "int?"; break;
+				case "integer": type = "int?"; break;
+				case "bigint": type = "int?"; break;
+				case "mediumint": type = "int?"; break;
+				case "real": type = "float?"; break;
+				case "float": type = "float?"; break;
+				case "double": type = "double?"; break;
+				case "decimal": type = "decimal?"; break;
+				case "date": type = "DateTime?"; break;
+				case "datetime": type = "DateTime?"; break;
+            }
+            return type;
+        }
+		//Pacsl命名转换
+        public static string Pascal(string name)
+        {
+            var list = new List<string>();
+            foreach (var item in name.Split('_'))
+            {
+                list.Add(System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(item.ToLower()));
+            }
+            return string.Join("",list);
+        }
+		//Camel命名转换
+		public static string Camel(string name)
+		{
+			name = Pascal(name);			
+            return char.ToLower(name[0]) + name.Substring(1);
+		}
+		//数据库查询
+        public static List<T> Query<T>(IDbConnection connection, string sql, object param=null)
+        {
+            if (connection.State!=ConnectionState.Open)
+            {
+                connection.Open();
+            }
+            var cmd = connection.CreateCommand();
+            cmd.CommandText = sql;
+			param?.GetType().GetProperties().ToList().ForEach(item=> 
+            {
+                var p = cmd.CreateParameter();
+                p.ParameterName = "@"+ item.Name;
+                p.Value = item.GetValue(param);
+                cmd.Parameters.Add(p);
+            });
+            var list = new List<T>();
+            using (var reader = cmd.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    var entity = Activator.CreateInstance<T>();
+                    foreach (var item in entity.GetType().GetProperties())
+                    {
+                        var i = reader.GetOrdinal(item.Name);
+                        if (!reader.IsDBNull(i))
+                        {
+                            item.SetValue(entity, reader.GetValue(i));
+                        }
+                    }
+                    list.Add(entity);
+                }
+            }
+            return list;
+        }
+         //获取所有表
+        public static List<Table> GetTables(IDbConnection connection)
+        {
+            //视图SQL
+            var tablesql = @"SELECT
+		        [Tables].[object_id] AS [TableId],
+		        [Tables].[type_desc] AS [TableTypeDesc],
+		        [Tables].[name] AS [TableName],
+                [Schemas].[name] AS [SchemaName],
+                [Properties].[value] AS [Description]
+	            FROM
+		        sys.tables AS [Tables]
+		        INNER JOIN sys.schemas AS [Schemas] ON [Tables].schema_id = [Schemas].schema_id
+                LEFT JOIN sys.extended_properties AS [Properties] ON [Properties].major_id=[Tables].object_id AND [Properties].minor_id=0";
+            return Utils.Query<Table>(connection, tablesql).ToList();
+        }
+        //获取所有字段
+        public static List<Column> GetColumns(IDbConnection connection)
+        {
+            //字段SQL
+            var columnsql = @"SELECT
+                [TableId] = [Columns].object_id,
+		        [ColumnName] = [Columns].name,
+		        [SystemTypeName] = [Types].name,
+		        [MaxLength] = [Columns].max_length,
+		        [IsNullable] = [Columns].is_nullable,
+		        [IsIdentity] = [Columns].is_identity,
+		        [IsComputed] = [Columns].is_computed,
+		        [IsDefault] = CASE [Columns].default_object_id WHEN 0 THEN CAST(0 AS bit) ELSE CAST(1 AS bit) END,
+		        [Description] = [Properties].value 
+	            FROM
+		        sys.tables AS [Tables]
+		        INNER JOIN sys.columns AS [Columns] ON [Tables].object_id = [Columns].object_id
+		        INNER JOIN sys.types AS [Types] ON [Columns].system_type_id = [Types].system_type_id 
+		        AND is_user_defined = 0 
+		        AND [Types].name <> 'sysname'
+		        LEFT OUTER JOIN sys.extended_properties AS [Properties] ON [Properties].major_id = [Tables].object_id 
+		        AND [Properties].minor_id = [Columns].column_id 
+		        AND [Properties].name = 'MS_Description'";
+            return Utils.Query<Column>(connection, columnsql).ToList();
+        }
+    }
+#>

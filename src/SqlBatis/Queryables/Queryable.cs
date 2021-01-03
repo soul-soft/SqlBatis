@@ -6,7 +6,7 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SqlBatis
+namespace SqlBatis.Queryables
 {
     public class PageData
     {
@@ -18,7 +18,7 @@ namespace SqlBatis
         public bool Asc { get; set; } = true;
         public Expression Expression { get; set; }
     }
-    public class SetExpression
+    internal class SetExpression
     {
         public Expression Column { get; set; }
         public Expression Expression { get; set; }
@@ -29,7 +29,7 @@ namespace SqlBatis
         protected readonly bool _isSingleTable = true;
         private StringBuilder _viewName;
         protected readonly Dictionary<string, object> _parameters = new Dictionary<string, object>();
-        protected readonly PageData _page = new PageData();
+        protected internal readonly PageData _page = new PageData();
         protected string _lockname = string.Empty;
         protected readonly IDbContext _context = null;
         protected readonly List<Expression> _whereExpressions = new List<Expression>();
@@ -174,7 +174,7 @@ namespace SqlBatis
             var where = BuildWhereExpression();
             var group = BuildGroupExpression();
             var having = BuildHavingExpression();
-            var order = BuildOrderExpression();
+            var orderBy = BuildOrderExpression();
             string sql;
             if (_context.DbContextType == DbContextType.SqlServer)
             {
@@ -184,26 +184,28 @@ namespace SqlBatis
                 }
                 if (_page.Index == 0)
                 {
-                    sql = $"SELECT TOP {_page.Count} {column} FROM {table}{_lockname}{where}{group}{having}{order}";
+                    sql = $"SELECT TOP {_page.Count} {column} FROM {table}{_lockname}{where}{group}{having}{orderBy}";
                 }
                 else if (_page.Index > 0)
                 {
-                    if (order == string.Empty)
+                    if (orderBy == string.Empty)
                     {
-                        order = " ORDER BY (SELECT 1)";
+                        orderBy = "ORDER BY (SELECT 1)";
                     }
-                    var limit = $" OFFSET {_page.Index} ROWS FETCH NEXT {_page.Count} ROWS ONLY";
-                    sql = $"SELECT {column} FROM {_lockname}{table}{where}{group}{having}{order}{limit}";
+                    var rownumber = $"ROW_NUMBER() OVER({orderBy}) AS RowNumber";
+                    var limit = $"WHERE RowNumber > {_page.Count * (_page.Index-1)}";
+                    //var limit = $" OFFSET {_page.Index} ROWS FETCH NEXT {_page.Count} ROWS ONLY";
+                    sql = $"SELECT TOP {_page.Count} * FROM (SELECT {column},{rownumber} FROM {_lockname}{table}{where}{group}{having}) AS t {limit}";
                 }
                 else
                 {
-                    sql = $"SELECT {column} FROM {_lockname}{table}{where}{group}{having}{order}";
+                    sql = $"SELECT {column} FROM {_lockname}{table}{where}{group}{having}{orderBy}";
                 }
             }
             else
             {
                 var limit = _page.Index > 0 || _page.Count > 0 ? $" LIMIT {_page.Index},{_page.Count}" : string.Empty;
-                sql = $"SELECT {column} FROM {table}{where}{group}{having}{order}{limit}{_lockname}";
+                sql = $"SELECT {column} FROM {table}{where}{group}{having}{orderBy}{limit}{_lockname}";
             }
             return sql;
         }

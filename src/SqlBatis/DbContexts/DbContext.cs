@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SqlBatis.Queryables;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
@@ -14,19 +15,21 @@ namespace SqlBatis
     /// </summary>
     public class DbContext : IDbContext
     {
+        public IEntityMapper EntityMapper { get; private set; }
+        private IDbTransaction _transaction;
+        private readonly IDbConnection _connection;
         public DbContextState DbContextState { get; private set; } = DbContextState.Closed;
-        protected IDbTransaction _transaction;
-        public IDbConnection Connection { get; }
         public DbContextType DbContextType { get; } = DbContextType.Mysql;
         public DbContext(DbContextBuilder builder)
         {
-            Connection = builder.Connection;
+            _connection = builder.Connection;
             DbContextType = builder.DbContextType;
+            EntityMapper = builder.EntityMapper;
         }
         public virtual IXmlQuery From<T>(string id, T parameter) where T : class
         {
             var sql = GlobalSettings.XmlCommandsProvider.Build(id, parameter);
-            var deserializer = GlobalSettings.EntityMapperProvider.GetDeserializer(typeof(T));
+            var deserializer = EntityMapper.GetDeserializer(typeof(T));
             var values = deserializer(parameter);
             return new XmlQuery(this, sql, values);
         }
@@ -54,7 +57,7 @@ namespace SqlBatis
                 var list = new List<dynamic>();
                 using (var reader = cmd.ExecuteReader())
                 {
-                    var handler = GlobalSettings.EntityMapperProvider.GetSerializer();
+                    var handler = EntityMapper.GetSerializer();
                     while (reader.Read())
                     {
                         list.Add(handler(reader));
@@ -70,7 +73,7 @@ namespace SqlBatis
                 using (var reader = await cmd.ExecuteReaderAsync())
                 {
                     var list = new List<dynamic>();
-                    var handler = GlobalSettings.EntityMapperProvider.GetSerializer();
+                    var handler = EntityMapper.GetSerializer();
                     while (reader.Read())
                     {
                         list.Add(handler(reader));
@@ -82,7 +85,7 @@ namespace SqlBatis
         public virtual IDbMultipleResult QueryMultiple(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null)
         {
             var cmd = CreateDbCommand(sql, parameter, commandTimeout, commandType);
-            return new DbMultipleResult(cmd);
+            return new DbMultipleResult(cmd, EntityMapper);
         }
         public virtual IEnumerable<T> Query<T>(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null)
         {
@@ -91,7 +94,7 @@ namespace SqlBatis
                 var list = new List<T>();
                 using (var reader = cmd.ExecuteReader())
                 {
-                    var handler = GlobalSettings.EntityMapperProvider.GetSerializer<T>(reader);
+                    var handler = EntityMapper.GetSerializer<T>(reader);
                     while (reader.Read())
                     {
                         list.Add(handler(reader));
@@ -107,7 +110,7 @@ namespace SqlBatis
                 using (var reader = await cmd.ExecuteReaderAsync())
                 {
                     var list = new List<T>();
-                    var handler = GlobalSettings.EntityMapperProvider.GetSerializer<T>(reader);
+                    var handler = EntityMapper.GetSerializer<T>(reader);
                     while (await reader.ReadAsync())
                     {
                         list.Add(handler(reader));
@@ -157,25 +160,19 @@ namespace SqlBatis
         public virtual void BeginTransaction()
         {
             Open();
-            _transaction = Connection.BeginTransaction();
+            _transaction = _connection.BeginTransaction();
         }
         public virtual void BeginTransaction(IsolationLevel level)
         {
             Open();
-            _transaction = Connection.BeginTransaction(level);
+            _transaction = _connection.BeginTransaction(level);
         }
         public virtual void Close()
         {
             try
             {
                 _transaction?.Dispose();
-            }
-            catch
-            {
-            }
-            try
-            {
-                Connection?.Close();
+                _connection?.Close();
             }
             finally
             {
@@ -195,7 +192,7 @@ namespace SqlBatis
         {
             if (DbContextState == DbContextState.Closed)
             {
-                Connection.Open();
+                _connection.Open();
                 DbContextState = DbContextState.Open;
             }
         }
@@ -203,7 +200,7 @@ namespace SqlBatis
         {
             if (DbContextState == DbContextState.Closed)
             {
-                await (Connection as DbConnection).OpenAsync();
+                await (_connection as DbConnection).OpenAsync();
                 DbContextState = DbContextState.Open;
             }
         }
@@ -219,7 +216,7 @@ namespace SqlBatis
         protected virtual IDbCommand CreateDbCommand(string sql, object parameter, int? commandTimeout = null, CommandType? commandType = null)
         {
             Open();
-            var cmd = Connection.CreateCommand();
+            var cmd = _connection.CreateCommand();
             var dbParameters = new List<IDbDataParameter>();
             cmd.Transaction = _transaction;
             cmd.CommandText = sql;
@@ -249,7 +246,7 @@ namespace SqlBatis
             }
             else if (parameter != null)
             {
-                var handler = GlobalSettings.EntityMapperProvider.GetDeserializer(parameter.GetType());
+                var handler = EntityMapper.GetDeserializer(parameter.GetType());
                 var values = handler(parameter);
                 foreach (var item in values)
                 {

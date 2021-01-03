@@ -6,28 +6,35 @@ using System.Text;
 
 namespace SqlBatis.Test
 {
-    public class DefaultEntityMapperProvider : EntityMapperProvider
+    public class DefaultEntityMapper : SqlBatis.DefaultEntityMapper
     {
         static class ConvertMethod
         {
-            public static MethodInfo ConvertToBooleanMethod = typeof(ConvertMethod).GetMethod(nameof(ConvertToBoolean));
-            public static bool ConvertToBoolean(IDataRecord record, int i)
+            public static MethodInfo CharArrayConvertStringMethod = typeof(ConvertMethod).GetMethod(nameof(CharArrayConvertString));
+            /// <summary>
+            /// 处理sqlserver中的char数组中的结尾空格
+            /// </summary>
+            /// <param name="record"></param>
+            /// <param name="i"></param>
+            /// <returns></returns>
+            public static string CharArrayConvertString(IDataRecord record, int i)
             {
                 if (record.IsDBNull(i))
                 {
-                    return false;
+                    return default;
                 }
-                return record.GetValue(i).ToString() == "Ok";
+                return record.GetString(i).Trim();
             }
         }
 
-        protected override MethodInfo FindDataRecordConvertMethodInfo(Type returnType, Type memberType, DbFieldInfo fieldInfo)
+        protected override MethodInfo MatchDataRecordConvertMethod(Type returnType, Type memberType, DbFieldInfo fieldInfo)
         {
-            if (typeof(Student2Dot) == returnType && memberType == typeof(bool))
+            //实现讲字符串转换成bool
+            if (fieldInfo.TypeName=="char")
             {
-                return ConvertMethod.ConvertToBooleanMethod;
+                return ConvertMethod.CharArrayConvertStringMethod;
             }
-            return base.FindDataRecordConvertMethodInfo(returnType, memberType, fieldInfo);
+            return base.MatchDataRecordConvertMethod(returnType, memberType, fieldInfo);
         }
     }
 }

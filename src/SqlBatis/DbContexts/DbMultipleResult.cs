@@ -60,12 +60,14 @@ namespace SqlBatis
 
     internal class DbMultipleResult : IDbMultipleResult
     {
+        private readonly IEntityMapper _entityMapper = null;
         private readonly IDataReader _reader = null;
 
         private readonly IDbCommand _command = null;
 
-        internal DbMultipleResult(IDbCommand command)
+        internal DbMultipleResult(IDbCommand command, IEntityMapper entityMapper)
         {
+            _entityMapper = entityMapper;
             _command = command;
             _reader = command.ExecuteReader();
         }
@@ -98,7 +100,7 @@ namespace SqlBatis
 
         public async Task<List<dynamic>> GetListAsync()
         {
-            var handler = GlobalSettings.EntityMapperProvider.GetSerializer();
+            var handler = _entityMapper.GetSerializer();
             var list = new List<dynamic>();
             while (await (_reader as DbDataReader).ReadAsync())
             {
@@ -110,7 +112,7 @@ namespace SqlBatis
 
         public List<dynamic> GetList()
         {
-            var handler = GlobalSettings.EntityMapperProvider.GetSerializer();
+            var handler = _entityMapper.GetSerializer();
             var list = new List<dynamic>();
             while (_reader.Read())
             {
@@ -122,7 +124,7 @@ namespace SqlBatis
 
         public List<T> GetList<T>()
         {
-            var handler = GlobalSettings.EntityMapperProvider.GetSerializer<T>(_reader);
+            var handler = _entityMapper.GetSerializer<T>(_reader);
             var list = new List<T>();
             while (_reader.Read())
             {
@@ -134,7 +136,7 @@ namespace SqlBatis
 
         public async Task<List<T>> GetListAsync<T>()
         {
-            var handler = GlobalSettings.EntityMapperProvider.GetSerializer<T>(_reader);
+            var handler = _entityMapper.GetSerializer<T>(_reader);
             var list = new List<T>();
             while (await (_reader as DbDataReader).ReadAsync())
             {

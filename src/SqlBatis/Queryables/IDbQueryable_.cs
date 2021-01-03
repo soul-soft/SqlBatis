@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 
-namespace SqlBatis
+namespace SqlBatis.Queryables
 {
     /// <summary>
     /// 单表查询

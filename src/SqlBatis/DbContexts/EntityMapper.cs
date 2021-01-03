@@ -11,7 +11,7 @@ namespace SqlBatis
     /// <summary>
     /// 实体转换映射器
     /// </summary>
-    public interface IEntityMapperProvider
+    public interface IEntityMapper
     {
         /// <summary>
         /// 获取实体序列化转换器
@@ -36,7 +36,8 @@ namespace SqlBatis
     /// <summary>
     /// 默认实体映射器
     /// </summary>
-    public class EntityMapperProvider : IEntityMapperProvider
+    public class DefaultEntityMapper
+        : IEntityMapper
     {
         /// <summary>
         /// 序列化器
@@ -130,7 +131,7 @@ namespace SqlBatis
                 for (int i = 0; i < reader.FieldCount; i++)
                 {
                     var name = reader.GetName(i);
-                    var value = GetDataRecordValue(reader, i);
+                    var value = GetDataRecordDynamicValue(reader, i);
                     entity.Add(name, value);
                 }
                 return entity;
@@ -160,7 +161,7 @@ namespace SqlBatis
         /// </summary>
         /// <param name="entityType"></param>
         /// <returns></returns>
-        protected virtual ConstructorInfo FindConstructor(Type entityType)
+        protected virtual ConstructorInfo MatchEntityConstructor(Type entityType)
         {
             var constructor = entityType.GetConstructor(Type.EmptyTypes);
             if (constructor == null)
@@ -181,7 +182,7 @@ namespace SqlBatis
         /// <param name="parameterInfo"></param>
         /// <param name="fieldInfos"></param>
         /// <returns></returns>
-        protected virtual DbFieldInfo FindClassConstructorParameter(ParameterInfo parameterInfo, DbFieldInfo[] fieldInfos)
+        protected virtual DbFieldInfo MatchEntityConstructorParameter(ParameterInfo parameterInfo, DbFieldInfo[] fieldInfos)
         {
             foreach (var item in fieldInfos)
             {
@@ -203,7 +204,7 @@ namespace SqlBatis
         /// <param name="entityType">实体类型</param>
         /// <param name="fieldInfo">数据字段信息</param>
         /// <returns></returns>
-        protected virtual MemberInfo FindClassMemberInfo(Type entityType, DbFieldInfo fieldInfo)
+        protected virtual MemberInfo MatchClassMemberInfo(Type entityType, DbFieldInfo fieldInfo)
         {
             var properties = entityType.GetProperties();
             foreach (var item in properties)
@@ -227,7 +228,7 @@ namespace SqlBatis
         /// <param name="entityMemberType">实体的成员类型</param>
         /// <param name="fieldInfo">数据库字信息</param>
         /// <returns></returns>
-        protected virtual MethodInfo FindDataRecordConvertMethodInfo(Type entityType, Type entityMemberType, DbFieldInfo fieldInfo)
+        protected virtual MethodInfo MatchDataRecordConvertMethod(Type entityType, Type entityMemberType, DbFieldInfo fieldInfo)
         {
             if (GetUnderlyingType(entityMemberType) == typeof(bool))
             {
@@ -310,7 +311,7 @@ namespace SqlBatis
         /// <summary>
         /// 获取动态映射值
         /// </summary>
-        protected virtual dynamic GetDataRecordValue(IDataRecord record, int i)
+        protected virtual dynamic GetDataRecordDynamicValue(IDataRecord record, int i)
         {
             if (record.IsDBNull(i))
             {
@@ -379,7 +380,7 @@ namespace SqlBatis
             }
             if (type == typeof(object) || dataInfos.Length == 1 && (type.IsValueType || type == typeof(string)))
             {
-                var convertMethod = FindDataRecordConvertMethodInfo(type, type, dataInfos[0]);
+                var convertMethod = MatchDataRecordConvertMethod(type, type, dataInfos[0]);
                 generator.Emit(OpCodes.Ldarg_0);
                 generator.Emit(OpCodes.Ldc_I4, 0);
                 if (convertMethod.IsVirtual)
@@ -395,7 +396,7 @@ namespace SqlBatis
                 generator.Emit(OpCodes.Ret);
                 return dynamicMethod.CreateDelegate(typeof(Func<IDataRecord, T>)) as Func<IDataRecord, T>;
             }
-            var constructor = FindConstructor(type);
+            var constructor = MatchEntityConstructor(type);
             if (constructor.GetParameters().Length > 0)
             {
                 var parameters = constructor.GetParameters();
@@ -406,12 +407,12 @@ namespace SqlBatis
                 }
                 for (int i = 0; i < locals.Length; i++)
                 {
-                    var item = FindClassConstructorParameter(parameters[i], dataInfos);
+                    var item = MatchEntityConstructorParameter(parameters[i], dataInfos);
                     if (item == null)
                     {
                         continue;
                     }
-                    var convertMethod = FindDataRecordConvertMethodInfo(type, parameters[i].ParameterType, item);
+                    var convertMethod = MatchDataRecordConvertMethod(type, parameters[i].ParameterType, item);
                     generator.Emit(OpCodes.Ldarg_0);
                     generator.Emit(OpCodes.Ldc_I4, item.Ordinal);
                     if (convertMethod.IsVirtual)
@@ -436,12 +437,12 @@ namespace SqlBatis
                 generator.Emit(OpCodes.Stloc, local);
                 foreach (var item in dataInfos)
                 {
-                    var property = FindClassMemberInfo(type, item) as PropertyInfo;
+                    var property = MatchClassMemberInfo(type, item) as PropertyInfo;
                     if (property == null)
                     {
                         continue;
                     }
-                    var convertMethod = FindDataRecordConvertMethodInfo(type, property.PropertyType, item);
+                    var convertMethod = MatchDataRecordConvertMethod(type, property.PropertyType, item);
                     if (convertMethod == null)
                     {
                         continue;
@@ -486,382 +487,401 @@ namespace SqlBatis
         }
         #endregion
 
-        #region 定义一组成员实体转函数
-        /// <summary>
-        /// 定义映射到成员的转换器
-        /// </summary>
-        static class EntityMemberConvertMethods
+
+    }
+
+    /// <summary>
+    /// 定义映射到成员的转换器
+    /// </summary>
+    internal class EntityMemberConvertMethods
+    {
+        #region Method Field
+        public static MethodInfo ToObjectMethod = typeof(EntityMemberConvertMethods).GetMethod(nameof(EntityMemberConvertMethods.ConvertToObject));
+        public static MethodInfo ToByteMethod = typeof(EntityMemberConvertMethods).GetMethod(nameof(EntityMemberConvertMethods.ConvertToByte));
+        public static MethodInfo ToIn16Method = typeof(EntityMemberConvertMethods).GetMethod(nameof(EntityMemberConvertMethods.ConvertToInt16));
+        public static MethodInfo ToIn32Method = typeof(EntityMemberConvertMethods).GetMethod(nameof(EntityMemberConvertMethods.ConvertToInt32));
+        public static MethodInfo ToIn64Method = typeof(EntityMemberConvertMethods).GetMethod(nameof(EntityMemberConvertMethods.ConvertToInt64));
+        public static MethodInfo ToFloatMethod = typeof(EntityMemberConvertMethods).GetMethod(nameof(EntityMemberConvertMethods.ConvertToFloat));
+        public static MethodInfo ToDoubleMethod = typeof(EntityMemberConvertMethods).GetMethod(nameof(EntityMemberConvertMethods.ConvertToDouble));
+        public static MethodInfo ToDecimalMethod = typeof(EntityMemberConvertMethods).GetMethod(nameof(EntityMemberConvertMethods.ConvertToDecimal));
+        public static MethodInfo ToBooleanMethod = typeof(EntityMemberConvertMethods).GetMethod(nameof(EntityMemberConvertMethods.ConvertToBoolean));
+        public static MethodInfo ToCharMethod = typeof(EntityMemberConvertMethods).GetMethod(nameof(EntityMemberConvertMethods.ConvertToChar));
+        public static MethodInfo ToStringMethod = typeof(EntityMemberConvertMethods).GetMethod(nameof(EntityMemberConvertMethods.ConvertToString));
+        public static MethodInfo ToTrimStringMethod = typeof(EntityMemberConvertMethods).GetMethod(nameof(EntityMemberConvertMethods.ConvertToTrimString));
+        public static MethodInfo ToDateTimeMethod = typeof(EntityMemberConvertMethods).GetMethod(nameof(EntityMemberConvertMethods.ConvertToDateTime));
+        public static MethodInfo ToEnumMethod = typeof(EntityMemberConvertMethods).GetMethod(nameof(EntityMemberConvertMethods.ConvertToEnum));
+        public static MethodInfo ToGuidMethod = typeof(EntityMemberConvertMethods).GetMethod(nameof(EntityMemberConvertMethods.ConvertToGuid));
+        #endregion
+
+        #region NullableMethod Field
+        public static MethodInfo ToByteNullableMethod = typeof(EntityMemberConvertMethods).GetMethod(nameof(EntityMemberConvertMethods.ConvertToByteNullable));
+        public static MethodInfo ToIn16NullableMethod = typeof(EntityMemberConvertMethods).GetMethod(nameof(EntityMemberConvertMethods.ConvertToInt16Nullable));
+        public static MethodInfo ToIn32NullableMethod = typeof(EntityMemberConvertMethods).GetMethod(nameof(EntityMemberConvertMethods.ConvertToInt32Nullable));
+        public static MethodInfo ToIn64NullableMethod = typeof(EntityMemberConvertMethods).GetMethod(nameof(EntityMemberConvertMethods.ConvertToInt64Nullable));
+        public static MethodInfo ToFloatNullableMethod = typeof(EntityMemberConvertMethods).GetMethod(nameof(EntityMemberConvertMethods.ConvertToFloatNullable));
+        public static MethodInfo ToDoubleNullableMethod = typeof(EntityMemberConvertMethods).GetMethod(nameof(EntityMemberConvertMethods.ConvertToDoubleNullable));
+        public static MethodInfo ToBooleanNullableMethod = typeof(EntityMemberConvertMethods).GetMethod(nameof(EntityMemberConvertMethods.ConvertToBooleanNullable));
+        public static MethodInfo ToDecimalNullableMethod = typeof(EntityMemberConvertMethods).GetMethod(nameof(EntityMemberConvertMethods.ConvertToDecimalNullable));
+        public static MethodInfo ToCharNullableMethod = typeof(EntityMemberConvertMethods).GetMethod(nameof(EntityMemberConvertMethods.ConvertToCharNullable));
+        public static MethodInfo ToDateTimeNullableMethod = typeof(EntityMemberConvertMethods).GetMethod(nameof(EntityMemberConvertMethods.ConvertToDateTimeNullable));
+        public static MethodInfo ToEnumNullableMethod = typeof(EntityMemberConvertMethods).GetMethod(nameof(EntityMemberConvertMethods.ConvertToEnumNullable));
+        public static MethodInfo ToGuidNullableMethod = typeof(EntityMemberConvertMethods).GetMethod(nameof(EntityMemberConvertMethods.ConvertToGuidNullable));
+        #endregion
+
+        #region Define Convert
+        public static object ConvertToObject(IDataRecord dr, int i)
         {
-            #region Method Field
-            public static MethodInfo ToObjectMethod = typeof(EntityMemberConvertMethods).GetMethod(nameof(EntityMemberConvertMethods.ConvertToObject));
-            public static MethodInfo ToByteMethod = typeof(EntityMemberConvertMethods).GetMethod(nameof(EntityMemberConvertMethods.ConvertToByte));
-            public static MethodInfo ToIn16Method = typeof(EntityMemberConvertMethods).GetMethod(nameof(EntityMemberConvertMethods.ConvertToInt16));
-            public static MethodInfo ToIn32Method = typeof(EntityMemberConvertMethods).GetMethod(nameof(EntityMemberConvertMethods.ConvertToInt32));
-            public static MethodInfo ToIn64Method = typeof(EntityMemberConvertMethods).GetMethod(nameof(EntityMemberConvertMethods.ConvertToInt64));
-            public static MethodInfo ToFloatMethod = typeof(EntityMemberConvertMethods).GetMethod(nameof(EntityMemberConvertMethods.ConvertToFloat));
-            public static MethodInfo ToDoubleMethod = typeof(EntityMemberConvertMethods).GetMethod(nameof(EntityMemberConvertMethods.ConvertToDouble));
-            public static MethodInfo ToDecimalMethod = typeof(EntityMemberConvertMethods).GetMethod(nameof(EntityMemberConvertMethods.ConvertToDecimal));
-            public static MethodInfo ToBooleanMethod = typeof(EntityMemberConvertMethods).GetMethod(nameof(EntityMemberConvertMethods.ConvertToBoolean));
-            public static MethodInfo ToCharMethod = typeof(EntityMemberConvertMethods).GetMethod(nameof(EntityMemberConvertMethods.ConvertToChar));
-            public static MethodInfo ToStringMethod = typeof(EntityMemberConvertMethods).GetMethod(nameof(EntityMemberConvertMethods.ConvertToString));
-            public static MethodInfo ToDateTimeMethod = typeof(EntityMemberConvertMethods).GetMethod(nameof(EntityMemberConvertMethods.ConvertToDateTime));
-            public static MethodInfo ToEnumMethod = typeof(EntityMemberConvertMethods).GetMethod(nameof(EntityMemberConvertMethods.ConvertToEnum));
-            public static MethodInfo ToGuidMethod = typeof(EntityMemberConvertMethods).GetMethod(nameof(EntityMemberConvertMethods.ConvertToGuid));
-            #endregion
-
-            #region NullableMethod Field
-            public static MethodInfo ToByteNullableMethod = typeof(EntityMemberConvertMethods).GetMethod(nameof(EntityMemberConvertMethods.ConvertToByteNullable));
-            public static MethodInfo ToIn16NullableMethod = typeof(EntityMemberConvertMethods).GetMethod(nameof(EntityMemberConvertMethods.ConvertToInt16Nullable));
-            public static MethodInfo ToIn32NullableMethod = typeof(EntityMemberConvertMethods).GetMethod(nameof(EntityMemberConvertMethods.ConvertToInt32Nullable));
-            public static MethodInfo ToIn64NullableMethod = typeof(EntityMemberConvertMethods).GetMethod(nameof(EntityMemberConvertMethods.ConvertToInt64Nullable));
-            public static MethodInfo ToFloatNullableMethod = typeof(EntityMemberConvertMethods).GetMethod(nameof(EntityMemberConvertMethods.ConvertToFloatNullable));
-            public static MethodInfo ToDoubleNullableMethod = typeof(EntityMemberConvertMethods).GetMethod(nameof(EntityMemberConvertMethods.ConvertToDoubleNullable));
-            public static MethodInfo ToBooleanNullableMethod = typeof(EntityMemberConvertMethods).GetMethod(nameof(EntityMemberConvertMethods.ConvertToBooleanNullable));
-            public static MethodInfo ToDecimalNullableMethod = typeof(EntityMemberConvertMethods).GetMethod(nameof(EntityMemberConvertMethods.ConvertToDecimalNullable));
-            public static MethodInfo ToCharNullableMethod = typeof(EntityMemberConvertMethods).GetMethod(nameof(EntityMemberConvertMethods.ConvertToCharNullable));
-            public static MethodInfo ToDateTimeNullableMethod = typeof(EntityMemberConvertMethods).GetMethod(nameof(EntityMemberConvertMethods.ConvertToDateTimeNullable));
-            public static MethodInfo ToEnumNullableMethod = typeof(EntityMemberConvertMethods).GetMethod(nameof(EntityMemberConvertMethods.ConvertToEnumNullable));
-            public static MethodInfo ToGuidNullableMethod = typeof(EntityMemberConvertMethods).GetMethod(nameof(EntityMemberConvertMethods.ConvertToGuidNullable));
-            #endregion
-
-            #region Define Convert
-            public static object ConvertToObject(IDataRecord dr, int i)
-            {
-                try
-                {
-                    if (dr.IsDBNull(i))
-                    {
-                        return default;
-                    }
-                    return dr.GetValue(i);
-                }
-                catch
-                {
-                    throw ThrowException<object>(dr, i);
-                }
-            }
-
-            public static byte ConvertToByte(IDataRecord dr, int i)
-            {
-                try
-                {
-                    if (dr.IsDBNull(i))
-                    {
-                        return default;
-                    }
-                    var result = dr.GetByte(i);
-                    return result;
-                }
-                catch
-                {
-                    throw ThrowException<byte>(dr, i);
-                }
-            }
-
-            public static short ConvertToInt16(IDataRecord dr, int i)
-            {
-                try
-                {
-                    if (dr.IsDBNull(i))
-                    {
-                        return default;
-                    }
-                    return dr.GetInt16(i);
-                }
-                catch
-                {
-                    throw ThrowException<short>(dr, i);
-                }
-            }
-
-            public static int ConvertToInt32(IDataRecord dr, int i)
-            {
-                try
-                {
-                    if (dr.IsDBNull(i))
-                    {
-                        return default;
-                    }
-                    return dr.GetInt32(i);
-                }
-                catch
-                {
-                    throw ThrowException<int>(dr, i);
-                }
-            }
-
-            public static long ConvertToInt64(IDataRecord dr, int i)
-            {
-                try
-                {
-                    if (dr.IsDBNull(i))
-                    {
-                        return default;
-                    }
-                    return dr.GetInt64(i);
-                }
-                catch
-                {
-                    throw ThrowException<long>(dr, i);
-                }
-            }
-
-            public static float ConvertToFloat(IDataRecord dr, int i)
-            {
-                try
-                {
-                    if (dr.IsDBNull(i))
-                    {
-                        return default;
-                    }
-                    return dr.GetFloat(i);
-                }
-                catch
-                {
-                    throw ThrowException<float>(dr, i);
-                }
-            }
-
-            public static double ConvertToDouble(IDataRecord dr, int i)
-            {
-                try
-                {
-                    if (dr.IsDBNull(i))
-                    {
-                        return default;
-                    }
-                    return dr.GetDouble(i);
-                }
-                catch
-                {
-                    throw ThrowException<double>(dr, i);
-                }
-            }
-
-            public static bool ConvertToBoolean(IDataRecord dr, int i)
-            {
-                try
-                {
-                    if (dr.IsDBNull(i))
-                    {
-                        return default;
-                    }
-                    return dr.GetBoolean(i);
-                }
-                catch
-                {
-                    throw ThrowException<bool>(dr, i);
-                }
-            }
-
-            public static decimal ConvertToDecimal(IDataRecord dr, int i)
-            {
-                try
-                {
-                    if (dr.IsDBNull(i))
-                    {
-                        return default;
-                    }
-                    return dr.GetDecimal(i);
-                }
-                catch
-                {
-                    throw ThrowException<bool>(dr, i);
-                }
-            }
-
-            public static char ConvertToChar(IDataRecord dr, int i)
-            {
-                try
-                {
-                    if (dr.IsDBNull(i))
-                    {
-                        return default;
-                    }
-                    var result = dr.GetChar(i);
-                    return result;
-                }
-                catch
-                {
-                    throw ThrowException<char>(dr, i);
-                }
-            }
-
-            public static string ConvertToString(IDataRecord dr, int i)
-            {
-                try
-                {
-                    if (dr.IsDBNull(i))
-                    {
-                        return default;
-                    }
-                    return dr.GetString(i);
-                }
-                catch
-                {
-                    throw ThrowException<string>(dr, i);
-                }
-            }
-
-            public static DateTime ConvertToDateTime(IDataRecord dr, int i)
-            {
-                try
-                {
-                    if (dr.IsDBNull(i))
-                    {
-                        return default;
-                    }
-                    return dr.GetDateTime(i);
-                }
-                catch
-                {
-                    throw ThrowException<DateTime>(dr, i);
-                }
-            }
-
-            public static T ConvertToEnum<T>(IDataRecord dr, int i) where T : struct
-            {
-                try
-                {
-                    if (dr.IsDBNull(i))
-                    {
-                        return default;
-                    }
-                    var value = dr.GetValue(i);
-                    if (Enum.TryParse(value.ToString(), out T result)) return result;
-                    return default;
-                }
-                catch
-                {
-                    throw ThrowException<T>(dr, i);
-                }
-            }
-
-            public static Guid ConvertToGuid(IDataRecord dr, int i)
-            {
-                try
-                {
-                    if (dr.IsDBNull(i))
-                    {
-                        return default;
-                    }
-                    var result = dr.GetGuid(i);
-                    return result;
-                }
-                catch
-                {
-                    throw ThrowException<Guid>(dr, i);
-                }
-            }
-
-            #endregion
-
-            #region Define Nullable Convert
-            public static byte? ConvertToByteNullable(IDataRecord dr, int i)
+            try
             {
                 if (dr.IsDBNull(i))
                 {
                     return default;
                 }
-                return ConvertToByte(dr, i);
+                return dr.GetValue(i);
             }
-            public static short? ConvertToInt16Nullable(IDataRecord dr, int i)
+            catch
             {
-                if (dr.IsDBNull(i))
-                {
-                    return default;
-                }
-                return ConvertToInt16(dr, i);
+                throw ThrowException<object>(dr, i);
             }
-            public static int? ConvertToInt32Nullable(IDataRecord dr, int i)
-            {
-                if (dr.IsDBNull(i))
-                {
-                    return default;
-                }
-                return ConvertToInt32(dr, i);
-            }
-            public static long? ConvertToInt64Nullable(IDataRecord dr, int i)
-            {
-                if (dr.IsDBNull(i))
-                {
-                    return default;
-                }
-                return ConvertToInt64(dr, i);
-            }
-            public static float? ConvertToFloatNullable(IDataRecord dr, int i)
-            {
-                if (dr.IsDBNull(i))
-                {
-                    return default;
-                }
-                return ConvertToFloat(dr, i);
-            }
-            public static double? ConvertToDoubleNullable(IDataRecord dr, int i)
-            {
-                if (dr.IsDBNull(i))
-                {
-                    return default;
-                }
-                return ConvertToDouble(dr, i);
-            }
-            public static bool? ConvertToBooleanNullable(IDataRecord dr, int i)
-            {
-                if (dr.IsDBNull(i))
-                {
-                    return default;
-                }
-                return ConvertToBoolean(dr, i);
-            }
-            public static decimal? ConvertToDecimalNullable(IDataRecord dr, int i)
-            {
-                if (dr.IsDBNull(i))
-                {
-                    return default;
-                }
-                return ConvertToDecimal(dr, i);
-            }
-            public static char? ConvertToCharNullable(IDataRecord dr, int i)
-            {
-                if (dr.IsDBNull(i))
-                {
-                    return default;
-                }
-                return ConvertToChar(dr, i);
-            }
-            public static DateTime? ConvertToDateTimeNullable(IDataRecord dr, int i)
-            {
-                if (dr.IsDBNull(i))
-                {
-                    return default;
-                }
-                return ConvertToDateTime(dr, i);
-            }
-            public static T? ConvertToEnumNullable<T>(IDataRecord dr, int i) where T : struct
-            {
-                if (dr.IsDBNull(i))
-                {
-                    return default;
-                }
-                return ConvertToEnum<T>(dr, i);
-            }
-            public static Guid? ConvertToGuidNullable(IDataRecord dr, int i)
-            {
-                if (dr.IsDBNull(i))
-                {
-                    return default;
-                }
-                return ConvertToGuid(dr, i);
-            }
-            #endregion
+        }
 
-            #region Exception
-            private static Exception ThrowException<T>(IDataRecord dr, int i)
+        public static byte ConvertToByte(IDataRecord dr, int i)
+        {
+            try
             {
-                var inner = new InvalidCastException($"Column of [{dr.GetFieldType(i)}][{dr.GetName(i)}] = [{dr.GetValue(i)}] was not recognized as a valid {typeof(T)}.");
-                return new Microsoft.CSharp.RuntimeBinder.RuntimeBinderException($"Unable to cast object of type '{dr.GetFieldType(i).Name}' to type '{typeof(T)}'.", inner);
+                if (dr.IsDBNull(i))
+                {
+                    return default;
+                }
+                var result = dr.GetByte(i);
+                return result;
             }
-            #endregion
+            catch
+            {
+                throw ThrowException<byte>(dr, i);
+            }
+        }
+
+        public static short ConvertToInt16(IDataRecord dr, int i)
+        {
+            try
+            {
+                if (dr.IsDBNull(i))
+                {
+                    return default;
+                }
+                return dr.GetInt16(i);
+            }
+            catch
+            {
+                throw ThrowException<short>(dr, i);
+            }
+        }
+
+        public static int ConvertToInt32(IDataRecord dr, int i)
+        {
+            try
+            {
+                if (dr.IsDBNull(i))
+                {
+                    return default;
+                }
+                return dr.GetInt32(i);
+            }
+            catch
+            {
+                throw ThrowException<int>(dr, i);
+            }
+        }
+
+        public static long ConvertToInt64(IDataRecord dr, int i)
+        {
+            try
+            {
+                if (dr.IsDBNull(i))
+                {
+                    return default;
+                }
+                return dr.GetInt64(i);
+            }
+            catch
+            {
+                throw ThrowException<long>(dr, i);
+            }
+        }
+
+        public static float ConvertToFloat(IDataRecord dr, int i)
+        {
+            try
+            {
+                if (dr.IsDBNull(i))
+                {
+                    return default;
+                }
+                return dr.GetFloat(i);
+            }
+            catch
+            {
+                throw ThrowException<float>(dr, i);
+            }
+        }
+
+        public static double ConvertToDouble(IDataRecord dr, int i)
+        {
+            try
+            {
+                if (dr.IsDBNull(i))
+                {
+                    return default;
+                }
+                return dr.GetDouble(i);
+            }
+            catch
+            {
+                throw ThrowException<double>(dr, i);
+            }
+        }
+
+        public static bool ConvertToBoolean(IDataRecord dr, int i)
+        {
+            try
+            {
+                if (dr.IsDBNull(i))
+                {
+                    return default;
+                }
+                return dr.GetBoolean(i);
+            }
+            catch
+            {
+                throw ThrowException<bool>(dr, i);
+            }
+        }
+
+        public static decimal ConvertToDecimal(IDataRecord dr, int i)
+        {
+            try
+            {
+                if (dr.IsDBNull(i))
+                {
+                    return default;
+                }
+                return dr.GetDecimal(i);
+            }
+            catch
+            {
+                throw ThrowException<bool>(dr, i);
+            }
+        }
+
+        public static char ConvertToChar(IDataRecord dr, int i)
+        {
+            try
+            {
+                if (dr.IsDBNull(i))
+                {
+                    return default;
+                }
+                var result = dr.GetChar(i);
+                return result;
+            }
+            catch
+            {
+                throw ThrowException<char>(dr, i);
+            }
+        }
+
+        public static string ConvertToString(IDataRecord dr, int i)
+        {
+            try
+            {
+                if (dr.IsDBNull(i))
+                {
+                    return default;
+                }
+                return dr.GetString(i);
+            }
+            catch
+            {
+                throw ThrowException<string>(dr, i);
+            }
+        }
+
+        public static string ConvertToTrimString(IDataRecord dr, int i)
+        {
+            try
+            {
+                if (dr.IsDBNull(i))
+                {
+                    return default;
+                }
+                return dr.GetString(i).Trim();
+            }
+            catch
+            {
+                throw ThrowException<string>(dr, i);
+            }
+        }
+
+        public static DateTime ConvertToDateTime(IDataRecord dr, int i)
+        {
+            try
+            {
+                if (dr.IsDBNull(i))
+                {
+                    return default;
+                }
+                return dr.GetDateTime(i);
+            }
+            catch
+            {
+                throw ThrowException<DateTime>(dr, i);
+            }
+        }
+
+        public static T ConvertToEnum<T>(IDataRecord dr, int i) where T : struct
+        {
+            try
+            {
+                if (dr.IsDBNull(i))
+                {
+                    return default;
+                }
+                var value = dr.GetValue(i);
+                if (Enum.TryParse(value.ToString(), out T result)) return result;
+                return default;
+            }
+            catch
+            {
+                throw ThrowException<T>(dr, i);
+            }
+        }
+
+        public static Guid ConvertToGuid(IDataRecord dr, int i)
+        {
+            try
+            {
+                if (dr.IsDBNull(i))
+                {
+                    return default;
+                }
+                var result = dr.GetGuid(i);
+                return result;
+            }
+            catch
+            {
+                throw ThrowException<Guid>(dr, i);
+            }
+        }
+
+        #endregion
+
+        #region Define Nullable Convert
+        public static byte? ConvertToByteNullable(IDataRecord dr, int i)
+        {
+            if (dr.IsDBNull(i))
+            {
+                return default;
+            }
+            return ConvertToByte(dr, i);
+        }
+        public static short? ConvertToInt16Nullable(IDataRecord dr, int i)
+        {
+            if (dr.IsDBNull(i))
+            {
+                return default;
+            }
+            return ConvertToInt16(dr, i);
+        }
+        public static int? ConvertToInt32Nullable(IDataRecord dr, int i)
+        {
+            if (dr.IsDBNull(i))
+            {
+                return default;
+            }
+            return ConvertToInt32(dr, i);
+        }
+        public static long? ConvertToInt64Nullable(IDataRecord dr, int i)
+        {
+            if (dr.IsDBNull(i))
+            {
+                return default;
+            }
+            return ConvertToInt64(dr, i);
+        }
+        public static float? ConvertToFloatNullable(IDataRecord dr, int i)
+        {
+            if (dr.IsDBNull(i))
+            {
+                return default;
+            }
+            return ConvertToFloat(dr, i);
+        }
+        public static double? ConvertToDoubleNullable(IDataRecord dr, int i)
+        {
+            if (dr.IsDBNull(i))
+            {
+                return default;
+            }
+            return ConvertToDouble(dr, i);
+        }
+        public static bool? ConvertToBooleanNullable(IDataRecord dr, int i)
+        {
+            if (dr.IsDBNull(i))
+            {
+                return default;
+            }
+            return ConvertToBoolean(dr, i);
+        }
+        public static decimal? ConvertToDecimalNullable(IDataRecord dr, int i)
+        {
+            if (dr.IsDBNull(i))
+            {
+                return default;
+            }
+            return ConvertToDecimal(dr, i);
+        }
+        public static char? ConvertToCharNullable(IDataRecord dr, int i)
+        {
+            if (dr.IsDBNull(i))
+            {
+                return default;
+            }
+            return ConvertToChar(dr, i);
+        }
+        public static DateTime? ConvertToDateTimeNullable(IDataRecord dr, int i)
+        {
+            if (dr.IsDBNull(i))
+            {
+                return default;
+            }
+            return ConvertToDateTime(dr, i);
+        }
+        public static T? ConvertToEnumNullable<T>(IDataRecord dr, int i) where T : struct
+        {
+            if (dr.IsDBNull(i))
+            {
+                return default;
+            }
+            return ConvertToEnum<T>(dr, i);
+        }
+        public static Guid? ConvertToGuidNullable(IDataRecord dr, int i)
+        {
+            if (dr.IsDBNull(i))
+            {
+                return default;
+            }
+            return ConvertToGuid(dr, i);
+        }
+        #endregion
+
+        #region Exception
+        private static Exception ThrowException<T>(IDataRecord dr, int i)
+        {
+            var column = dr.GetName(i);
+            var value = dr.GetValue(i);
+            var fieldType = dr.GetFieldType(i);
+            return new InvalidCastException($"Unable to cast object of type '{fieldType}' to type '{typeof(T)}' at the column '{column}'.");
         }
         #endregion
     }

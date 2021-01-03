@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SqlBatis.Queryables;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -13,13 +14,13 @@ namespace SqlBatis
     public interface IDbContext : IDisposable
     {
         /// <summary>
+        /// 实体射器
+        /// </summary>
+        IEntityMapper EntityMapper { get; } 
+        /// <summary>
         /// 数据库上下文状态
         /// </summary>
         DbContextState DbContextState { get; }
-        /// <summary>
-        /// 数据库连接
-        /// </summary>
-        IDbConnection Connection { get; }
         /// <summary>
         /// 数据库上下文类型
         /// </summary>
