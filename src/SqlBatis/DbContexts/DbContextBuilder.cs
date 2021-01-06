@@ -13,9 +13,5 @@ namespace SqlBatis
         /// 设置数据库类型
         /// </summary>
         public DbContextType DbContextType { get; set; }
-        /// <summary>
-        /// 实体映射器
-        /// </summary>
-        public DbEntityMapper DbEntityMapper { get; set; } = new DbEntityMapper();
     }
 }

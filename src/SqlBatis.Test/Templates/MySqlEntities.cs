@@ -1,5 +1,6 @@
 ﻿using System;
 using SqlBatis.Attributes;
+using SqlBatis.Test;
 
 namespace SqlBatis.Test
 {
@@ -8,7 +9,7 @@ namespace SqlBatis.Test
     /// 
     /// </summary>
 	[Table("message")]
-	public partial class Message
+	public partial class MessageDto
 	{
 				
 		/// <summary>
@@ -36,7 +37,7 @@ namespace SqlBatis.Test
     /// 
     /// </summary>
 	[Table("student")]
-	public partial class Student
+	public partial class StudentDto
 	{
 				
 		/// <summary>
@@ -51,7 +52,7 @@ namespace SqlBatis.Test
         /// 
 		/// </summary>
 		[Column("stu_name")]
-        public string StuName { get; set; }
+        public StuName StuName { get; set; }
 			
 		/// <summary>
         /// 
@@ -82,7 +83,7 @@ namespace SqlBatis.Test
     /// 
     /// </summary>
 	[Table("student_bill")]
-	public partial class StudentBill
+	public partial class StudentBillDto
 	{
 				
 		/// <summary>
@@ -110,7 +111,7 @@ namespace SqlBatis.Test
     /// 
     /// </summary>
 	[Table("student_school")]
-	public partial class StudentSchool
+	public partial class StudentSchoolDto
 	{
 				
 		/// <summary>
@@ -132,7 +133,7 @@ namespace SqlBatis.Test
     /// 
     /// </summary>
 	[Table("template")]
-	public partial class Template
+	public partial class TemplateDto
 	{
 				
 		/// <summary>

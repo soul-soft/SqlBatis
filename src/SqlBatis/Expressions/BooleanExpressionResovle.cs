@@ -30,6 +30,7 @@ namespace SqlBatis.Expressions
         {
             _expression = expression;
             _parameters = parameters;
+            _single = single;
         }
 
         protected override Expression VisitMember(MemberExpression node)

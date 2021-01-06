@@ -7,7 +7,8 @@ namespace SqlBatis
     public enum DbContextType
     {
         Mysql,
-        SqlServer,
+        SqlServer2008,
+        SqlServer2012,
         Postgresql,
         Oracle,
         Sqlite,

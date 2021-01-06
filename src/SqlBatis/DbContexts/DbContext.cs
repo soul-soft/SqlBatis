@@ -164,21 +164,19 @@ namespace SqlBatis
     /// </summary>
     public class DbContext : IDbContext
     {
-        private DbEntityMapper _entityMapper;
-        private IDbTransaction _transaction;
         private readonly IDbConnection _connection;
+        private IDbTransaction _transaction;
         public DbContextState DbContextState { get; private set; } = DbContextState.Closed;
         public DbContextType DbContextType { get; } = DbContextType.Mysql;
         public DbContext(DbContextBuilder builder)
         {
             _connection = builder.Connection;
             DbContextType = builder.DbContextType;
-            _entityMapper = builder.DbEntityMapper;
         }
         public virtual IXmlQuery From<T>(string id, T parameter) where T : class
         {
             var sql = SqlBatisSettings.XmlCommandsProvider.Build(id, parameter);
-            var deserializer = DbEntityMapper.GetDeserializer(typeof(T));
+            var deserializer = SqlBatisSettings.DbEntityMapperProvider.GetDeserializer(typeof(T));
             var values = deserializer(parameter);
             return new XmlQuery(this, sql, values);
         }
@@ -206,7 +204,7 @@ namespace SqlBatis
                 var list = new List<dynamic>();
                 using (var reader = cmd.ExecuteReader())
                 {
-                    var handler = _entityMapper.GetSerializer();
+                    var handler = SqlBatisSettings.DbEntityMapperProvider.GetSerializer();
                     while (reader.Read())
                     {
                         list.Add(handler(reader));
@@ -222,7 +220,7 @@ namespace SqlBatis
                 using (var reader = await cmd.ExecuteReaderAsync())
                 {
                     var list = new List<dynamic>();
-                    var handler = _entityMapper.GetSerializer();
+                    var handler = SqlBatisSettings.DbEntityMapperProvider.GetSerializer();
                     while (reader.Read())
                     {
                         list.Add(handler(reader));
@@ -234,7 +232,7 @@ namespace SqlBatis
         public virtual IDbMultipleResult QueryMultiple(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null)
         {
             var cmd = CreateDbCommand(sql, parameter, commandTimeout, commandType);
-            return new DbMultipleResult(cmd, _entityMapper);
+            return new DbMultipleResult(cmd);
         }
         public virtual IEnumerable<T> Query<T>(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null)
         {
@@ -243,7 +241,7 @@ namespace SqlBatis
                 var list = new List<T>();
                 using (var reader = cmd.ExecuteReader())
                 {
-                    var handler = _entityMapper.GetSerializer<T>(reader);
+                    var handler = SqlBatisSettings.DbEntityMapperProvider.GetSerializer<T>(reader);
                     while (reader.Read())
                     {
                         list.Add(handler(reader));
@@ -259,7 +257,7 @@ namespace SqlBatis
                 using (var reader = await cmd.ExecuteReaderAsync())
                 {
                     var list = new List<T>();
-                    var handler = _entityMapper.GetSerializer<T>(reader);
+                    var handler = SqlBatisSettings.DbEntityMapperProvider.GetSerializer<T>(reader);
                     while (await reader.ReadAsync())
                     {
                         list.Add(handler(reader));
@@ -403,7 +401,7 @@ namespace SqlBatis
             }
             else if (parameter != null)
             {
-                var handler = DbEntityMapper.GetDeserializer(parameter.GetType());
+                var handler = SqlBatisSettings.DbEntityMapperProvider.GetDeserializer(parameter.GetType());
                 var values = handler(parameter);
                 foreach (var item in values)
                 {

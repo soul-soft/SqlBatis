@@ -9,12 +9,7 @@ namespace SqlBatis.Test
     public static class MyConvertMethod
     {
         public static MethodInfo CharArrayConvertStringMethod = typeof(MyConvertMethod).GetMethod(nameof(CharArrayConvertString));
-        /// <summary>
-        /// 处理sqlserver中的char数组中的结尾空格
-        /// </summary>
-        /// <param name="record"></param>
-        /// <param name="i"></param>
-        /// <returns></returns>
+        public static MethodInfo StringConvertJsonMethod = typeof(MyConvertMethod).GetMethod(nameof(StringConvertJson));
         public static string CharArrayConvertString(IDataRecord record, int i)
         {
             if (record.IsDBNull(i))
@@ -23,17 +18,32 @@ namespace SqlBatis.Test
             }
             return record.GetString(i).Trim();
         }
-    }
-    public class MyEntityMapper : DbEntityMapper
-    {
-        protected override MethodInfo MatchDataRecordConvertMethod(Type returnType, Type memberType, DbFieldInfo fieldInfo)
+
+        public static T StringConvertJson<T>(IDataRecord record, int i)
         {
-            //实现讲字符串转换成bool
+            if (record.IsDBNull(i))
+            {
+                return default;
+            }
+            var json = record.GetString(i);
+            return System.Text.Json.JsonSerializer.Deserialize<T>(json);
+        }
+    }
+    public class MyEntityMapper : DbEntityMapperProvider
+    {
+        protected override MethodInfo MatchDataRecordConvertMethod(Type returnType, Type entityMemberType, DbFieldInfo fieldInfo)
+        {
+            //如果是char
             if (fieldInfo.TypeName == "char")
             {
                 return MyConvertMethod.CharArrayConvertStringMethod;
             }
-            return base.MatchDataRecordConvertMethod(returnType, memberType, fieldInfo);
+            if (entityMemberType.IsClass&&entityMemberType!=typeof(string))
+            {
+                return MyConvertMethod.StringConvertJsonMethod.MakeGenericMethod(entityMemberType);
+            }
+            //否则使用群主默认的
+            return base.MatchDataRecordConvertMethod(returnType, entityMemberType, fieldInfo);
         }
     }
 }

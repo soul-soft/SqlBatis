@@ -268,155 +268,6 @@
             设置数据库类型
             </summary>
         </member>
-        <member name="P:SqlBatis.DbContextBuilder.DbEntityMapper">
-            <summary>
-            实体映射器
-            </summary>
-        </member>
-        <member name="T:SqlBatis.DbEntityMapper">
-            <summary>
-            默认实体映射器
-            </summary>
-        </member>
-        <member name="F:SqlBatis.DbEntityMapper._serializers">
-            <summary>
-            序列化器
-            </summary>
-        </member>
-        <member name="F:SqlBatis.DbEntityMapper._deserializers">
-            <summary>
-            参数解序列化器
-            </summary>
-        </member>
-        <member name="M:SqlBatis.DbEntityMapper.GetSerializer``1(System.Data.IDataRecord)">
-            <summary>
-            获取实体序列化器
-            </summary>
-            <typeparam name="T"></typeparam>
-            <param name="record"></param>
-            <returns></returns>
-        </member>
-        <member name="M:SqlBatis.DbEntityMapper.GetSerializer">
-            <summary>
-            获取动态实体序列化器
-            </summary>
-        </member>
-        <member name="M:SqlBatis.DbEntityMapper.GetDeserializer(System.Type)">
-            <summary>
-            获取实体解构器
-            </summary>
-        </member>
-        <member name="M:SqlBatis.DbEntityMapper.MatchEntityConstructor(System.Type)">
-            <summary>
-            获取参数最多的构造器
-            </summary>
-            <param name="entityType"></param>
-            <returns></returns>
-        </member>
-        <member name="M:SqlBatis.DbEntityMapper.MatchEntityConstructorParameter(System.Reflection.ParameterInfo,SqlBatis.DbFieldInfo[])">
-            <summary>
-            获取参数在DataReader中的顺序
-            </summary>
-            <param name=""></param>
-            <param name="parameterInfo"></param>
-            <param name="fieldInfos"></param>
-            <returns></returns>
-        </member>
-        <member name="M:SqlBatis.DbEntityMapper.MatchEntityPropertyInfo(System.Type,SqlBatis.DbFieldInfo)">
-            <summary>
-            获取实体的成员信息
-            </summary>
-            <param name="entityType">实体类型</param>
-            <param name="fieldInfo">数据字段信息</param>
-            <returns></returns>
-        </member>
-        <member name="M:SqlBatis.DbEntityMapper.MatchDataRecordConvertMethod(System.Type,System.Type,SqlBatis.DbFieldInfo)">
-            <summary>
-            获取映射实体成员的转换方法
-            </summary>
-            <param name="entityType">实体类型</param>
-            <param name="entityMemberType">实体的成员类型</param>
-            <param name="fieldInfo">数据库字信息</param>
-            <returns></returns>
-        </member>
-        <member name="M:SqlBatis.DbEntityMapper.GetEntityMemberDynamicValue(System.Data.IDataRecord,System.Int32)">
-            <summary>
-            获取动态映射值
-            </summary>
-        </member>
-        <member name="M:SqlBatis.DbEntityMapper.CreateTypeDeserializerHandler(System.Type)">
-            <summary>
-            创建动态方法
-            </summary>
-            <param name="type"></param>
-            <returns></returns>
-        </member>
-        <member name="M:SqlBatis.DbEntityMapper.CreateTypeSerializerHandler``1(System.Data.IDataRecord)">
-            <summary>
-            创建动态方法
-            </summary>
-            <typeparam name="T"></typeparam>
-            <param name="record"></param>
-            <returns></returns>
-        </member>
-        <member name="M:SqlBatis.DbEntityMapper.GetUnderlyingType(System.Type)">
-            <summary>
-            获取类型的非Nullable类型
-            </summary>
-            <param name="type"></param>
-            <returns></returns>
-        </member>
-        <member name="M:SqlBatis.DbEntityMapper.IsNullableType(System.Type)">
-            <summary>
-            判断是否是null的类型
-            </summary>
-            <param name="type"></param>
-            <returns></returns>
-        </member>
-        <member name="T:SqlBatis.DbEntityMapper.SerializerKey">
-            <summary>
-            获取实体序列化器的hashkey
-            </summary>
-        </member>
-        <member name="T:SqlBatis.DataRecordConvertMethods">
-            <summary>
-            定义映射到成员的转换器
-            </summary>
-        </member>
-        <member name="T:SqlBatis.DbFieldInfo">
-            <summary>
-            DataReader中的行信息
-            </summary>
-        </member>
-        <member name="P:SqlBatis.DbFieldInfo.TypeName">
-            <summary>
-            数据库类型名称
-            </summary>
-        </member>
-        <member name="P:SqlBatis.DbFieldInfo.DataType">
-            <summary>
-            数据库对应的C#属性类型
-            </summary>
-        </member>
-        <member name="P:SqlBatis.DbFieldInfo.DataName">
-            <summary>
-            字段名称
-            </summary>
-        </member>
-        <member name="P:SqlBatis.DbFieldInfo.Ordinal">
-            <summary>
-            列序列
-            </summary>
-        </member>
-        <member name="M:SqlBatis.DbFieldInfo.#ctor(System.Int32,System.String,System.Type,System.String)">
-            <summary>
-            数据库字段描述
-            </summary>
-            <param name="ordinal"></param>
-            <param name="typeName"></param>
-            <param name="dataType"></param>
-            <param name="dataName"></param>
-        </member>
         <member name="T:SqlBatis.IDbMultipleResult">
             <summary>
             DataReader多个结果集
@@ -551,6 +402,149 @@
             <summary>
             排序表达式解析
             </summary>
+        </member>
+        <member name="T:SqlBatis.DbEntityMapperProvider">
+            <summary>
+            默认实体映射器
+            </summary>
+        </member>
+        <member name="F:SqlBatis.DbEntityMapperProvider._serializers">
+            <summary>
+            序列化器
+            </summary>
+        </member>
+        <member name="F:SqlBatis.DbEntityMapperProvider._deserializers">
+            <summary>
+            参数解序列化器
+            </summary>
+        </member>
+        <member name="M:SqlBatis.DbEntityMapperProvider.GetSerializer``1(System.Data.IDataRecord)">
+            <summary>
+            获取实体序列化器
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="record"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.DbEntityMapperProvider.GetSerializer">
+            <summary>
+            获取动态实体序列化器
+            </summary>
+        </member>
+        <member name="M:SqlBatis.DbEntityMapperProvider.GetDeserializer(System.Type)">
+            <summary>
+            获取实体解构器
+            </summary>
+        </member>
+        <member name="M:SqlBatis.DbEntityMapperProvider.MatchEntityConstructor(System.Type)">
+            <summary>
+            获取参数最多的构造器
+            </summary>
+            <param name="entityType"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.DbEntityMapperProvider.MatchEntityConstructorParameter(System.Reflection.ParameterInfo,SqlBatis.DbFieldInfo[])">
+            <summary>
+            获取参数在DataReader中的顺序
+            </summary>
+            <param name="parameterInfo"></param>
+            <param name="fieldInfos"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.DbEntityMapperProvider.MatchEntityPropertyInfo(System.Type,SqlBatis.DbFieldInfo)">
+            <summary>
+            获取实体的成员信息
+            </summary>
+            <param name="entityType">实体类型</param>
+            <param name="fieldInfo">数据字段信息</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.DbEntityMapperProvider.MatchDataRecordConvertMethod(System.Type,System.Type,SqlBatis.DbFieldInfo)">
+            <summary>
+            获取映射实体成员的转换方法
+            </summary>
+            <param name="entityType">实体类型</param>
+            <param name="entityMemberType">实体的成员类型</param>
+            <param name="fieldInfo">数据库字信息</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.DbEntityMapperProvider.GetEntityMemberDynamicValue(System.Data.IDataRecord,System.Int32)">
+            <summary>
+            获取动态映射值
+            </summary>
+        </member>
+        <member name="M:SqlBatis.DbEntityMapperProvider.CreateTypeDeserializerHandler(System.Type)">
+            <summary>
+            创建动态方法
+            </summary>
+            <param name="type"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.DbEntityMapperProvider.CreateTypeSerializerHandler``1(System.Data.IDataRecord)">
+            <summary>
+            创建动态方法
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="record"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.DbEntityMapperProvider.GetUnderlyingType(System.Type)">
+            <summary>
+            获取类型的非Nullable类型
+            </summary>
+            <param name="type"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.DbEntityMapperProvider.IsNullableType(System.Type)">
+            <summary>
+            判断是否是null的类型
+            </summary>
+            <param name="type"></param>
+            <returns></returns>
+        </member>
+        <member name="T:SqlBatis.DbEntityMapperProvider.SerializerKey">
+            <summary>
+            获取实体序列化器的hashkey
+            </summary>
+        </member>
+        <member name="T:SqlBatis.DataRecordConvertMethods">
+            <summary>
+            定义映射到成员的转换器
+            </summary>
+        </member>
+        <member name="T:SqlBatis.DbFieldInfo">
+            <summary>
+            DataReader中的行信息
+            </summary>
+        </member>
+        <member name="P:SqlBatis.DbFieldInfo.TypeName">
+            <summary>
+            数据库类型名称
+            </summary>
+        </member>
+        <member name="P:SqlBatis.DbFieldInfo.DataType">
+            <summary>
+            数据库对应的C#属性类型
+            </summary>
+        </member>
+        <member name="P:SqlBatis.DbFieldInfo.DataName">
+            <summary>
+            字段名称
+            </summary>
+        </member>
+        <member name="P:SqlBatis.DbFieldInfo.Ordinal">
+            <summary>
+            列序列
+            </summary>
+        </member>
+        <member name="M:SqlBatis.DbFieldInfo.#ctor(System.Int32,System.String,System.Type,System.String)">
+            <summary>
+            数据库字段描述
+            </summary>
+            <param name="ordinal"></param>
+            <param name="typeName"></param>
+            <param name="dataType"></param>
+            <param name="dataName"></param>
         </member>
         <member name="T:SqlBatis.IDbMetaInfoProvider">
             <summary>
@@ -1688,6 +1682,11 @@
         <member name="P:SqlBatis.SqlBatisSettings.XmlCommandsProvider">
             <summary>
             xml命令配置
+            </summary>
+        </member>
+        <member name="P:SqlBatis.SqlBatisSettings.DbEntityMapperProvider">
+            <summary>
+            实体映射器
             </summary>
         </member>
         <member name="T:SqlBatis.IXmlQuery">

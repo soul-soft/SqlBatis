@@ -25,7 +25,7 @@
 using System;
 using SqlBatis.Attributes;
 
-namespace SqlBatis.Test
+namespace SqlBatis.Test1
 {
 <#foreach(var table in tables){#>
 	
@@ -33,7 +33,7 @@ namespace SqlBatis.Test
     /// <#=table.TableComment#>
     /// </summary>
 	[Table("<#=table.TableName#>")]
-	public partial class <#=Utils.Pascal(table.TableName)#>
+	public partial class <#=Utils.Pascal(table.TableName)#>Dto
 	{
 		<#foreach(var column in columns.FindAll(f => f.TableName == table.TableName)){#>		
 		/// <summary>

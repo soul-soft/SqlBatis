@@ -19,5 +19,10 @@ namespace SqlBatis
         /// </summary>
         public static IXmlCommandsProvider XmlCommandsProvider { get; set; }
             = new XmlCommandsProvider();
+        /// <summary>
+        /// 实体映射器
+        /// </summary>
+        public static DbEntityMapperProvider DbEntityMapperProvider { get; set; }
+          = new DbEntityMapperProvider();
     }
 }

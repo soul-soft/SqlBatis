@@ -12,9 +12,9 @@ namespace SqlBatis
     /// <summary>
     /// 默认实体映射器
     /// </summary>
-    public class DbEntityMapper
-
+    public class DbEntityMapperProvider
     {
+        #region 内部属性
         /// <summary>
         /// 序列化器
         /// </summary>
@@ -24,8 +24,9 @@ namespace SqlBatis
         /// <summary>
         /// 参数解序列化器
         /// </summary>
-        private static readonly ConcurrentDictionary<Type, Func<object, Dictionary<string, object>>> _deserializers
+        private readonly ConcurrentDictionary<Type, Func<object, Dictionary<string, object>>> _deserializers
             = new ConcurrentDictionary<Type, Func<object, Dictionary<string, object>>>();
+        #endregion
 
         #region 一组可以被重写的策略
         /// <summary>
@@ -34,7 +35,7 @@ namespace SqlBatis
         /// <typeparam name="T"></typeparam>
         /// <param name="record"></param>
         /// <returns></returns>
-        public Func<IDataRecord, T> GetSerializer<T>(IDataRecord record)
+        public virtual Func<IDataRecord, T> GetSerializer<T>(IDataRecord record)
         {
             string[] names = new string[record.FieldCount];
             for (int i = 0; i < record.FieldCount; i++)
@@ -52,7 +53,7 @@ namespace SqlBatis
         /// <summary>
         /// 获取动态实体序列化器
         /// </summary>
-        public Func<IDataRecord, dynamic> GetSerializer()
+        public virtual Func<IDataRecord, dynamic> GetSerializer()
         {
             return (reader) =>
             {
@@ -71,7 +72,7 @@ namespace SqlBatis
         /// <summary>
         /// 获取实体解构器
         /// </summary>
-        public static Func<object, Dictionary<string, object>> GetDeserializer(Type type)
+        public virtual Func<object, Dictionary<string, object>> GetDeserializer(Type type)
         {
             if (type == typeof(Dictionary<string, object>))
             {
@@ -106,7 +107,6 @@ namespace SqlBatis
         /// <summary>
         /// 获取参数在DataReader中的顺序
         /// </summary>
-        /// <param name=""></param>
         /// <param name="parameterInfo"></param>
         /// <param name="fieldInfos"></param>
         /// <returns></returns>
@@ -255,7 +255,7 @@ namespace SqlBatis
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        private static Func<object, Dictionary<string, object>> CreateTypeDeserializerHandler(Type type)
+        private Func<object, Dictionary<string, object>> CreateTypeDeserializerHandler(Type type)
         {
             var properties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
             var methodName = $"{type.Name}Deserializer{Guid.NewGuid():N}";
@@ -851,7 +851,7 @@ namespace SqlBatis
         }
         #endregion
 
-        #region Exception
+        #region Throw Exception
         private static Exception ThrowException<T>(IDataRecord dr, int i)
         {
             var column = dr.GetName(i);

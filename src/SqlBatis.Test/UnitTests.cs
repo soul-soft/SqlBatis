@@ -6,6 +6,11 @@ using System.Linq;
 
 namespace SqlBatis.Test
 {
+    public class StuName
+    {
+        public string Name { get; set; }
+        public int Age { get; set; }
+    }
     public class UnitTests
     {
 
@@ -17,18 +22,12 @@ namespace SqlBatis.Test
             var context = new DbContext(new DbContextBuilder
             {
                 Connection = connection,
-                DbContextType = DbContextType.Mysql,
-                DbEntityMapper = new MyEntityMapper()
+                DbContextType = DbContextType.SqlServer2012,
             });
             try
             {
-               var list = context.From<Student, StudentSchool>()
-                    .LeftJoin((a, b) => a.Sid == b.Id && b.Id != 1)
-                    .Select((a,b)=> new
-                    {
-                        a.StuName,
-                        b.SchName
-                    });
+                var list = context.From<StudentDto>()
+                     .Select();
             }
             catch (Exception e)
             {

@@ -11,16 +11,19 @@ namespace SqlBatis.Queryables
         public int Index { get; set; } = -1;
         public int Count { get; set; }
     }
+
     internal class OrderExpression
     {
         public bool Asc { get; set; } = true;
         public Expression Expression { get; set; }
     }
+
     internal class SetExpression
     {
         public Expression Column { get; set; }
         public Expression Expression { get; set; }
     }
+
     public abstract class Queryable
     {
         #region fields
@@ -174,36 +177,44 @@ namespace SqlBatis.Queryables
             var having = BuildHavingExpression();
             var orderBy = BuildOrderExpression();
             string sql;
-            if (_context.DbContextType == DbContextType.SqlServer)
+            if (_context.DbContextType == DbContextType.SqlServer2008 || _context.DbContextType == DbContextType.SqlServer2012)
             {
                 if (_lockname != string.Empty)
                 {
                     _lockname = $" WITH({_lockname})";
                 }
+                //第一页
                 if (_page.Index == 0)
                 {
                     sql = $"SELECT TOP {_page.Count} {column} FROM {table}{_lockname}{where}{group}{having}{orderBy}";
                 }
-                else if (_page.Index > 0)
+                else if (_page.Index > 0)//大于一页
                 {
-                    if (orderBy == string.Empty)
+                    if (orderBy == string.Empty)//如果未指定排序
                     {
-                        orderBy = "ORDER BY (SELECT 1)";
+                        orderBy = " ORDER BY (SELECT 1)";
                     }
-                    var rownumber = $"ROW_NUMBER() OVER({orderBy}) AS RowNumber";
-                    var limit = $"WHERE RowNumber > {_page.Count * (_page.Index - 1)}";
-                    //var limit = $" OFFSET {_page.Index} ROWS FETCH NEXT {_page.Count} ROWS ONLY";
-                    sql = $"SELECT TOP {_page.Count} * FROM (SELECT {column},{rownumber} FROM {_lockname}{table}{where}{group}{having}) AS t {limit}";
+                    if (_context.DbContextType == DbContextType.SqlServer2008)
+                    {
+                        var rownumber = $"ROW_NUMBER() OVER ({orderBy}) AS RowNumber";
+                        var offset = $"WHERE RowNumber > {_page.Count * (_page.Index - 1)}";
+                        sql = $"SELECT TOP {_page.Count} * FROM (SELECT {column},{rownumber} FROM {_lockname}{table}{where}{group}{having}) AS t {offset}";
+                    }
+                    else
+                    {
+                        var offset = $" OFFSET {(_page.Index - 1) * _page.Count} ROWS FETCH NEXT {_page.Count} ROWS ONLY";
+                        sql = $"SELECT {column} FROM {_lockname}{table}{where}{group}{having}{orderBy}{offset}";
+                    }
                 }
-                else
+                else//不分页
                 {
                     sql = $"SELECT {column} FROM {_lockname}{table}{where}{group}{having}{orderBy}";
                 }
             }
             else
             {
-                var limit = _page.Index > 0 || _page.Count > 0 ? $" LIMIT {_page.Index},{_page.Count}" : string.Empty;
-                sql = $"SELECT {column} FROM {table}{where}{group}{having}{orderBy}{limit}{_lockname}";
+                var offset = _page.Index > 0 || _page.Count > 0 ? $" LIMIT {_page.Index},{_page.Count}" : string.Empty;
+                sql = $"SELECT {column} FROM {table}{where}{group}{having}{orderBy}{offset}{_lockname}";
             }
             return sql;
         }

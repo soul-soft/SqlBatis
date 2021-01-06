@@ -8,6 +8,8 @@
 
   <ItemGroup>
     <None Remove="Student.xml" />
+    <None Remove="Templates\SqlServerDbContext.tt" />
+    <None Remove="Templates\SqlServerEntities.tt" />
   </ItemGroup>
 
   <ItemGroup>
@@ -36,13 +38,6 @@
     <None Update="Templates\MySqlEntities.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>MySqlEntities.cs</LastGenOutput>
-    </None>
-    <None Update="Templates\SqlServerDbContext.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-    </None>
-    <None Update="Templates\SqlServerEntities.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>SqlServerEntities.cs</LastGenOutput>
     </None>
   </ItemGroup>
 
