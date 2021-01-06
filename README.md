@@ -8,19 +8,6 @@
 
 3. 它的实体映射能力几乎接近手写代码（这在单元测试中有测试案例），sqlbatis从sql到返回查询结果这个过程所执行的代码行数极短（这也是高性能的指标之一）。实体创建采用IL，你可以像使用C#代码一样定制化你的映射规则。
 
-## 全局设置-为定制化需求提供入口
-``` C#
-//所有设置均有默认行为，可以按需配置，以下均为默认值
-//由于是全局设置，只需要设置一次即可
-//可以写在asp.net core的main函数中，或者startup或者类的静态构造器中
-GlobalSettings.EntityMapperProvider = new EntityMapperProvider();
-
-//自定义数据库元信息提供程序，默认从注解中获取，如果你不想使用注解可以通过自定义元数据提供程序
-GlobalSettings.DbMetaInfoProvider = new AnnotationDbMetaInfoProvider();
-
-//Xml命令提供程序，加载xml配置。建议将文件属性设置为嵌入的资源（vs文件属性->生成操作->嵌入的资源）
-GlobalSettings.XmlCommandsProvider.Load(System.Reflection.Assembly.GetExecutingAssembly(), @".+\.xml");
-```
 ## 创建DbContext
 
 ``` C#
@@ -37,36 +24,6 @@ var context = new DbContext(new DbContextBuilder
  
 ```
 
-## 事务操作
-
-1. 经典做法
-``` C#
-IDbContext context = null;
-try
-{
-context = new Dbcontext(...);
-context.Open();
-context.Execute(...);
-...
-context.CommitTransaction();
-}
-catch
-{
-    context?.RollbackTransaction();
-    throw;
-}
-```
-2. 1.0.7之后你不需要主动Rollback，因为using会执行Dispose，Dispose如果发现你没有提交就先回滚事务
-
-``` C#
-using(var context = new DbContext(...))
-{
-context.Open();
-context.Execute(...);
-....
-context.CommitTransaction();
-}
-```
 
 ## 执行sql脚本(Dapper那样使用)
 
@@ -97,14 +54,6 @@ using(var multi = context.MultipleQuery("select * from student;select count(1) f
 context.Execute("delete from student where id in (@Id1,@Id2,@Id3)",new {Id1=1,Id2=2,Id3=3});
 //简化的in查询,会自动生成上面的sql
 context.Execute("delete from student where id in @Id",new {Id=new int[]{1,2,3}});
-/**
-* sqlbatis支持的参数类型如下：
-* 1.类类型（常用）
-* 2.Dictionary<string,object>（常用）
-* 3.匿名类型（常用）
-* 4.IDataParameter类型
-* 5.IEnumerable<IDbDataParameter>
-*/
 ```
 ## Linq操作
 
@@ -126,9 +75,6 @@ var list1 = context1.From<Student>()
     .Select(); 
 var list2 = context2.Student
     .Select(); 
-//在使用linq查询时必须定义实体，以及实体注解（如果你自定义了注解提供程序可以不使用注解)，常用实例：
-//通过注解获取
-var entity1 = context.Students.Get(1);
 var list1 = context.Students
     .Where(a=>a.Age>20)
     .Select();
@@ -185,18 +131,8 @@ xml的优势是可以构建复杂的sql，灵活的sql，动态的sql,推荐将x
 ```
 
 ``` C#
-/**
-* xml中的参数分两大类
-*   1.数据库参数，已@开头的
-*   2.xml表达式参数，if.test中的表达式参数
-* if.test中的参数必须都在类中定义（只能是类类型，匿名类型），由于底层是解析字符串然后创建表达式树，进而生成委托（并缓存）限制如下：
-*   1.如果要对值类型进行非空判断比如Id!=null，则Id必须是可以为null的类型比如：int?,long?
-*   2.由于底层缓存了if.test表达式创建的委托，因此一个xml命令的id不能通过不同的参数类型去解析（一个id建议只能被一处调用）
-*   3.if.test的表达式中必须收到加括号（底层通过正则分析）比如：<if test="(Id!=null)&&(Id>10)" value="Id=@Id">
-*   4.if.test底层的解析器非常的轻量只有几百行代码，功能有限，基本满足使用
-*/
 使用xml功能必须先加载你的xml配置
-GlobalSettings.XmlCommandsProvider.Load(System.Reflection.Assembly.GetExecutingAssembly(), @".+\.xml");
+SqlbatisSettings.XmlCommandsProvider.Load(System.Reflection.Assembly.GetExecutingAssembly(), @".+\.xml");
 using(var multi = db.From("student.list",new Student(){Id=null,Name="zs"}).ExecuteMultiQuery<Student>())
 {
     var list = multi.GetList<Student>();
@@ -212,87 +148,79 @@ for(var i=0;i<100000;i++)
 }
 ```
 
-## 自定义提供程序
-
-### 自定义数据库元信息提供程序
-
-``` C#
-//自定义提供程序
-public class MyDbMetaInfoProvider : IDbMetaInfoProvider
-{
-    public List<DbColumnMetaInfo> GetColumns(Type type)
-    {
-        return type.GetProperties().Select(s => new DbColumnMetaInfo()
-        {
-            ColumnName = s.Name,
-            CsharpName = s.Name,
-            CsharpType = s.PropertyType,
-            IsComplexType = false,
-            IsConcurrencyCheck = false,
-            IsDefault = false,
-            IsIdentity = false,
-            IsNotMapped = true,
-            IsPrimaryKey = false,
-        }).ToList();
-    }
-
-    public DbTableMetaInfo GetTable(Type type)
-    {
-        return new DbTableMetaInfo()
-        {
-            TableName = type.Name.ToUpper(),
-            CsharpName = type.Name
-        };
-    }
-}
-//替换掉默认提供程序
-GlobalSettings.DbMetaInfoProvider = new MyDbMetaInfoProvider();
-```
-
 ### 自定义类型映射提供程序
 
 ``` C#
-public class MyEntityMapperProvider : EntityMapperProvider
+/// <summary>
+/// 1.定义转换器
+/// </summary>
+public static class MyConvertMethod
 {
-     //定义一个内部类，编写转换器
-     static class ConvertMethod 
-     {
-            public static MethodInfo ConvertToBooleanMethod = typeof(ConvertMethod).GetMethod(nameof(ConvertToBoolean));
-            //方法的原型要求：静态函数，形参类型和顺序必须如下
-            public static bool ConvertToBoolean(IDataRecord record,int i)
-            {
-                if (record.IsDBNull(i))
-                {
-                    return false;
-                }
-                return record.GetValue(i).ToString() == "Ok";
-            }
-       }
-    //对动态类型的sqlserver的nchar和nvarchar处理
-     protected override object GetDynamicValue(IDataRecord record, int i)
-     {
-         if (record.IsDBNull(i))
-         {
-             return null;
-         }
-         var typeName = record.GetDataTypeName(i);
-         if ("nvarchar".Equals(typeName)|| "nchar".Equals(typeName))
-         {
-             return record.GetString(i)?.Trim();
-         }
-         return base.GetDynamicValue(record, i);
-     }
-     //重写转换器查找逻辑
-     protected override MethodInfo FindConvertMethod(Type returnType, Type fieldType)
-     {
-            //只对实体类型为Student中的bool类型处理（精准控制）
-            if (typeof(Student) == returnType && fieldType == typeof(bool))
-            {
-                return ConvertMethod.ConvertToBooleanMethod;
-            }
-            //否则使用默认的转换器
-            return base.FindConvertMethod(returnType, fieldType);
-      }
+    public static MethodInfo CharArrayConvertStringMethod = typeof(MyConvertMethod).GetMethod(nameof(CharArrayConvertString));
+    public static MethodInfo StringConvertJsonMethod = typeof(MyConvertMethod).GetMethod(nameof(StringConvertJson));
+    /// <summary>
+    /// 参数必须得有(IDataRecord record, int i)
+    /// </summary>
+    /// <param name="record">必须的</param>
+    /// <param name="i">必须的</param>
+    /// <returns></returns>
+    public static string CharArrayConvertString(IDataRecord record, int i)
+    {
+        if (record.IsDBNull(i))
+        {
+            return default;
+        }
+        return record.GetString(i).Trim();
+    }
+    /// <summary>
+    /// 泛型方法
+    /// 参数必须得有(IDataRecord record, int i)
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="record"></param>
+    /// <param name="i"></param>
+    /// <returns></returns>
+    public static T StringConvertJson<T>(IDataRecord record, int i)
+    {
+        if (record.IsDBNull(i))
+        {
+            return default;
+        }
+        var json = record.GetString(i);
+        return System.Text.Json.JsonSerializer.Deserialize<T>(json);
+    }
 }
- GlobalSettings.EntityMapperProvider = new MyEntityMapperProvider();
+
+/// <summary>
+/// 2.重写转换器匹配函数
+/// </summary>
+public class MyDbEntityMapperProvider : DbEntityMapperProvider
+{
+    protected override MethodInfo MatchDataRecordConvertMethod(Type returnType, Type entityMemberType, DbFieldInfo fieldInfo)
+    {
+        //如果是nchar或者nvarcher
+        if (fieldInfo.TypeName == "nchar"|| fieldInfo.TypeName == "nvarchar")
+        {
+            return MyConvertMethod.CharArrayConvertStringMethod;
+        }
+        if (entityMemberType?.IsClass && entityMemberType!=typeof(string) && )
+        {
+            //如果是泛型方法，必须MakeGenericMethod
+            return MyConvertMethod.StringConvertJsonMethod.MakeGenericMethod(entityMemberType);
+        }
+        //否则使用群主默认的
+        return base.MatchDataRecordConvertMethod(returnType, entityMemberType, fieldInfo);
+    }
+}
+var connectionString = @"server=127.0.0.1;user id=root;password=1024;database=sqlbatis;";
+var connection = new MySqlConnection(connectionString);
+//3.设置默认的转换器
+SqlBatisSettings.DbEntityMapperProvider = new MyDbEntityMapperProvider();
+var context = new DbContext(new DbContextBuilder
+{
+    Connection = connection,
+    DbContextType = DbContextType.SqlServer2012,
+});
+var list = context.From<StudentDto>()
+         .Select();
 ```
