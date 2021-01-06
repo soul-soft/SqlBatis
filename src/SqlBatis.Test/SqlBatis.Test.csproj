@@ -51,10 +51,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="Templates\SqlServerEntities.cs">
+    <Compile Update="Templates\MySqlEntities.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
-      <DependentUpon>SqlServerEntities.tt</DependentUpon>
+      <DependentUpon>MySqlEntities.tt</DependentUpon>
     </Compile>
   </ItemGroup>
 

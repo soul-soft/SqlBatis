@@ -81,7 +81,7 @@ namespace SqlBatis.Expressions
         {
             var tableType = expression.Member.DeclaringType;
             var fieldName = expression.Member.Name;
-            var columns = GlobalSettings.DbMetaInfoProvider.GetColumns(tableType);
+            var columns = SqlBatisSettings.DbMetaInfoProvider.GetColumns(tableType);
             var column = columns.Where(a => a.CsharpName == fieldName)
                 .FirstOrDefault().ColumnName;
             if (_singleTable)
@@ -103,7 +103,7 @@ namespace SqlBatis.Expressions
         /// <returns></returns>
         public string GetDbTableNameAsAlias(Type type)
         {
-            var tableName = GlobalSettings.DbMetaInfoProvider.GetTable(type).TableName;
+            var tableName = SqlBatisSettings.DbMetaInfoProvider.GetTable(type).TableName;
             if (_singleTable)
             {
                 return tableName;

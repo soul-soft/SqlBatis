@@ -1,3 +1,4 @@
+using MySql.Data.MySqlClient;
 using NUnit.Framework;
 using System;
 using System.Data.SqlClient;
@@ -11,17 +12,23 @@ namespace SqlBatis.Test
         [Test]
         public void FFFFFFFFFFF()
         {
-            var connectionString = @"Data Source=127.0.0.1;Initial Catalog=test;User ID=sa;Password=1024";
-            var connection = new SqlConnection(connectionString);
+            var connectionString = @"server=127.0.0.1;user id=root;password=1024;database=sqlbatis;";
+            var connection = new MySqlConnection(connectionString);
             var context = new DbContext(new DbContextBuilder
             {
                 Connection = connection,
-                DbContextType = DbContextType.SqlServer,
-                EntityMapper = new DefaultEntityMapper()
+                DbContextType = DbContextType.Mysql,
+                DbEntityMapper = new MyEntityMapper()
             });
             try
             {
-                //var (list,count) = context.From<SysUserDto>().OrderBy(A=>A.Id).Page(1, 2).SelectMany();
+               var list = context.From<Student, StudentSchool>()
+                    .LeftJoin((a, b) => a.Sid == b.Id && b.Id != 1)
+                    .Select((a,b)=> new
+                    {
+                        a.StuName,
+                        b.SchName
+                    });
             }
             catch (Exception e)
             {

@@ -1,19 +1,17 @@
 ﻿using SqlBatis.Expressions;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace SqlBatis.Queryables
 {
-    public class PageData
+    internal class PageData
     {
         public int Index { get; set; } = -1;
         public int Count { get; set; }
     }
-    public class OrderExpression
+    internal class OrderExpression
     {
         public bool Asc { get; set; } = true;
         public Expression Expression { get; set; }
@@ -29,11 +27,11 @@ namespace SqlBatis.Queryables
         protected readonly bool _isSingleTable = true;
         private StringBuilder _viewName;
         protected readonly Dictionary<string, object> _parameters = new Dictionary<string, object>();
-        protected internal readonly PageData _page = new PageData();
+        internal readonly PageData _page = new PageData();
         protected string _lockname = string.Empty;
         protected readonly IDbContext _context = null;
         protected readonly List<Expression> _whereExpressions = new List<Expression>();
-        protected readonly List<OrderExpression> _orderExpressions = new List<OrderExpression>();
+        internal readonly List<OrderExpression> _orderExpressions = new List<OrderExpression>();
         protected readonly List<Expression> _groupExpressions = new List<Expression>();
         protected readonly List<Expression> _havingExpressions = new List<Expression>();
         public Queryable(IDbContext context, bool isSingleTable)
@@ -46,11 +44,11 @@ namespace SqlBatis.Queryables
         #region resovles
         protected string GetSingleTableName<T>()
         {
-            return GlobalSettings.DbMetaInfoProvider.GetTable(typeof(T)).TableName;
+            return SqlBatisSettings.DbMetaInfoProvider.GetTable(typeof(T)).TableName;
         }
         protected List<DbColumnMetaInfo> GetSingleTableColumnMetaInfos<T>()
         {
-            return GlobalSettings.DbMetaInfoProvider.GetColumns(typeof(T));
+            return SqlBatisSettings.DbMetaInfoProvider.GetColumns(typeof(T));
         }
         protected void SetViewName(string viewName)
         {
@@ -58,11 +56,11 @@ namespace SqlBatis.Queryables
         }
         protected void AddViewName(string viewName)
         {
-            if (_viewName==null)
+            if (_viewName == null)
             {
                 _viewName = new StringBuilder();
             }
-            if (_viewName.Length>0)
+            if (_viewName.Length > 0)
             {
                 _viewName.Append(" ");
             }
@@ -77,7 +75,7 @@ namespace SqlBatis.Queryables
             var builder = new StringBuilder();
             foreach (var expression in _whereExpressions)
             {
-                var result = new BooleanExpressionResovle(_isSingleTable,expression, _parameters).Resovle();
+                var result = new BooleanExpressionResovle(_isSingleTable, expression, _parameters).Resovle();
                 if (expression == _whereExpressions.First())
                 {
                     builder.Append($" WHERE {result}");
@@ -193,7 +191,7 @@ namespace SqlBatis.Queryables
                         orderBy = "ORDER BY (SELECT 1)";
                     }
                     var rownumber = $"ROW_NUMBER() OVER({orderBy}) AS RowNumber";
-                    var limit = $"WHERE RowNumber > {_page.Count * (_page.Index-1)}";
+                    var limit = $"WHERE RowNumber > {_page.Count * (_page.Index - 1)}";
                     //var limit = $" OFFSET {_page.Index} ROWS FETCH NEXT {_page.Count} ROWS ONLY";
                     sql = $"SELECT TOP {_page.Count} * FROM (SELECT {column},{rownumber} FROM {_lockname}{table}{where}{group}{having}) AS t {limit}";
                 }

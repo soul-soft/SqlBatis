@@ -44,7 +44,7 @@ namespace SqlBatis.Queryables
         /// <param name="entity"></param>
         private void EntityToDbParameters(T entity)
         {
-            var serializer = _context.EntityMapper.GetDeserializer(typeof(T));
+            var serializer = DbEntityMapper.GetDeserializer(typeof(T));
             var values = serializer(entity);
             foreach (var item in values)
             {
@@ -100,7 +100,7 @@ namespace SqlBatis.Queryables
             {
                 var buffer = new StringBuilder();
                 buffer.Append($"INSERT INTO {table}({columnNames}) VALUES ");
-                var serializer = _context.EntityMapper.GetDeserializer(typeof(T));
+                var serializer = DbEntityMapper.GetDeserializer(typeof(T));
                 var list = entitys.ToList();
                 for (var i = 0; i < list.Count; i++)
                 {
@@ -170,7 +170,7 @@ namespace SqlBatis.Queryables
                 var where = BuildWhereExpression();
                 foreach (var item in _setExpressions)
                 {
-                    var column = new BooleanExpressionResovle(_isSingleTable, item.Column).Resovle();
+                    var column = new BooleanExpressionResovle(_isSingleTable, item.Column, _parameters).Resovle();
                     var expression = new BooleanExpressionResovle(_isSingleTable, item.Expression, _parameters).Resovle();
                     builder.Append($"{column} = {expression},");
                 }

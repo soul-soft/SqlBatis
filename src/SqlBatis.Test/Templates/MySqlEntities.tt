@@ -12,7 +12,7 @@
 <#@ output extension=".cs" #>
 <#
 	//数据库连接字符串
-	var connectionString = "server=127.0.0.1;user id=root;password=1024;database=test;";
+	var connectionString = "server=127.0.0.1;user id=root;password=1024;database=sqlbatis;";
 #>
 <#
     var connection = new MySqlConnection(connectionString);
@@ -25,7 +25,7 @@
 using System;
 using SqlBatis.Attributes;
 
-namespace YC51.Models
+namespace SqlBatis.Test
 {
 <#foreach(var table in tables){#>
 	

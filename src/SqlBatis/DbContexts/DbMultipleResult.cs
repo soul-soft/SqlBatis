@@ -60,12 +60,11 @@ namespace SqlBatis
 
     internal class DbMultipleResult : IDbMultipleResult
     {
-        private readonly IEntityMapper _entityMapper = null;
+        private readonly DbEntityMapper _entityMapper = null;
         private readonly IDataReader _reader = null;
-
         private readonly IDbCommand _command = null;
 
-        internal DbMultipleResult(IDbCommand command, IEntityMapper entityMapper)
+        internal DbMultipleResult(IDbCommand command, DbEntityMapper entityMapper)
         {
             _entityMapper = entityMapper;
             _command = command;

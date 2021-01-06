@@ -177,7 +177,7 @@ namespace SqlBatis.Queryables
 
         private IDbQueryable<T1, T2, T3> Join<V1, V2>(Expression<Func<V1, V2, bool>> expression, string joinType)
         {
-            var resovle = new BooleanExpressionResovle(_isSingleTable, expression);
+            var resovle = new BooleanExpressionResovle(_isSingleTable, expression, _parameters);
             var onExpression = resovle.Resovle();
             var table1Name = resovle.GetDbTableNameAsAlias(typeof(V1));
             var table2Name = resovle.GetDbTableNameAsAlias(typeof(V2));
@@ -202,7 +202,7 @@ namespace SqlBatis.Queryables
         }
         public IDbQueryable<T1, T2, T3> Join(Expression<Func<T1, T2, T3, bool>> expression)
         {
-            var resovle = new BooleanExpressionResovle(_isSingleTable, expression);
+            var resovle = new BooleanExpressionResovle(_isSingleTable, expression, _parameters);
             var onExpression = resovle.Resovle();
             var table1Name = resovle.GetDbTableNameAsAlias(typeof(T1));
             var table2Name = resovle.GetDbTableNameAsAlias(typeof(T2));

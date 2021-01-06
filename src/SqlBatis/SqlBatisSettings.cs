@@ -7,7 +7,7 @@ namespace SqlBatis
     /// <summary>
     /// 全局设置
     /// </summary>
-    public static class GlobalSettings
+    public static class SqlBatisSettings
     {
         /// <summary>
         /// 数据库元信息提供程序

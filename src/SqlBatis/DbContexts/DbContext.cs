@@ -13,9 +13,158 @@ namespace SqlBatis
     /// <summary>
     /// 数据库上下文
     /// </summary>
+    public interface IDbContext : IDisposable
+    {
+        /// <summary>
+        /// 数据库上下文状态
+        /// </summary>
+        DbContextState DbContextState { get; }
+        /// <summary>
+        /// 数据库上下文类型
+        /// </summary>
+        DbContextType DbContextType { get; }
+        /// <summary>
+        /// 获取一个xml执行器
+        /// </summary>
+        /// <typeparam name="T">参数类型</typeparam>
+        /// <param name="id">命令id</param>
+        /// <param name="parameter">参数</param>
+        /// <returns></returns>
+        IXmlQuery From<T>(string id, T parameter) where T : class;
+        /// <summary>
+        /// 获取一个xml执行器
+        /// </summary>
+        /// <param name="id">命令id</param>
+        /// <returns></returns>
+        IXmlQuery From(string id);
+        /// <summary>
+        /// 获取一个linq执行器
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        IDbQueryable<T> From<T>();
+        /// <summary>
+        /// 开启事务会话
+        /// </summary>
+        void BeginTransaction();
+        /// <summary>
+        /// 开启事务会话
+        /// </summary>
+        /// <param name="level">事务隔离级别</param>
+        void BeginTransaction(IsolationLevel level);
+        /// <summary>
+        /// 关闭连接和事务
+        /// </summary>
+        void Close();
+        /// <summary>
+        /// 提交当前事务会话
+        /// </summary>
+        void CommitTransaction();
+        /// <summary>
+        /// 执行多结果集查询，返回IMultiResult
+        /// </summary>
+        /// <param name="sql">sql命令</param>
+        /// <param name="parameter">参数</param>
+        /// <param name="commandTimeout">超时时间</param>
+        /// <param name="commandType">命令类型</param>
+        /// <returns></returns>
+        IDbMultipleResult QueryMultiple(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null);
+        /// <summary>
+        /// 执行单结果集查询，并返回dynamic类型的结果集
+        /// </summary>
+        /// <param name="sql">sql命令</param>
+        /// <param name="parameter">参数</param>
+        /// <param name="commandTimeout">超时时间</param>
+        /// <param name="commandType">命令类型</param>
+        /// <returns></returns>
+        IEnumerable<dynamic> Query(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null);
+        /// <summary>
+        /// 异步执行单结果集查询，并返回dynamic类型的结果集
+        /// </summary>
+        /// <param name="sql">sql命令</param>
+        /// <param name="parameter">参数</param>
+        /// <param name="commandTimeout">超时时间</param>
+        /// <param name="commandType">命令类型</param>
+        /// <returns></returns>
+        Task<List<dynamic>> QueryAsync(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null);
+        /// <summary>
+        /// 执行单结果集查询，并返回T类型的结果集
+        /// </summary>
+        /// <typeparam name="T">返回类型</typeparam>
+        /// <param name="sql">sql命令</param>
+        /// <param name="parameter">参数</param>
+        /// <param name="commandTimeout">超时时间</param>
+        /// <param name="commandType">命令类型</param>
+        /// <returns></returns>
+        IEnumerable<T> Query<T>(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null);
+        /// <summary>
+        /// 异步执行单结果集查询，并返回T类型的结果集
+        /// </summary>
+        /// <typeparam name="T">返回类型</typeparam>
+        /// <param name="sql">sql命令</param>
+        /// <param name="parameter">参数</param>
+        /// <param name="commandTimeout">超时时间</param>
+        /// <param name="commandType">命令类型</param>
+        /// <returns></returns>
+        Task<IEnumerable<T>> QueryAsync<T>(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null);
+        /// <summary>
+        /// 执行无结果集查询，并返回受影响的行数
+        /// </summary>
+        /// <param name="sql">sql命令</param>
+        /// <param name="parameter">参数</param>
+        /// <param name="commandTimeout">超时时间</param>
+        /// <param name="commandType">命令类型</param>
+        /// <returns></returns>
+        int Execute(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null);
+        /// <summary>
+        /// 异步执行无结果集查询，并返回受影响的行数
+        /// </summary>
+        /// <param name="sql">sql命令</param>
+        /// <param name="parameter">参数</param>
+        /// <param name="commandTimeout">超时时间</param>
+        /// <param name="commandType">命令类型</param>
+        /// <returns></returns>
+        Task<int> ExecuteAsync(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null);
+        /// <summary>
+        /// 执行无结果集查询，并返回指定类型的数据
+        /// </summary>
+        /// <typeparam name="T">返回类型</typeparam>
+        /// <param name="sql">sql命令</param>
+        /// <param name="parameter">参数</param>
+        /// <param name="commandTimeout">超时时间</param>
+        /// <param name="commandType">命令类型</param>
+        /// <returns></returns>
+        T ExecuteScalar<T>(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null);
+        /// <summary>
+        /// 异步执行无结果集查询，并返回指定类型的数据
+        /// </summary>
+        /// <typeparam name="T">返回类型</typeparam>
+        /// <param name="sql">sql命令</param>
+        /// <param name="parameter">参数</param>
+        /// <param name="commandTimeout">超时时间</param>
+        /// <param name="commandType">命令类型</param>
+        /// <returns></returns>
+        Task<T> ExecuteScalarAsync<T>(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null);
+        /// <summary>
+        /// 打开数据库连接
+        /// </summary>
+        void Open();
+        /// <summary>
+        /// 异步打开数据库连接
+        /// </summary>
+        /// <returns></returns>
+        Task OpenAsync();
+        /// <summary>
+        /// 回滚当前事务会话
+        /// </summary>
+        void RollbackTransaction();
+    }
+    /// <summary>
+    /// 数据库上下文
+    /// </summary>
     public class DbContext : IDbContext
     {
-        public IEntityMapper EntityMapper { get; private set; }
+        private DbEntityMapper _entityMapper;
         private IDbTransaction _transaction;
         private readonly IDbConnection _connection;
         public DbContextState DbContextState { get; private set; } = DbContextState.Closed;
@@ -24,18 +173,18 @@ namespace SqlBatis
         {
             _connection = builder.Connection;
             DbContextType = builder.DbContextType;
-            EntityMapper = builder.EntityMapper;
+            _entityMapper = builder.DbEntityMapper;
         }
         public virtual IXmlQuery From<T>(string id, T parameter) where T : class
         {
-            var sql = GlobalSettings.XmlCommandsProvider.Build(id, parameter);
-            var deserializer = EntityMapper.GetDeserializer(typeof(T));
+            var sql = SqlBatisSettings.XmlCommandsProvider.Build(id, parameter);
+            var deserializer = DbEntityMapper.GetDeserializer(typeof(T));
             var values = deserializer(parameter);
             return new XmlQuery(this, sql, values);
         }
         public virtual IXmlQuery From(string id)
         {
-            var sql = GlobalSettings.XmlCommandsProvider.Build(id);
+            var sql = SqlBatisSettings.XmlCommandsProvider.Build(id);
             return new XmlQuery(this, sql);
         }
         public virtual IDbQueryable<T> From<T>()
@@ -57,7 +206,7 @@ namespace SqlBatis
                 var list = new List<dynamic>();
                 using (var reader = cmd.ExecuteReader())
                 {
-                    var handler = EntityMapper.GetSerializer();
+                    var handler = _entityMapper.GetSerializer();
                     while (reader.Read())
                     {
                         list.Add(handler(reader));
@@ -73,7 +222,7 @@ namespace SqlBatis
                 using (var reader = await cmd.ExecuteReaderAsync())
                 {
                     var list = new List<dynamic>();
-                    var handler = EntityMapper.GetSerializer();
+                    var handler = _entityMapper.GetSerializer();
                     while (reader.Read())
                     {
                         list.Add(handler(reader));
@@ -85,7 +234,7 @@ namespace SqlBatis
         public virtual IDbMultipleResult QueryMultiple(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null)
         {
             var cmd = CreateDbCommand(sql, parameter, commandTimeout, commandType);
-            return new DbMultipleResult(cmd, EntityMapper);
+            return new DbMultipleResult(cmd, _entityMapper);
         }
         public virtual IEnumerable<T> Query<T>(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null)
         {
@@ -94,7 +243,7 @@ namespace SqlBatis
                 var list = new List<T>();
                 using (var reader = cmd.ExecuteReader())
                 {
-                    var handler = EntityMapper.GetSerializer<T>(reader);
+                    var handler = _entityMapper.GetSerializer<T>(reader);
                     while (reader.Read())
                     {
                         list.Add(handler(reader));
@@ -110,7 +259,7 @@ namespace SqlBatis
                 using (var reader = await cmd.ExecuteReaderAsync())
                 {
                     var list = new List<T>();
-                    var handler = EntityMapper.GetSerializer<T>(reader);
+                    var handler = _entityMapper.GetSerializer<T>(reader);
                     while (await reader.ReadAsync())
                     {
                         list.Add(handler(reader));
@@ -213,6 +362,14 @@ namespace SqlBatis
                 DbContextState = DbContextState.Rollback;
             }
         }
+        /// <summary>
+        /// 创建DbCommand
+        /// </summary>
+        /// <param name="sql"></param>
+        /// <param name="parameter"></param>
+        /// <param name="commandTimeout"></param>
+        /// <param name="commandType"></param>
+        /// <returns></returns>
         protected virtual IDbCommand CreateDbCommand(string sql, object parameter, int? commandTimeout = null, CommandType? commandType = null)
         {
             Open();
@@ -246,7 +403,7 @@ namespace SqlBatis
             }
             else if (parameter != null)
             {
-                var handler = EntityMapper.GetDeserializer(parameter.GetType());
+                var handler = DbEntityMapper.GetDeserializer(parameter.GetType());
                 var values = handler(parameter);
                 foreach (var item in values)
                 {
@@ -298,6 +455,13 @@ namespace SqlBatis
             }
             return cmd;
         }
+        /// <summary>
+        /// 创建DbDataParameter
+        /// </summary>
+        /// <param name="command"></param>
+        /// <param name="name"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
         protected virtual IDbDataParameter CreateDbDataParameter(IDbCommand command, string name, object value)
         {
             var parameter = command.CreateParameter();
@@ -305,11 +469,17 @@ namespace SqlBatis
             parameter.Value = value ?? DBNull.Value;
             return parameter;
         }
+        /// <summary>
+        /// 释放
+        /// </summary>
         public virtual void Dispose()
         {
             RollbackTransaction();
             Close();
         }
+        /// <summary>
+        /// 析构
+        /// </summary>
         ~DbContext()
         {
             Dispose();

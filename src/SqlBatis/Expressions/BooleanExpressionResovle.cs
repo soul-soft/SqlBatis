@@ -25,14 +25,6 @@ namespace SqlBatis.Expressions
 
         private readonly Dictionary<string, object> _parameters;
 
-        public BooleanExpressionResovle(bool single, Expression expression)
-            : base(single)
-        {
-            _single = single;
-            _expression = expression;
-            _parameters = new Dictionary<string, object>();
-        }
-
         public BooleanExpressionResovle(bool single, Expression expression, Dictionary<string, object> parameters)
             : base(single)
         {

@@ -41,7 +41,6 @@ namespace SqlBatis.Queryables
             return _context.ExecuteScalarAsync<int>(sql, _parameters);
         }
 
-
         public IDbQueryable<T1, T2> GroupBy<TResult>(Expression<Func<T1, T2, TResult>> expression)
         {
             _groupExpressions.Add(expression);
@@ -176,7 +175,7 @@ namespace SqlBatis.Queryables
 
         private IDbQueryable<T1, T2> Join<V1, V2>(Expression<Func<V1, V2, bool>> expression, string joinType)
         {
-            var resovle = new BooleanExpressionResovle(_isSingleTable, expression);
+            var resovle = new BooleanExpressionResovle(_isSingleTable, expression,_parameters);
             var onExpression = resovle.Resovle();
             var table1Name = resovle.GetDbTableNameAsAlias(typeof(T1));
             var table2Name = resovle.GetDbTableNameAsAlias(typeof(T2));
