@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<NoWarn>$(NoWarn);1591</NoWarn>
+		<TargetFrameworks>netstandard2.0;net5</TargetFrameworks>
+		<PackageProjectUrl>https://github.com/1448376744/SqlBatis</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/1448376744/SqlBatis</RepositoryUrl>
+		<RepositoryType>github</RepositoryType>
+		<PackageTags>orm;sql;micro-orm;mybatis</PackageTags>
+		<Description>A high performance Micro-ORM supporting SQL Server, MySQL, Sqlite etc..</Description>
+		<PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+		<PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|netstandard2.0|AnyCPU'">
+		<DocumentationFile>D:\SqlBatis\src\SqlBatis.Extensions.Dapper\SqlBatis.Extensions.Dapper.xml</DocumentationFile>
+	</PropertyGroup>
+
+	<ItemGroup Condition="'$(TargetFramework)' == 'net5'">
+		<PackageReference Include="Dapper" Version="2.0.78" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+		<PackageReference Include="Dapper" Version="2.0.78" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="SqlBatis" Version="1.1.8.1" />
+	</ItemGroup>
+
+</Project>

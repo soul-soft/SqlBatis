@@ -6,7 +6,7 @@ namespace SqlBatis.Test
 {
 <#
 	//数据库连接字符串
-	var connectionString = @"Data Source=127.0.0.1;Initial Catalog=mytest;User ID=sa;Password=1024";
+	var connectionString = @"Data Source=127.0.00.1;Initial Catalog=mytest;User ID=sa;Password=p12112";
 	var connection = new System.Data.SqlClient.SqlConnection(connectionString);
     var tables = Utils.GetTables(connection);
     var columns = Utils.GetColumns(connection);

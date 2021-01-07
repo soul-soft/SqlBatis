@@ -22,6 +22,7 @@
 #>
 using SqlBatis;
 using System.Data;
+using SqlBatis.Queryables;
 using Microsoft.Extensions.Logging;
 
 namespace KaiXingTong.Admin.Framework
@@ -39,7 +40,7 @@ namespace KaiXingTong.Admin.Framework
             _logger = logger;
          }
          
-         protected override IDbCommand CreateCommand(string sql, object parameter, int? commandTimeout = null, CommandType? commandType = null)
+         protected override IDbCommand CreateDbCommand(string sql, object parameter, int? commandTimeout = null, CommandType? commandType = null)
          {
              _logger.LogInformation(sql);
              return base.CreateCommand(sql, parameter, commandTimeout, commandType);

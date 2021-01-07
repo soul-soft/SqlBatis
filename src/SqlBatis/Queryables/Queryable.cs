@@ -45,11 +45,11 @@ namespace SqlBatis.Queryables
         #endregion
 
         #region resovles
-        protected string GetSingleTableName<T>()
+        protected static string GetSingleTableName<T>()
         {
             return SqlBatisSettings.DbMetaInfoProvider.GetTable(typeof(T)).TableName;
         }
-        protected List<DbColumnMetaInfo> GetSingleTableColumnMetaInfos<T>()
+        protected static List<DbColumnMetaInfo> GetSingleTableColumnMetaInfos<T>()
         {
             return SqlBatisSettings.DbMetaInfoProvider.GetColumns(typeof(T));
         }
@@ -65,7 +65,7 @@ namespace SqlBatis.Queryables
             }
             if (_viewName.Length > 0)
             {
-                _viewName.Append(" ");
+                _viewName.Append(' ');
             }
             _viewName.Append(viewName);
         }
@@ -134,7 +134,7 @@ namespace SqlBatis.Queryables
                 }
                 var result = new OrderExpressionResovle(_isSingleTable, item.Expression, item.Asc).Resovle();
                 buffer.Append(result);
-                buffer.Append(",");
+                buffer.Append(',');
             }
             return buffer.ToString().Trim(',');
         }
@@ -197,12 +197,12 @@ namespace SqlBatis.Queryables
                     if (_context.DbContextType == DbContextType.SqlServer2008)
                     {
                         var rownumber = $"ROW_NUMBER() OVER ({orderBy}) AS RowNumber";
-                        var offset = $"WHERE RowNumber > {_page.Count * (_page.Index - 1)}";
+                        var offset = $"WHERE RowNumber > {_page.Index}";
                         sql = $"SELECT TOP {_page.Count} * FROM (SELECT {column},{rownumber} FROM {_lockname}{table}{where}{group}{having}) AS t {offset}";
                     }
                     else
                     {
-                        var offset = $" OFFSET {(_page.Index - 1) * _page.Count} ROWS FETCH NEXT {_page.Count} ROWS ONLY";
+                        var offset = $" OFFSET {_page.Index} ROWS FETCH NEXT {_page.Count} ROWS ONLY";
                         sql = $"SELECT {column} FROM {_lockname}{table}{where}{group}{having}{orderBy}{offset}";
                     }
                 }

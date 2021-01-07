@@ -10,7 +10,7 @@ namespace SqlBatis
     /// <summary>
     /// DataReader多个结果集
     /// </summary>
-    public interface IDbMultipleResult : IDisposable
+    public interface IDbGridReader : IDisposable
     {
         /// <summary>
         /// 返回当前dynamic类型结果集
@@ -58,13 +58,12 @@ namespace SqlBatis
         Task<T> GetAsync<T>();
     }
 
-    internal class DbMultipleResult : IDbMultipleResult
+    internal class DbGridReader : IDbGridReader
     {
-        private readonly DbEntityMapperProvider _entityMapper = null;
         private readonly IDataReader _reader = null;
         private readonly IDbCommand _command = null;
 
-        internal DbMultipleResult(IDbCommand command)
+        internal DbGridReader(IDbCommand command)
         {
             _command = command;
             _reader = command.ExecuteReader();
@@ -98,7 +97,7 @@ namespace SqlBatis
 
         public async Task<List<dynamic>> GetListAsync()
         {
-            var handler = _entityMapper.GetSerializer();
+            var handler = SqlBatisSettings.DbEntityMapperProvider.GetSerializer();
             var list = new List<dynamic>();
             while (await (_reader as DbDataReader).ReadAsync())
             {
@@ -110,7 +109,7 @@ namespace SqlBatis
 
         public List<dynamic> GetList()
         {
-            var handler = _entityMapper.GetSerializer();
+            var handler = SqlBatisSettings.DbEntityMapperProvider.GetSerializer();
             var list = new List<dynamic>();
             while (_reader.Read())
             {
@@ -122,7 +121,7 @@ namespace SqlBatis
 
         public List<T> GetList<T>()
         {
-            var handler = _entityMapper.GetSerializer<T>(_reader);
+            var handler = SqlBatisSettings.DbEntityMapperProvider.GetSerializer<T>(_reader);
             var list = new List<T>();
             while (_reader.Read())
             {
@@ -134,7 +133,7 @@ namespace SqlBatis
 
         public async Task<List<T>> GetListAsync<T>()
         {
-            var handler = _entityMapper.GetSerializer<T>(_reader);
+            var handler = SqlBatisSettings.DbEntityMapperProvider.GetSerializer<T>(_reader);
             var list = new List<T>();
             while (await (_reader as DbDataReader).ReadAsync())
             {
@@ -153,3 +152,4 @@ namespace SqlBatis
         }
     }
 }
+

@@ -17,7 +17,7 @@ namespace SqlBatis
         /// <param name="commandTimeout">超时时间</param>
         /// <param name="commandType">命令类型</param>
         /// <returns></returns>
-        IDbMultipleResult MultipleQuery(int? commandTimeout = null, CommandType? commandType = null);
+        IDbGridReader MultipleQuery(int? commandTimeout = null, CommandType? commandType = null);
         /// <summary>
         /// 执行单结果集查询，并返回dynamic类型的结果集
         /// </summary>
@@ -89,7 +89,7 @@ namespace SqlBatis
     /// <summary>
     /// 实现xml命令映射器
     /// </summary>
-    internal class XmlQuery : IXmlQuery
+    public class XmlQuery : IXmlQuery
     {
         private readonly string _sql = null;
 
@@ -104,7 +104,7 @@ namespace SqlBatis
             _parameters = parameters;
         }
 
-        public IDbMultipleResult MultipleQuery(int? commandTimeout = null, CommandType? commandType = null)
+        public IDbGridReader MultipleQuery(int? commandTimeout = null, CommandType? commandType = null)
         {
             return _mapper.QueryMultiple(_sql, _parameters, commandTimeout,commandType);
         }

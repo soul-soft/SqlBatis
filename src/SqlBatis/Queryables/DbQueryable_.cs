@@ -106,7 +106,7 @@ namespace SqlBatis.Queryables
                 {
                     var item = list[i];
                     var values = serializer(item);
-                    buffer.Append("(");
+                    buffer.Append('(');
                     for (var j = 0; j < intcolumns.Count; j++)
                     {
                         var column = intcolumns[j];
@@ -144,13 +144,13 @@ namespace SqlBatis.Queryables
                         }
                         if (j + 1 < intcolumns.Count)
                         {
-                            buffer.Append(",");
+                            buffer.Append(',');
                         }
                     }
-                    buffer.Append(")");
+                    buffer.Append(')');
                     if (i + 1 < list.Count)
                     {
-                        buffer.Append(",");
+                        buffer.Append(',');
                     }
                 }
                 return buffer.Remove(buffer.Length - 1, 0).ToString();
@@ -235,7 +235,7 @@ namespace SqlBatis.Queryables
         /// </summary>
         /// <param name="sql"></param>
         /// <returns></returns>
-        private string CheckSql(string sql)
+        private static string CheckSql(string sql)
         {
             var buffer = new StringBuilder();
             for (int i = 0; i < sql.Length; i++)
@@ -284,16 +284,43 @@ namespace SqlBatis.Queryables
             return _context.ExecuteScalar<int>(sql, _parameters);
         }
 
-        public int Insert(IEnumerable<T> entitys, int? commandTimeout = null)
+        public int Insert(IEnumerable<T> entitys)
         {
-            if (entitys == null || entitys.Count() == 0)
+            if (entitys == null || !entitys.Any())
             {
                 return 0;
+            }
+            else if (_context.IsTransactioned)
+            {
+                return entitys.Select(s => Insert(s)).Sum();
+            }
+            else
+            {
+                try
+                {
+                    _context.BeginTransaction();
+                    var count = entitys.Select(s => Insert(s)).Sum();
+                    _context.CommitTransaction();
+                    return count;
+                }
+                catch
+                {
+                    _context.RollbackTransaction();
+                    throw;
+                }
+            }
+        }
+
+        public int InsertBatch(IEnumerable<T> entitys, int? commandTimeout = null)
+        {
+            var count = 0;
+            if (entitys == null || !entitys.Any())
+            {
+                return count;
             }
             var sql = BuildBatchInsertCommand(entitys);
             return _context.Execute(sql, _parameters, commandTimeout);
         }
-
         public int Update(int? commandTimeout = null)
         {
             if (_setExpressions.Count > 0)
@@ -576,11 +603,49 @@ namespace SqlBatis.Queryables
             return _context.ExecuteAsync(sql, _parameters);
         }
 
-        public async Task<int> InsertAsync(IEnumerable<T> entitys, int? commandTimeout = null)
+        public async Task<int> InsertAsync(IEnumerable<T> entitys)
         {
-            if (entitys == null || entitys.Count() == 0)
+            int count = 0;
+            if (entitys == null || !entitys.Any())
             {
                 return 0;
+            }
+            else if (_context.IsTransactioned)
+            {
+                foreach (var item in entitys)
+                {
+                    await InsertAsync(item);
+                    count++;
+                }
+            }
+            else
+            {
+                try
+                {
+                    _context.BeginTransaction();
+                    foreach (var item in entitys)
+                    {
+                        await InsertAsync(item);
+                        count++;
+                    }
+                    _context.CommitTransaction();
+                    return count;
+                }
+                catch
+                {
+                    _context.RollbackTransaction();
+                    throw;
+                }
+            }
+            return count;
+        }
+
+        public async Task<int> InsertBatchAsync(IEnumerable<T> entitys, int? commandTimeout = null)
+        {
+            var count = 0;
+            if (entitys == null || !entitys.Any())
+            {
+                return count;
             }
             var sql = BuildBatchInsertCommand(entitys);
             return await _context.ExecuteAsync(sql, _parameters, commandTimeout);

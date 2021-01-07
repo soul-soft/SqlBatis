@@ -60,6 +60,11 @@
             数据库上下文
             </summary>
         </member>
+        <member name="P:SqlBatis.IDbContext.IsTransactioned">
+            <summary>
+            是否是事物的
+            </summary>
+        </member>
         <member name="P:SqlBatis.IDbContext.DbContextState">
             <summary>
             数据库上下文状态
@@ -69,29 +74,6 @@
             <summary>
             数据库上下文类型
             </summary>
-        </member>
-        <member name="M:SqlBatis.IDbContext.From``1(System.String,``0)">
-            <summary>
-            获取一个xml执行器
-            </summary>
-            <typeparam name="T">参数类型</typeparam>
-            <param name="id">命令id</param>
-            <param name="parameter">参数</param>
-            <returns></returns>
-        </member>
-        <member name="M:SqlBatis.IDbContext.From(System.String)">
-            <summary>
-            获取一个xml执行器
-            </summary>
-            <param name="id">命令id</param>
-            <returns></returns>
-        </member>
-        <member name="M:SqlBatis.IDbContext.From``1">
-            <summary>
-            获取一个linq执行器
-            </summary>
-            <typeparam name="T"></typeparam>
-            <returns></returns>
         </member>
         <member name="M:SqlBatis.IDbContext.BeginTransaction">
             <summary>
@@ -268,57 +250,62 @@
             设置数据库类型
             </summary>
         </member>
-        <member name="T:SqlBatis.IDbMultipleResult">
+        <member name="T:SqlBatis.DbContextExtensions">
+            <summary>
+            扩展IDbContext
+            </summary>
+        </member>
+        <member name="T:SqlBatis.IDbGridReader">
             <summary>
             DataReader多个结果集
             </summary>
         </member>
-        <member name="M:SqlBatis.IDbMultipleResult.GetList">
+        <member name="M:SqlBatis.IDbGridReader.GetList">
             <summary>
             返回当前dynamic类型结果集
             </summary>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbMultipleResult.GetListAsync">
+        <member name="M:SqlBatis.IDbGridReader.GetListAsync">
             <summary>
             异步返回当前dynamic类型结果集
             </summary>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbMultipleResult.GetList``1">
+        <member name="M:SqlBatis.IDbGridReader.GetList``1">
             <summary>
             返回当前T结果集
             </summary>
             <typeparam name="T">结果集类型</typeparam>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbMultipleResult.GetListAsync``1">
+        <member name="M:SqlBatis.IDbGridReader.GetListAsync``1">
             <summary>
              异步返回当前T类型结果集
             </summary>
             <typeparam name="T"></typeparam>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbMultipleResult.Get">
+        <member name="M:SqlBatis.IDbGridReader.Get">
             <summary>
             返回当前dynamic类型结果
             </summary>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbMultipleResult.GetAsync">
+        <member name="M:SqlBatis.IDbGridReader.GetAsync">
             <summary>
             异步返回当前dynamic类型结果
             </summary>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbMultipleResult.Get``1">
+        <member name="M:SqlBatis.IDbGridReader.Get``1">
             <summary>
             返回当前T类型结果
             </summary>
             <typeparam name="T">结果集类型</typeparam>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbMultipleResult.GetAsync``1">
+        <member name="M:SqlBatis.IDbGridReader.GetAsync``1">
             <summary>
             异步返回当前T类型结果
             </summary>
@@ -939,20 +926,34 @@
             <param name="entity"></param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.Queryables.IDbQueryable`1.Insert(System.Collections.Generic.IEnumerable{`0},System.Nullable{System.Int32})">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`1.Insert(System.Collections.Generic.IEnumerable{`0})">
             <summary>
-            批量insert查询，该接口会忽略identity字段
+            批量insert查询
             </summary>
             <param name="entitys">参数集合</param>
-            <param name="commandTimeout">超时时间</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.Queryables.IDbQueryable`1.InsertAsync(System.Collections.Generic.IEnumerable{`0},System.Nullable{System.Int32})">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`1.InsertAsync(System.Collections.Generic.IEnumerable{`0})">
             <summary>
             异步批量insert查询，该接口会忽略identity字段
             </summary>
             <param name="entitys"></param>
-            <param name="commandTimeout">超时时间</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.Queryables.IDbQueryable`1.InsertBatch(System.Collections.Generic.IEnumerable{`0},System.Nullable{System.Int32})">
+            <summary>
+            批量新增
+            </summary>
+            <param name="entitys"></param>
+            <param name="commandTimeout"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.Queryables.IDbQueryable`1.InsertBatchAsync(System.Collections.Generic.IEnumerable{`0},System.Nullable{System.Int32})">
+            <summary>
+            批量新增
+            </summary>
+            <param name="entitys"></param>
+            <param name="commandTimeout"></param>
             <returns></returns>
         </member>
         <member name="M:SqlBatis.Queryables.IDbQueryable`1.Select(System.Nullable{System.Int32})">

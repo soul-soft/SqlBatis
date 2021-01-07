@@ -16,6 +16,10 @@ namespace SqlBatis
     public interface IDbContext : IDisposable
     {
         /// <summary>
+        /// 是否是事物的
+        /// </summary>
+        bool IsTransactioned { get; }
+        /// <summary>
         /// 数据库上下文状态
         /// </summary>
         DbContextState DbContextState { get; }
@@ -23,26 +27,6 @@ namespace SqlBatis
         /// 数据库上下文类型
         /// </summary>
         DbContextType DbContextType { get; }
-        /// <summary>
-        /// 获取一个xml执行器
-        /// </summary>
-        /// <typeparam name="T">参数类型</typeparam>
-        /// <param name="id">命令id</param>
-        /// <param name="parameter">参数</param>
-        /// <returns></returns>
-        IXmlQuery From<T>(string id, T parameter) where T : class;
-        /// <summary>
-        /// 获取一个xml执行器
-        /// </summary>
-        /// <param name="id">命令id</param>
-        /// <returns></returns>
-        IXmlQuery From(string id);
-        /// <summary>
-        /// 获取一个linq执行器
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <returns></returns>
-        IDbQueryable<T> From<T>();
         /// <summary>
         /// 开启事务会话
         /// </summary>
@@ -68,7 +52,7 @@ namespace SqlBatis
         /// <param name="commandTimeout">超时时间</param>
         /// <param name="commandType">命令类型</param>
         /// <returns></returns>
-        IDbMultipleResult QueryMultiple(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null);
+        IDbGridReader QueryMultiple(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null);
         /// <summary>
         /// 执行单结果集查询，并返回dynamic类型的结果集
         /// </summary>
@@ -166,6 +150,7 @@ namespace SqlBatis
     {
         private readonly IDbConnection _connection;
         private IDbTransaction _transaction;
+        public bool IsTransactioned { get => _transaction != null; }
         public DbContextState DbContextState { get; private set; } = DbContextState.Closed;
         public DbContextType DbContextType { get; } = DbContextType.Mysql;
         public DbContext(DbContextBuilder builder)
@@ -173,30 +158,7 @@ namespace SqlBatis
             _connection = builder.Connection;
             DbContextType = builder.DbContextType;
         }
-        public virtual IXmlQuery From<T>(string id, T parameter) where T : class
-        {
-            var sql = SqlBatisSettings.XmlCommandsProvider.Build(id, parameter);
-            var deserializer = SqlBatisSettings.DbEntityMapperProvider.GetDeserializer(typeof(T));
-            var values = deserializer(parameter);
-            return new XmlQuery(this, sql, values);
-        }
-        public virtual IXmlQuery From(string id)
-        {
-            var sql = SqlBatisSettings.XmlCommandsProvider.Build(id);
-            return new XmlQuery(this, sql);
-        }
-        public virtual IDbQueryable<T> From<T>()
-        {
-            return new DbQueryable<T>(this);
-        }
-        public virtual IDbQueryable<T1, T2> From<T1, T2>()
-        {
-            return new DbQueryable<T1, T2>(this);
-        }
-        public virtual IDbQueryable<T1, T2, T3> From<T1, T2, T3>()
-        {
-            return new DbQueryable<T1, T2, T3>(this);
-        }
+
         public virtual IEnumerable<dynamic> Query(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null)
         {
             using (var cmd = CreateDbCommand(sql, parameter, commandTimeout, commandType))
@@ -229,10 +191,10 @@ namespace SqlBatis
                 }
             }
         }
-        public virtual IDbMultipleResult QueryMultiple(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null)
+        public virtual IDbGridReader QueryMultiple(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null)
         {
             var cmd = CreateDbCommand(sql, parameter, commandTimeout, commandType);
-            return new DbMultipleResult(cmd);
+            return new DbGridReader(cmd);
         }
         public virtual IEnumerable<T> Query<T>(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null)
         {
@@ -428,7 +390,7 @@ namespace SqlBatis
                         {
                             list.Add(item.Value);
                         }
-                        if (list.Count() > 0)
+                        if (list.Count > 0)
                         {
                             var plist = new List<string>();
                             for (int i = 0; i < list.Count; i++)
@@ -474,6 +436,7 @@ namespace SqlBatis
         {
             RollbackTransaction();
             Close();
+            GC.SuppressFinalize(this);
         }
         /// <summary>
         /// 析构

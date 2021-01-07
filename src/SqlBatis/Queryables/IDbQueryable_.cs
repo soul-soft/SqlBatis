@@ -136,19 +136,31 @@ namespace SqlBatis.Queryables
         /// <returns></returns>
         Task<int> InsertReturnIdAsync(T entity);
         /// <summary>
-        /// 批量insert查询，该接口会忽略identity字段
+        /// 批量insert查询
         /// </summary>
         /// <param name="entitys">参数集合</param>
-        /// <param name="commandTimeout">超时时间</param>
         /// <returns></returns>
-        int Insert(IEnumerable<T> entitys, int? commandTimeout = null);
+        int Insert(IEnumerable<T> entitys);     
         /// <summary>
         /// 异步批量insert查询，该接口会忽略identity字段
         /// </summary>
         /// <param name="entitys"></param>
-        /// <param name="commandTimeout">超时时间</param>
         /// <returns></returns>
-        Task<int> InsertAsync(IEnumerable<T> entitys, int? commandTimeout = null);
+        Task<int> InsertAsync(IEnumerable<T> entitys);
+        /// <summary>
+        /// 批量新增
+        /// </summary>
+        /// <param name="entitys"></param>
+        /// <param name="commandTimeout"></param>
+        /// <returns></returns>
+        int InsertBatch(IEnumerable<T> entitys, int? commandTimeout = null);
+        /// <summary>
+        /// 批量新增
+        /// </summary>
+        /// <param name="entitys"></param>
+        /// <param name="commandTimeout"></param>
+        /// <returns></returns>
+        Task<int> InsertBatchAsync(IEnumerable<T> entitys, int? commandTimeout = null);
         /// <summary>
         /// select查询
         /// </summary>

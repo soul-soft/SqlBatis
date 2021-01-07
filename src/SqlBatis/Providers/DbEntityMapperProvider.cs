@@ -255,7 +255,7 @@ namespace SqlBatis
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        private Func<object, Dictionary<string, object>> CreateTypeDeserializerHandler(Type type)
+        private static Func<object, Dictionary<string, object>> CreateTypeDeserializerHandler(Type type)
         {
             var properties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
             var methodName = $"{type.Name}Deserializer{Guid.NewGuid():N}";
@@ -395,7 +395,7 @@ namespace SqlBatis
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        private Type GetUnderlyingType(Type type)
+        private static Type GetUnderlyingType(Type type)
         {
             var underlyingType = Nullable.GetUnderlyingType(type);
             return underlyingType ?? type;
@@ -405,7 +405,7 @@ namespace SqlBatis
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        private bool IsNullableType(Type type)
+        private static bool IsNullableType(Type type)
         {
             if (type.IsValueType && Nullable.GetUnderlyingType(type) == null)
             {
@@ -472,36 +472,36 @@ namespace SqlBatis
     public class DataRecordConvertMethods
     {
         #region Method Field
-        public static MethodInfo ToObjectMethod = typeof(DataRecordConvertMethods).GetMethod(nameof(DataRecordConvertMethods.ConvertToObject));
-        public static MethodInfo ToByteMethod = typeof(DataRecordConvertMethods).GetMethod(nameof(DataRecordConvertMethods.ConvertToByte));
-        public static MethodInfo ToIn16Method = typeof(DataRecordConvertMethods).GetMethod(nameof(DataRecordConvertMethods.ConvertToInt16));
-        public static MethodInfo ToIn32Method = typeof(DataRecordConvertMethods).GetMethod(nameof(DataRecordConvertMethods.ConvertToInt32));
-        public static MethodInfo ToIn64Method = typeof(DataRecordConvertMethods).GetMethod(nameof(DataRecordConvertMethods.ConvertToInt64));
-        public static MethodInfo ToFloatMethod = typeof(DataRecordConvertMethods).GetMethod(nameof(DataRecordConvertMethods.ConvertToFloat));
-        public static MethodInfo ToDoubleMethod = typeof(DataRecordConvertMethods).GetMethod(nameof(DataRecordConvertMethods.ConvertToDouble));
-        public static MethodInfo ToDecimalMethod = typeof(DataRecordConvertMethods).GetMethod(nameof(DataRecordConvertMethods.ConvertToDecimal));
-        public static MethodInfo ToBooleanMethod = typeof(DataRecordConvertMethods).GetMethod(nameof(DataRecordConvertMethods.ConvertToBoolean));
-        public static MethodInfo ToCharMethod = typeof(DataRecordConvertMethods).GetMethod(nameof(DataRecordConvertMethods.ConvertToChar));
-        public static MethodInfo ToStringMethod = typeof(DataRecordConvertMethods).GetMethod(nameof(DataRecordConvertMethods.ConvertToString));
-        public static MethodInfo ToTrimStringMethod = typeof(DataRecordConvertMethods).GetMethod(nameof(DataRecordConvertMethods.ConvertToTrimString));
-        public static MethodInfo ToDateTimeMethod = typeof(DataRecordConvertMethods).GetMethod(nameof(DataRecordConvertMethods.ConvertToDateTime));
-        public static MethodInfo ToEnumMethod = typeof(DataRecordConvertMethods).GetMethod(nameof(DataRecordConvertMethods.ConvertToEnum));
-        public static MethodInfo ToGuidMethod = typeof(DataRecordConvertMethods).GetMethod(nameof(DataRecordConvertMethods.ConvertToGuid));
+        internal static MethodInfo ToObjectMethod = typeof(DataRecordConvertMethods).GetMethod(nameof(DataRecordConvertMethods.ConvertToObject));
+        internal static MethodInfo ToByteMethod = typeof(DataRecordConvertMethods).GetMethod(nameof(DataRecordConvertMethods.ConvertToByte));
+        internal static MethodInfo ToIn16Method = typeof(DataRecordConvertMethods).GetMethod(nameof(DataRecordConvertMethods.ConvertToInt16));
+        internal static MethodInfo ToIn32Method = typeof(DataRecordConvertMethods).GetMethod(nameof(DataRecordConvertMethods.ConvertToInt32));
+        internal static MethodInfo ToIn64Method = typeof(DataRecordConvertMethods).GetMethod(nameof(DataRecordConvertMethods.ConvertToInt64));
+        internal static MethodInfo ToFloatMethod = typeof(DataRecordConvertMethods).GetMethod(nameof(DataRecordConvertMethods.ConvertToFloat));
+        internal static MethodInfo ToDoubleMethod = typeof(DataRecordConvertMethods).GetMethod(nameof(DataRecordConvertMethods.ConvertToDouble));
+        internal static MethodInfo ToDecimalMethod = typeof(DataRecordConvertMethods).GetMethod(nameof(DataRecordConvertMethods.ConvertToDecimal));
+        internal static MethodInfo ToBooleanMethod = typeof(DataRecordConvertMethods).GetMethod(nameof(DataRecordConvertMethods.ConvertToBoolean));
+        internal static MethodInfo ToCharMethod = typeof(DataRecordConvertMethods).GetMethod(nameof(DataRecordConvertMethods.ConvertToChar));
+        internal static MethodInfo ToStringMethod = typeof(DataRecordConvertMethods).GetMethod(nameof(DataRecordConvertMethods.ConvertToString));
+        internal static MethodInfo ToTrimStringMethod = typeof(DataRecordConvertMethods).GetMethod(nameof(DataRecordConvertMethods.ConvertToTrimString));
+        internal static MethodInfo ToDateTimeMethod = typeof(DataRecordConvertMethods).GetMethod(nameof(DataRecordConvertMethods.ConvertToDateTime));
+        internal static MethodInfo ToEnumMethod = typeof(DataRecordConvertMethods).GetMethod(nameof(DataRecordConvertMethods.ConvertToEnum));
+        internal static MethodInfo ToGuidMethod = typeof(DataRecordConvertMethods).GetMethod(nameof(DataRecordConvertMethods.ConvertToGuid));
         #endregion
 
         #region NullableMethod Field
-        public static MethodInfo ToByteNullableMethod = typeof(DataRecordConvertMethods).GetMethod(nameof(DataRecordConvertMethods.ConvertToByteNullable));
-        public static MethodInfo ToIn16NullableMethod = typeof(DataRecordConvertMethods).GetMethod(nameof(DataRecordConvertMethods.ConvertToInt16Nullable));
-        public static MethodInfo ToIn32NullableMethod = typeof(DataRecordConvertMethods).GetMethod(nameof(DataRecordConvertMethods.ConvertToInt32Nullable));
-        public static MethodInfo ToIn64NullableMethod = typeof(DataRecordConvertMethods).GetMethod(nameof(DataRecordConvertMethods.ConvertToInt64Nullable));
-        public static MethodInfo ToFloatNullableMethod = typeof(DataRecordConvertMethods).GetMethod(nameof(DataRecordConvertMethods.ConvertToFloatNullable));
-        public static MethodInfo ToDoubleNullableMethod = typeof(DataRecordConvertMethods).GetMethod(nameof(DataRecordConvertMethods.ConvertToDoubleNullable));
-        public static MethodInfo ToBooleanNullableMethod = typeof(DataRecordConvertMethods).GetMethod(nameof(DataRecordConvertMethods.ConvertToBooleanNullable));
-        public static MethodInfo ToDecimalNullableMethod = typeof(DataRecordConvertMethods).GetMethod(nameof(DataRecordConvertMethods.ConvertToDecimalNullable));
-        public static MethodInfo ToCharNullableMethod = typeof(DataRecordConvertMethods).GetMethod(nameof(DataRecordConvertMethods.ConvertToCharNullable));
-        public static MethodInfo ToDateTimeNullableMethod = typeof(DataRecordConvertMethods).GetMethod(nameof(DataRecordConvertMethods.ConvertToDateTimeNullable));
-        public static MethodInfo ToEnumNullableMethod = typeof(DataRecordConvertMethods).GetMethod(nameof(DataRecordConvertMethods.ConvertToEnumNullable));
-        public static MethodInfo ToGuidNullableMethod = typeof(DataRecordConvertMethods).GetMethod(nameof(DataRecordConvertMethods.ConvertToGuidNullable));
+        internal static MethodInfo ToByteNullableMethod = typeof(DataRecordConvertMethods).GetMethod(nameof(DataRecordConvertMethods.ConvertToByteNullable));
+        internal static MethodInfo ToIn16NullableMethod = typeof(DataRecordConvertMethods).GetMethod(nameof(DataRecordConvertMethods.ConvertToInt16Nullable));
+        internal static MethodInfo ToIn32NullableMethod = typeof(DataRecordConvertMethods).GetMethod(nameof(DataRecordConvertMethods.ConvertToInt32Nullable));
+        internal static MethodInfo ToIn64NullableMethod = typeof(DataRecordConvertMethods).GetMethod(nameof(DataRecordConvertMethods.ConvertToInt64Nullable));
+        internal static MethodInfo ToFloatNullableMethod = typeof(DataRecordConvertMethods).GetMethod(nameof(DataRecordConvertMethods.ConvertToFloatNullable));
+        internal static MethodInfo ToDoubleNullableMethod = typeof(DataRecordConvertMethods).GetMethod(nameof(DataRecordConvertMethods.ConvertToDoubleNullable));
+        internal static MethodInfo ToBooleanNullableMethod = typeof(DataRecordConvertMethods).GetMethod(nameof(DataRecordConvertMethods.ConvertToBooleanNullable));
+        internal static MethodInfo ToDecimalNullableMethod = typeof(DataRecordConvertMethods).GetMethod(nameof(DataRecordConvertMethods.ConvertToDecimalNullable));
+        internal static MethodInfo ToCharNullableMethod = typeof(DataRecordConvertMethods).GetMethod(nameof(DataRecordConvertMethods.ConvertToCharNullable));
+        internal static MethodInfo ToDateTimeNullableMethod = typeof(DataRecordConvertMethods).GetMethod(nameof(DataRecordConvertMethods.ConvertToDateTimeNullable));
+        internal static MethodInfo ToEnumNullableMethod = typeof(DataRecordConvertMethods).GetMethod(nameof(DataRecordConvertMethods.ConvertToEnumNullable));
+        internal static MethodInfo ToGuidNullableMethod = typeof(DataRecordConvertMethods).GetMethod(nameof(DataRecordConvertMethods.ConvertToGuidNullable));
         #endregion
 
         #region Define Convert

@@ -12,7 +12,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Dapper" Version="2.0.35" />
     <PackageReference Include="MySqlConnector" Version="0.66.0" />
     <PackageReference Include="nunit" Version="3.12.0" />
     <PackageReference Include="NUnit3TestAdapter" Version="3.15.1" />
@@ -33,6 +32,7 @@
   <ItemGroup>
     <None Update="Templates\MySqlDbContext.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>MySqlDbContext.cs</LastGenOutput>
     </None>
     <None Update="Templates\MySqlEntities.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
@@ -40,6 +40,7 @@
     </None>
     <None Update="Templates\SqlServerEntities.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>SqlServerEntities.cs</LastGenOutput>
     </None>
   </ItemGroup>
 
@@ -48,10 +49,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="Templates\MySqlEntities.cs">
+    <Compile Update="Templates\SqlServerEntities.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
-      <DependentUpon>MySqlEntities.tt</DependentUpon>
+      <DependentUpon>SqlServerEntities.tt</DependentUpon>
     </Compile>
   </ItemGroup>
 
