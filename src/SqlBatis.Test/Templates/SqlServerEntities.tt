@@ -2,11 +2,11 @@
 using System;
 using SqlBatis.Attributes;
 
-namespace SqlBatis.Test
+namespace Juzhen.Mes.Application
 {
 <#
 	//数据库连接字符串
-	var connectionString = @"Data Source=127.0.00.1;Initial Catalog=mytest;User ID=sa;Password=p12112";
+	var connectionString = @"Data Source=127.0.0.1;Initial Catalog=test;User ID=sa;Password=111";
 	var connection = new System.Data.SqlClient.SqlConnection(connectionString);
     var tables = Utils.GetTables(connection);
     var columns = Utils.GetColumns(connection);
@@ -60,11 +60,14 @@ namespace SqlBatis.Test
             var type = "object";
             switch (columnType)
             {
+                case "char": type = "string"; break;
+                case "nchar": type = "string"; break;
                 case "varchar": type = "string"; break;
+                case "nvarchar": type = "string"; break;
                 case "text": type = "string"; break;
-				case "char": type = "string"; break;
+                case "ntext": type = "string"; break;
                 case "bit": type = "bool?"; break;
-				case "tinyint": type = "byte?"; break;
+				case "tinyint": type = "short?"; break;
 				case "smallint": type = "short?"; break;
                 case "int": type = "int?"; break;
 				case "integer": type = "int?"; break;
@@ -141,9 +144,10 @@ namespace SqlBatis.Test
                 [Schemas].[name] AS [SchemaName],
                 [Properties].[value] AS [Description]
 	            FROM
-		        sys.tables AS [Tables]
+		        sys.objects AS [Tables]
+
 		        INNER JOIN sys.schemas AS [Schemas] ON [Tables].schema_id = [Schemas].schema_id
-                LEFT JOIN sys.extended_properties AS [Properties] ON [Properties].major_id=[Tables].object_id AND [Properties].minor_id=0";
+                LEFT JOIN sys.extended_properties AS [Properties] ON [Properties].major_id=[Tables].object_id AND [Properties].minor_id=0  WHERE (Tables.type='V' OR Tables.type='U')"    ;
             return Utils.Query<Table>(connection, tablesql).ToList();
         }
         //获取所有字段
@@ -161,8 +165,8 @@ namespace SqlBatis.Test
 		        [IsDefault] = CASE [Columns].default_object_id WHEN 0 THEN CAST(0 AS bit) ELSE CAST(1 AS bit) END,
 		        [Description] = [Properties].value 
 	            FROM
-		        sys.tables AS [Tables]
-		        INNER JOIN sys.columns AS [Columns] ON [Tables].object_id = [Columns].object_id
+		        sys.objects AS [Tables]
+		        INNER JOIN sys.columns AS [Columns] ON [Tables].object_id = [Columns].object_id AND ([Tables].type='V' OR [Tables].type='U')
 		        INNER JOIN sys.types AS [Types] ON [Columns].system_type_id = [Types].system_type_id 
 		        AND is_user_defined = 0 
 		        AND [Types].name <> 'sysname'

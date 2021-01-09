@@ -1,15 +1,16 @@
 ﻿<#@ template debug="false" hostspecific="false" language="C#" #><#@ assembly name="System.Core" #><#@ assembly name="System.Data" #><#@ import namespace="System.Linq" #><#@ import namespace="System.Text" #><#@ import namespace="System.Collections.Generic" #><#@ import namespace="System.Data" #><#@ output extension=".cs" #>
 <#
 	//数据库连接字符串
-	var connectionString = @"Data Source=127.0.0.1;Initial Catalog=mytest;User ID=sa;Password=1024";
+	var connectionString = @"Data Source=127.0.0.1;Initial Catalog=test;User ID=sa;Password=111";
 	var connection = new System.Data.SqlClient.SqlConnection(connectionString);
 	var tables = Utils.GetTables(connection);
     var columns = Utils.GetColumns(connection);
 #>
 using SqlBatis;
 using System.Data;
+using SqlBatis.Queryables;
 
-namespace ConsoleApp18
+namespace Juzhen.Mes.Application
 {
     /// <summary>
     /// 数据库上下文
@@ -21,10 +22,6 @@ namespace ConsoleApp18
          {
          }
          
-         protected override IDbCommand CreateDbCommand(string sql, object parameter, int? commandTimeout = null, CommandType? commandType = null)
-         {
-             return base.CreateDbCommand(sql, parameter, commandTimeout, commandType);
-         }
         <#foreach(var table in tables){#>
        
         /// <summary>
@@ -149,9 +146,9 @@ namespace ConsoleApp18
                 [Schemas].[name] AS [SchemaName],
                 [Properties].[value] AS [Description]
 	            FROM
-		        sys.tables AS [Tables]
+		        sys.objects AS [Tables]
 		        INNER JOIN sys.schemas AS [Schemas] ON [Tables].schema_id = [Schemas].schema_id
-                LEFT JOIN sys.extended_properties AS [Properties] ON [Properties].major_id=[Tables].object_id AND [Properties].minor_id=0";
+                LEFT JOIN sys.extended_properties AS [Properties] ON [Properties].major_id=[Tables].object_id AND [Properties].minor_id=0 WHERE (Tables.type='V' OR Tables.type='U')";
             return Utils.Query<Table>(connection, tablesql).ToList();
         }
         //获取所有字段
@@ -169,8 +166,8 @@ namespace ConsoleApp18
 		        [IsDefault] = CASE [Columns].default_object_id WHEN 0 THEN CAST(0 AS bit) ELSE CAST(1 AS bit) END,
 		        [Description] = [Properties].value 
 	            FROM
-		        sys.tables AS [Tables]
-		        INNER JOIN sys.columns AS [Columns] ON [Tables].object_id = [Columns].object_id
+		        sys.objects AS [Tables]
+		        INNER JOIN sys.columns AS [Columns] ON [Tables].object_id = [Columns].object_id AND ([Tables].type='V' OR [Tables].type='U')
 		        INNER JOIN sys.types AS [Types] ON [Columns].system_type_id = [Types].system_type_id 
 		        AND is_user_defined = 0 
 		        AND [Types].name <> 'sysname'
