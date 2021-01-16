@@ -79,7 +79,7 @@ namespace SqlBatis.XUnit
             }
 
             private string rawSql;
-        
+
             public string RawSql
             {
                 get { ResolveSql(); return rawSql; }
@@ -113,11 +113,23 @@ namespace SqlBatis.XUnit
         public SqlBuilder RightJoin(string sql) =>
             AddClause("rightjoin", sql, "\nRIGHT JOIN ", "\nRIGHT JOIN ", "\n", false);
 
-        public SqlBuilder Where(string sql) =>
-            AddClause("where", sql, " AND ", "WHERE ", "\n", false);
+        public SqlBuilder Where(string sql, bool condition = true)
+        {
+            if (condition)
+            {
+                AddClause("where", sql, " AND ", "WHERE ", "\n", false);
+            }
+            return this;
+        }
 
-        public SqlBuilder OrWhere(string sql) =>
-            AddClause("where", sql, " OR ", "WHERE ", "\n", true);
+        public SqlBuilder OrWhere(string sql, bool condition = true)
+        {
+            if (condition)
+            {
+                AddClause("where", sql, " OR ", "WHERE ", "\n", true);
+            }
+            return this;
+        }
 
         public SqlBuilder OrderBy(string sql) =>
             AddClause("orderby", sql, " , ", "ORDER BY ", "\n", false);
@@ -131,11 +143,22 @@ namespace SqlBatis.XUnit
         public SqlBuilder GroupBy(string sql) =>
             AddClause("groupby", sql, " , ", "\nGROUP BY ", "\n", false);
 
-        public SqlBuilder Having(string sql) =>
-            AddClause("having", sql, "\nAND ", "HAVING ", "\n", false);
+        public SqlBuilder Having(string sql, bool condition = true)
+        {
+            if (condition)
+            {
+                AddClause("having", sql, "\nAND ", "HAVING ", "\n", false);
+            }
+            return this;
+        }
 
-        public SqlBuilder Set(string sql) =>
-             AddClause("set", sql, " , ", "SET ", "\n", false);
-
+        public SqlBuilder Set(string sql, bool condition = true)
+        {
+            if (condition)
+            {
+                AddClause("set", sql, " , ", "SET ", "\n", false);
+            }
+            return this;
+        }
     }
 }

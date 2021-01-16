@@ -11,8 +11,8 @@ namespace SqlBatis.XUnit
             try
             {
                 var b1 = new SqlBuilder();
-                b1.Where("id>@Id")
-                  .Where("score>@Score")
+                b1.Where("id>@Id",false)
+                  .Where("score>@Score", false)
                   .Join("student_name as b on a.id=b.sid");
                 var p = new { Age = 1, Score = 20 };
                 var tmp1 = b1.Build("select * from student as a /**join**/ /**where**/ ");
@@ -29,7 +29,7 @@ namespace SqlBatis.XUnit
         [Fact(DisplayName = "获取单个")]
         public void Single()
         {
-
+            _context.Query("select * from student");
             var p = new { b = new { id = 444 } };
             var data = _context.From<StudentDto>()
                 .Where(a => a.Id == p.b.id)
