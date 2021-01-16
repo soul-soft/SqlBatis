@@ -4,10 +4,11 @@
 
  本人对所有因使用本产品而导致的损失概不负责,使用前请先测试和阅读源代码并自觉遵守开源协议，可用于学习交流二次开发
  
-## DbContext
+## 打印日志
 
 ``` C#
-public class MyDbContext : DbContext
+//通过重写DbContext，我们可以定制化一些需求
+public class LoggerDbContext : DbContext
 {
     public MyDbContext(DbContextBuilder builder)
         : base(builder)
@@ -24,7 +25,7 @@ public class MyDbContext : DbContext
     }
 }
 //创建数据上下文
-var context = new MyDbContext(new DbContext()
+var context = new LoggerDbContext(new DbContext()
 {
     Connection = new MySqlConnector.MySqlConnection("server=127.0.0.1;user id=root;password=1024;database=test;"),
     DbContextType = DbContextType.Mysql
