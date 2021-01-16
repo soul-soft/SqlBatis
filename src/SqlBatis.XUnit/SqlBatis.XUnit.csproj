@@ -1,0 +1,57 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Templates\MySqlDbContext.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Templates\MySqlDbContext.tt" />
+    <None Remove="Templates\SqlServerDbContext.tt" />
+    <None Remove="Templates\SqlServerEntities.tt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.7.1" />
+    <PackageReference Include="MySqlConnector" Version="1.2.1" />
+    <PackageReference Include="xunit" Version="2.4.1" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="coverlet.collector" Version="1.3.0">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SqlBatis.Extensions.Dapper\SqlBatis.Extensions.Dapper.csproj" />
+    <ProjectReference Include="..\SqlBatis\SqlBatis.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Templates\MySqlEntities.tt">
+      <LastGenOutput>MySqlEntities.cs</LastGenOutput>
+      <Generator>TextTemplatingFileGenerator</Generator>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Templates\MySqlEntities.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>MySqlEntities.tt</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+</Project>

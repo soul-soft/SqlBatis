@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace SqlBatis.Queryables
 {
-    public class DbQueryable<T1, T2> : Queryable, IDbQueryable<T1, T2>
+    public class DbQueryable<T1, T2> : BaseQueryable, IDbQueryable<T1, T2>
     {
         #region fields
         public DbQueryable(IDbContext context)
@@ -43,7 +43,7 @@ namespace SqlBatis.Queryables
 
         public IDbQueryable<T1, T2> GroupBy<TResult>(Expression<Func<T1, T2, TResult>> expression)
         {
-            _groupExpressions.Add(expression);
+            AddGroupExpression(expression);
             return this;
         }
 
@@ -51,7 +51,7 @@ namespace SqlBatis.Queryables
         {
             if (condition)
             {
-                _havingExpressions.Add(expression);
+                AddHavingExpression(expression);
             }
             return this;
         }
@@ -60,11 +60,7 @@ namespace SqlBatis.Queryables
         {
             if (condition)
             {
-                _orderExpressions.Add(new OrderExpression
-                {
-                    Asc = true,
-                    Expression = expression
-                });
+                AddOrderExpression(expression, true);
             }
             return this;
         }
@@ -73,11 +69,7 @@ namespace SqlBatis.Queryables
         {
             if (condition)
             {
-                _orderExpressions.Add(new OrderExpression
-                {
-                    Asc = false,
-                    Expression = expression
-                });
+                AddOrderExpression(expression, false);
             }
             return this;
         }
@@ -143,8 +135,7 @@ namespace SqlBatis.Queryables
         {
             if (condition)
             {
-                _page.Index = index;
-                _page.Count = count;
+                SetPage(index, count);
             }
             return this;
         }
@@ -162,20 +153,20 @@ namespace SqlBatis.Queryables
         {
             if (condition)
             {
-                _whereExpressions.Add(expression);
+                AddWhereExpression(expression);
             }
             return this;
         }
 
         public IDbQueryable<T1, T2> With(string lockname)
         {
-            _lockname = $" {lockname}";
+            SetLockName($" {lockname}");
             return this;
         }
 
         private IDbQueryable<T1, T2> Join<V1, V2>(Expression<Func<V1, V2, bool>> expression, string joinType)
         {
-            var resovle = new BooleanExpressionResovle(_isSingleTable, expression,_parameters);
+            var resovle = new BooleanExpressionResovle(_isSingleTable, expression, _parameters);
             var onExpression = resovle.Resovle();
             var table1Name = resovle.GetDbTableNameAsAlias(typeof(T1));
             var table2Name = resovle.GetDbTableNameAsAlias(typeof(T2));

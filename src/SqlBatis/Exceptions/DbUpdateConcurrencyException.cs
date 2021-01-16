@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace SqlBatis.Expressions
+namespace SqlBatis
 {
     /// <summary>
     /// 修改数据时并发冲突

@@ -158,7 +158,6 @@ namespace SqlBatis
             _connection = builder.Connection;
             DbContextType = builder.DbContextType;
         }
-
         public virtual IEnumerable<dynamic> Query(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null)
         {
             using (var cmd = CreateDbCommand(sql, parameter, commandTimeout, commandType))
@@ -373,7 +372,6 @@ namespace SqlBatis
             }
             if (dbParameters.Count > 0)
             {
-                //处理in查询
                 var options = RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Multiline;
                 foreach (IDataParameter item in dbParameters)
                 {
@@ -407,7 +405,7 @@ namespace SqlBatis
                             cmd.CommandText = Regex.Replace(cmd.CommandText, name, $"(SELECT 1 WHERE 1 = 0)");
                         }
                     }
-                    else if (Regex.IsMatch(cmd.CommandText, $@"([\@,\:,\?]+{item.ParameterName})", options))
+                    else// if (Regex.IsMatch(cmd.CommandText, $@"([\@,\:,\?]+{item.ParameterName})", options))
                     {
                         cmd.Parameters.Add(item);
                     }

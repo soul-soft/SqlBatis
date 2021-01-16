@@ -16,16 +16,12 @@
 		<DocumentationFile>D:\SqlBatis\src\SqlBatis.Extensions.Dapper\SqlBatis.Extensions.Dapper.xml</DocumentationFile>
 	</PropertyGroup>
 
-	<ItemGroup Condition="'$(TargetFramework)' == 'net5'">
-		<PackageReference Include="Dapper" Version="2.0.78" />
-	</ItemGroup>
-
-	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+	<ItemGroup>
 		<PackageReference Include="Dapper" Version="2.0.78" />
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="SqlBatis" Version="1.1.8.1" />
+	  <ProjectReference Include="..\SqlBatis\SqlBatis.csproj" />
 	</ItemGroup>
 
 </Project>

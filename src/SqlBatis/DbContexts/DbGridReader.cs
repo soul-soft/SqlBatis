@@ -62,7 +62,10 @@ namespace SqlBatis
     {
         private readonly IDataReader _reader = null;
         private readonly IDbCommand _command = null;
-
+        ~DbGridReader() 
+        {
+            Dispose();
+        }
         internal DbGridReader(IDbCommand command)
         {
             _command = command;
@@ -73,6 +76,7 @@ namespace SqlBatis
         {
             _reader?.Dispose();
             _command?.Dispose();
+            GC.SuppressFinalize(this);
         }
 
         public T Get<T>()

@@ -99,54 +99,60 @@ namespace SqlBatis.Queryables
         Task<int> UpdateAsync(int? commandTimeout = null);
         /// <summary>
         /// update查询，默认根据Primarkey更新，如果存在where则仅使用指定更新条件，
-        /// 无法通过该接口更新主键字段和主键字段
-        /// </summary>
-        /// <param name="entity">参数</param>
+        /// 无法通过该接口更新主键字段和主键字段</summary>
+        /// <typeparam name="Entity"></typeparam>
+        /// <param name="entity"></param>
         /// <returns></returns>
-        int Update(T entity);
+        int Update<Entity>(Entity entity);
         /// <summary>
         /// 异步update查询，默认根据Primarkey更新，如果存在where则仅使用指定更新条件，
-        /// 无法通过该接口更新主键字段和主键字段
-        /// </summary>
-        /// <param name="entity">参数</param>
+        /// 无法通过该接口更新主键字段和主键字段</summary>
+        /// <typeparam name="Entity"></typeparam>
+        /// <param name="entity"></param>
         /// <returns></returns>
-        Task<int> UpdateAsync(T entity);
+        Task<int> UpdateAsync<Entity>(Entity entity);
         /// <summary>
         /// insert查询，该接口会忽略identity字段
         /// </summary>
-        /// <param name="entity">参数</param>
+        /// <typeparam name="Entity"></typeparam>
+        /// <param name="entity"></param>
         /// <returns></returns>
-        int Insert(T entity);
+        int Insert<Entity>(Entity entity);
         /// <summary>
         /// 异步insert查询，该接口会忽略identity字段
         /// </summary>
-        /// <param name="entity">参数</param>
+        /// <typeparam name="Entity"></typeparam>
+        /// <param name="entity"></param>
         /// <returns></returns>
-        Task<int> InsertAsync(T entity);
+        Task<int> InsertAsync<Entity>(Entity entity);
         /// <summary>
         /// insert查询，并返回id，该接口会忽略identity字段
         /// </summary>
-        /// <param name="entity">参数</param>
+        /// <typeparam name="Entity"></typeparam>
+        /// <param name="entity"></param>
         /// <returns></returns>
-        int InsertReturnId(T entity);
+        int InsertReturnId<Entity>(Entity entity);
         /// <summary>
         /// 异步insert查询，并返回id，该接口会忽略identity字段
         /// </summary>
+        /// <typeparam name="Entity"></typeparam>
         /// <param name="entity"></param>
         /// <returns></returns>
-        Task<int> InsertReturnIdAsync(T entity);
+        Task<int> InsertReturnIdAsync<Entity>(Entity entity);
         /// <summary>
         /// 批量insert查询
         /// </summary>
-        /// <param name="entitys">参数集合</param>
+        /// <typeparam name="Entity"></typeparam>
+        /// <param name="entitys"></param>
         /// <returns></returns>
-        int Insert(IEnumerable<T> entitys);     
+        int Insert<Entity>(IEnumerable<Entity> entitys);
         /// <summary>
         /// 异步批量insert查询，该接口会忽略identity字段
         /// </summary>
+        /// <typeparam name="Entity"></typeparam>
         /// <param name="entitys"></param>
         /// <returns></returns>
-        Task<int> InsertAsync(IEnumerable<T> entitys);
+        Task<int> InsertAsync<Entity>(IEnumerable<Entity> entitys);
         /// <summary>
         /// 批量新增
         /// </summary>
@@ -252,6 +258,12 @@ namespace SqlBatis.Queryables
         /// <param name="expression">字段列表</param>
         /// <returns></returns>
         IDbQueryable<T> Ignore<TResult>(Expression<Func<T, TResult>> expression);
+        /// <summary>
+        /// 忽略所有空列
+        /// </summary>
+        /// <param name="ignoreAllNullColumns"></param>
+        /// <returns></returns>
+        IDbQueryable<T> Ignore(bool ignoreAllNullColumns = true);
         /// <summary>
         /// set查询
         /// </summary>

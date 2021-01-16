@@ -52,7 +52,7 @@ namespace SqlBatis.Expressions
             {
                 if (node.Arguments.Count == 2)
                 {
-                    _textBuilder.Append("(");
+                    _textBuilder.Append('(');
                     Visit(node.Arguments[0]);
                     _textBuilder.Append($" {Operator.ResovleExpressionType(node.Method.Name)} ");
                     var value = VisitExpressionValue(node.Arguments[1]);
@@ -72,12 +72,12 @@ namespace SqlBatis.Expressions
                     {
                         Visit(Expression.Constant(value));
                     }
-                    _textBuilder.Append(")");
+                    _textBuilder.Append(')');
                 }
             }
             else if (IsLikeExpression(node))
             {
-                _textBuilder.Append("(");
+                _textBuilder.Append('(');
                 object value = null;
                 if (IsParameterExpression(node.Object))
                 {
@@ -110,11 +110,11 @@ namespace SqlBatis.Expressions
                 {
                     SetParameterValue(Expression.Constant($"%{value}"));
                 }
-                _textBuilder.Append(")");
+                _textBuilder.Append(')');
             }
             else if (IsInExpression(node))
             {
-                _textBuilder.Append("(");
+                _textBuilder.Append('(');
                 Expression arguments1 = null;
                 Expression arguments2 = null;
                 if (node.Arguments.Count == 1)
@@ -138,7 +138,7 @@ namespace SqlBatis.Expressions
                     _textBuilder.Append(" IN ");
                 }
                 Visit(arguments1);
-                _textBuilder.Append(")");
+                _textBuilder.Append(')');
             }
             else if (node.Method.DeclaringType.GetCustomAttribute(typeof(FunctionAttribute), true) != null)
             {
@@ -154,7 +154,7 @@ namespace SqlBatis.Expressions
 
         protected override Expression VisitBinary(BinaryExpression node)
         {
-            _textBuilder.Append("(");
+            _textBuilder.Append('(');
             Visit(node.Left);
             if (node.Right is ConstantExpression right && right.Value == null && (node.NodeType == ExpressionType.Equal || node.NodeType == ExpressionType.NotEqual))
             {
@@ -165,7 +165,7 @@ namespace SqlBatis.Expressions
                 _textBuilder.Append($" {Operator.ResovleExpressionType(node.NodeType)} ");
                 Visit(node.Right);
             }
-            _textBuilder.Append(")");
+            _textBuilder.Append(')');
             return node;
         }
 
@@ -224,7 +224,7 @@ namespace SqlBatis.Expressions
             _textBuilder.Append($"{_prefix}{parameterName}");
         }
 
-        private bool IsLikeExpression(MethodCallExpression node)
+        private static bool IsLikeExpression(MethodCallExpression node)
         {
             return
                 node.Arguments.Count == 1 && node.Method.DeclaringType == typeof(string)
@@ -236,13 +236,13 @@ namespace SqlBatis.Expressions
                 );
         }
 
-        private bool IsParameterExpression(Expression expression)
+        private static bool IsParameterExpression(Expression expression)
         {
             return expression is MemberExpression memberExpression &&
                 memberExpression.Expression?.NodeType == ExpressionType.Parameter;
         }
 
-        private bool IsInExpression(MethodCallExpression node)
+        private static bool IsInExpression(MethodCallExpression node)
         {
             if (typeof(IEnumerable).IsAssignableFrom(node.Method.DeclaringType))
             {

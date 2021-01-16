@@ -12,18 +12,6 @@ namespace SqlBatis
     /// </summary>
     public static class DbContextExtensions
     {
-        public static IXmlQuery From<T>(this IDbContext context, string id, T parameter) where T : class
-        {
-            var sql = SqlBatisSettings.XmlCommandsProvider.Build(id, parameter);
-            var deserializer = SqlBatisSettings.DbEntityMapperProvider.GetDeserializer(typeof(T));
-            var values = deserializer(parameter);
-            return new XmlQuery(context, sql, values);
-        }
-        public static IXmlQuery From(this IDbContext context, string id)
-        {
-            var sql = SqlBatisSettings.XmlCommandsProvider.Build(id);
-            return new XmlQuery(context, sql);
-        }
         public static IDbQueryable<T> From<T>(this IDbContext context)
         {
             return new DbQueryable<T>(context);

@@ -1,36 +1,42 @@
 ﻿<#@ template debug="false" hostspecific="false" language="C#" #><#@ assembly name="System.Core" #><#@ assembly name="System.Data" #><#@ import namespace="System.Linq" #><#@ import namespace="System.Text" #><#@ import namespace="System.Collections.Generic" #><#@ import namespace="System.Data" #><#@ output extension=".cs" #>
-using System;
-using SqlBatis.Attributes;
-
-namespace Juzhen.Mes.Application
-{
 <#
 	//数据库连接字符串
 	var connectionString = @"Data Source=127.0.0.1;Initial Catalog=test;User ID=sa;Password=111";
 	var connection = new System.Data.SqlClient.SqlConnection(connectionString);
-    var tables = Utils.GetTables(connection);
+	var tables = Utils.GetTables(connection);
     var columns = Utils.GetColumns(connection);
 #>
-<#foreach(var table in tables){#>
-	/// <summary>
-    /// <#=table.Description ?? ""#>
-    /// </summary>
-	[Table("<#=table.TableName#>")]
-	public class <#=Utils.Pascal(table.TableName)#>Dto
-	{
-		<#foreach(var column in columns.FindAll(f=>f.TableId == table.TableId)){#>	
-		/// <summary>
-		/// <#=column.Description ?? ""#>
-		/// </summary>
-		[Column("[<#=column.ColumnName#>]")]
-		<#if(column.IsIdentity)#>[PrimaryKey]  
-        <#if(column.IsIdentity)#>[Identity]   
-		<#="public "+Utils.GetCSharpType(column.SystemTypeName)#> <#=Utils.Pascal(column.ColumnName)#> { get; set; }
-		<#}#>
-	}
-<#}#>
-}
+using SqlBatis;
+using System.Data;
+using SqlBatis.Queryables;
 
+namespace SqlBatis.XUnit
+{
+    /// <summary>
+    /// 数据库上下文
+    /// </summary>
+    public class MyDbContext : DbContext
+    {
+         public MyDbContext(DbContextBuilder builder)
+            :base(builder)
+         {
+         }
+         
+        <#foreach(var table in tables){#>
+       
+        /// <summary>
+        /// <#=table.Description ?? ""#>
+        /// </summary>
+        public IDbQueryable<<#=Utils.Pascal(table.TableName)#>Dto> <#=Utils.Pascal(table.TableName)#>
+        {
+            get
+            {
+                return new DbQueryable<<#=Utils.Pascal(table.TableName)#>Dto>(this);
+            }
+        }
+<#}#>
+    }
+}
 <#+
 	public class Table
     {
@@ -60,18 +66,14 @@ namespace Juzhen.Mes.Application
             var type = "object";
             switch (columnType)
             {
-                case "char": type = "string"; break;
-                case "nchar": type = "string"; break;
                 case "varchar": type = "string"; break;
-                case "nvarchar": type = "string"; break;
                 case "text": type = "string"; break;
-                case "ntext": type = "string"; break;
-                case "bit": type = "bool?"; break;
-				case "tinyint": type = "short?"; break;
-				case "smallint": type = "short?"; break;
+				case "char": type = "string"; break;
+				case "tinyint": type = "int?"; break;
+				case "smallint": type = "int?"; break;
                 case "int": type = "int?"; break;
 				case "integer": type = "int?"; break;
-				case "bigint": type = "long?"; break;
+				case "bigint": type = "int?"; break;
 				case "mediumint": type = "int?"; break;
 				case "real": type = "float?"; break;
 				case "float": type = "float?"; break;
@@ -133,7 +135,7 @@ namespace Juzhen.Mes.Application
             }
             return list;
         }
-        //获取所有表
+         //获取所有表
         public static List<Table> GetTables(IDbConnection connection)
         {
             //视图SQL
@@ -145,9 +147,8 @@ namespace Juzhen.Mes.Application
                 [Properties].[value] AS [Description]
 	            FROM
 		        sys.objects AS [Tables]
-
 		        INNER JOIN sys.schemas AS [Schemas] ON [Tables].schema_id = [Schemas].schema_id
-                LEFT JOIN sys.extended_properties AS [Properties] ON [Properties].major_id=[Tables].object_id AND [Properties].minor_id=0  WHERE (Tables.type='V' OR Tables.type='U')"    ;
+                LEFT JOIN sys.extended_properties AS [Properties] ON [Properties].major_id=[Tables].object_id AND [Properties].minor_id=0 WHERE (Tables.type='V' OR Tables.type='U')";
             return Utils.Query<Table>(connection, tablesql).ToList();
         }
         //获取所有字段

@@ -22,7 +22,7 @@ namespace SqlBatis
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        List<DbColumnMetaInfo> GetColumns(Type type);
+        IReadOnlyList<DbColumnMetaInfo> GetColumns(Type type);
     }
    
     /// <summary>
@@ -33,8 +33,8 @@ namespace SqlBatis
         private static readonly ConcurrentDictionary<Type, DbTableMetaInfo> _tables
             = new ConcurrentDictionary<Type, DbTableMetaInfo>();
 
-        private static readonly ConcurrentDictionary<Type, List<DbColumnMetaInfo>> _columns
-            = new ConcurrentDictionary<Type, List<DbColumnMetaInfo>>();
+        private static readonly ConcurrentDictionary<Type, IReadOnlyList<DbColumnMetaInfo>> _columns
+            = new ConcurrentDictionary<Type, IReadOnlyList<DbColumnMetaInfo>>();
 
         public DbTableMetaInfo GetTable(Type type)
         {
@@ -56,7 +56,7 @@ namespace SqlBatis
             });
         }
 
-        public List<DbColumnMetaInfo> GetColumns(Type type)
+        public IReadOnlyList<DbColumnMetaInfo> GetColumns(Type type)
         {
             return _columns.GetOrAdd(type, t =>
             {
@@ -114,10 +114,9 @@ namespace SqlBatis
                         IsComplexType = isComplexType
                     });
                 }
-                return list;
+                return list.AsReadOnly();
             });
         }
-
     }
 
     /// <summary>

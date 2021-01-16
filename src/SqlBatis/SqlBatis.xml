@@ -312,7 +312,7 @@
             <typeparam name="T">结果集类型</typeparam>
             <returns></returns>
         </member>
-        <member name="T:SqlBatis.Expressions.DbUpdateConcurrencyException">
+        <member name="T:SqlBatis.DbUpdateConcurrencyException">
             <summary>
             修改数据时并发冲突
             </summary>
@@ -320,11 +320,6 @@
         <member name="T:SqlBatis.Expressions.BooleanExpressionResovle">
             <summary>
             条件表达式解析
-            </summary>
-        </member>
-        <member name="T:SqlBatis.Expressions.EvalExpression">
-            <summary>
-            表达式树生成器
             </summary>
         </member>
         <member name="T:SqlBatis.Expressions.ExpressionResovle">
@@ -622,132 +617,37 @@
             是否为计算列
             </summary>
         </member>
-        <member name="T:SqlBatis.IXmlCommandsProvider">
-            <summary>
-            xml配置提供程序
-            </summary>
-        </member>
-        <member name="M:SqlBatis.IXmlCommandsProvider.Build``1(System.String,``0)">
-            <summary>
-            解析动态sql
-            </summary>
-            <typeparam name="T"></typeparam>
-            <param name="id"></param>
-            <param name="parameter"></param>
-            <returns></returns>
-        </member>
-        <member name="M:SqlBatis.IXmlCommandsProvider.Build(System.String)">
-            <summary>
-            解析sql
-            </summary>
-            <param name="id"></param>
-            <returns></returns>
-        </member>
-        <member name="M:SqlBatis.IXmlCommandsProvider.Load(System.String)">
-            <summary>
-            加载配置文件
-            </summary>
-            <param name="filename">文件名</param>
-        </member>
-        <member name="M:SqlBatis.IXmlCommandsProvider.Load(System.String,System.String)">
-            <summary>
-            从指定路径加载所有匹配的文件
-            </summary>
-            <param name="path">路径</param>
-            <param name="pattern">文件通配符</param>
-        </member>
-        <member name="M:SqlBatis.IXmlCommandsProvider.Load(System.String,System.String,System.IO.SearchOption)">
-            <summary>
-            从指定路径加载所有匹配的文件
-            </summary>
-            <param name="path">路径</param>
-            <param name="pattern">文件通配符</param>
-            <param name="options">查找选项</param>
-        </member>
-        <member name="M:SqlBatis.IXmlCommandsProvider.Load(System.Reflection.Assembly)">
-            <summary>
-            从程序集加载配置所有xml
-            </summary>
-            <param name="assembly">程序集</param>
-        </member>
-        <member name="M:SqlBatis.IXmlCommandsProvider.Load(System.Reflection.Assembly,System.String)">
-            <summary>
-            从程序集加载配置
-            </summary>
-            <param name="assembly">程序集</param>
-            <param name="pattern">正则匹配</param>
-        </member>
-        <member name="T:SqlBatis.XmlCommandsProvider">
-            <summary>
-            xml配置提供程序
-            </summary>
-        </member>
-        <member name="M:SqlBatis.XmlCommandsProvider.Load(System.String)">
-            <summary>
-            加载配置文件
-            </summary>
-            <param name="filename"></param>
-        </member>
-        <member name="M:SqlBatis.XmlCommandsProvider.Load(System.IO.Stream)">
-            <summary>
-            从流中加载xml
-            </summary>
-            <param name="stream"></param>
-        </member>
-        <member name="M:SqlBatis.XmlCommandsProvider.Load(System.String,System.String)">
-            <summary>
-            从指定路径加载所有匹配的文件
-            </summary>
-            <param name="path">路径</param>
-            <param name="pattern">通配符</param>
-        </member>
-        <member name="M:SqlBatis.XmlCommandsProvider.Load(System.String,System.String,System.IO.SearchOption)">
-            <summary>
-            从指定路径加载所有匹配的文件
-            </summary>
-            <param name="path">路径</param>
-            <param name="pattern">通配符</param>
-            <param name="options">查找选项</param>
-        </member>
-        <member name="M:SqlBatis.XmlCommandsProvider.Load(System.Reflection.Assembly)">
-            <summary>
-            从嵌入式资源加载.xml结尾的文件
-            </summary>
-            <param name="assembly">程序集</param>
-        </member>
-        <member name="M:SqlBatis.XmlCommandsProvider.Load(System.Reflection.Assembly,System.String)">
-            <summary>
-            从嵌入式资源加载配置
-            </summary>
-            <param name="assembly">程序集</param>
-            <param name="pattern">匹配模式</param>
-        </member>
         <member name="T:SqlBatis.Queryables.DbQueryable`1">
             <summary>
             基础操作
             </summary>
             <typeparam name="T"></typeparam>
-            <summary>
-            同步linq查询
-            </summary>
         </member>
-        <member name="M:SqlBatis.Queryables.DbQueryable`1.DefaultColumnsExpression">
+        <member name="M:SqlBatis.Queryables.DbQueryable`1.GetConcurrencyColumnValue(System.Type)">
+            <summary>
+            获取并发列的值
+            </summary>
+            <param name="type"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.Queryables.DbQueryable`1.DefaultSelectColumnsExpression">
             <summary>
             默认查询字段列表表达式
             </summary>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.Queryables.DbQueryable`1.EntityToDbParameters(`0)">
+        <member name="M:SqlBatis.Queryables.DbQueryable`1.EntityToParameter``1(``0)">
             <summary>
             实体属性转换成字典
             </summary>
             <param name="entity"></param>
         </member>
-        <member name="M:SqlBatis.Queryables.DbQueryable`1.BuildInsertCommand(System.Boolean)">
+        <member name="M:SqlBatis.Queryables.DbQueryable`1.BuildInsertCommand(System.Boolean,System.Type)">
             <summary>
             构建新增命令
             </summary>
             <param name="identity"></param>
+            <param name="entityType"></param>
             <returns></returns>
         </member>
         <member name="M:SqlBatis.Queryables.DbQueryable`1.BuildBatchInsertCommand(System.Collections.Generic.IEnumerable{`0})">
@@ -757,7 +657,7 @@
             <param name="entitys"></param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.Queryables.DbQueryable`1.BuildUpdateCommand">
+        <member name="M:SqlBatis.Queryables.DbQueryable`1.BuildUpdateCommand(System.Type)">
             <summary>
             构建更新命令
             </summary>
@@ -774,6 +674,13 @@
             防止注入检测
             </summary>
             <param name="sql"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.Queryables.DbQueryable`1.Ignore(System.Boolean)">
+            <summary>
+            忽略所有空列
+            </summary>
+            <param name="ignoreAllNullColumns"></param>
             <returns></returns>
         </member>
         <member name="T:SqlBatis.Queryables.IDbQueryable`1">
@@ -882,61 +789,67 @@
             <param name="commandTimeout">超时时间</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.Queryables.IDbQueryable`1.Update(`0)">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`1.Update``1(``0)">
             <summary>
             update查询，默认根据Primarkey更新，如果存在where则仅使用指定更新条件，
-            无法通过该接口更新主键字段和主键字段
-            </summary>
-            <param name="entity">参数</param>
-            <returns></returns>
-        </member>
-        <member name="M:SqlBatis.Queryables.IDbQueryable`1.UpdateAsync(`0)">
-            <summary>
-            异步update查询，默认根据Primarkey更新，如果存在where则仅使用指定更新条件，
-            无法通过该接口更新主键字段和主键字段
-            </summary>
-            <param name="entity">参数</param>
-            <returns></returns>
-        </member>
-        <member name="M:SqlBatis.Queryables.IDbQueryable`1.Insert(`0)">
-            <summary>
-            insert查询，该接口会忽略identity字段
-            </summary>
-            <param name="entity">参数</param>
-            <returns></returns>
-        </member>
-        <member name="M:SqlBatis.Queryables.IDbQueryable`1.InsertAsync(`0)">
-            <summary>
-            异步insert查询，该接口会忽略identity字段
-            </summary>
-            <param name="entity">参数</param>
-            <returns></returns>
-        </member>
-        <member name="M:SqlBatis.Queryables.IDbQueryable`1.InsertReturnId(`0)">
-            <summary>
-            insert查询，并返回id，该接口会忽略identity字段
-            </summary>
-            <param name="entity">参数</param>
-            <returns></returns>
-        </member>
-        <member name="M:SqlBatis.Queryables.IDbQueryable`1.InsertReturnIdAsync(`0)">
-            <summary>
-            异步insert查询，并返回id，该接口会忽略identity字段
-            </summary>
+            无法通过该接口更新主键字段和主键字段</summary>
+            <typeparam name="Entity"></typeparam>
             <param name="entity"></param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.Queryables.IDbQueryable`1.Insert(System.Collections.Generic.IEnumerable{`0})">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`1.UpdateAsync``1(``0)">
+            <summary>
+            异步update查询，默认根据Primarkey更新，如果存在where则仅使用指定更新条件，
+            无法通过该接口更新主键字段和主键字段</summary>
+            <typeparam name="Entity"></typeparam>
+            <param name="entity"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.Queryables.IDbQueryable`1.Insert``1(``0)">
+            <summary>
+            insert查询，该接口会忽略identity字段
+            </summary>
+            <typeparam name="Entity"></typeparam>
+            <param name="entity"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.Queryables.IDbQueryable`1.InsertAsync``1(``0)">
+            <summary>
+            异步insert查询，该接口会忽略identity字段
+            </summary>
+            <typeparam name="Entity"></typeparam>
+            <param name="entity"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.Queryables.IDbQueryable`1.InsertReturnId``1(``0)">
+            <summary>
+            insert查询，并返回id，该接口会忽略identity字段
+            </summary>
+            <typeparam name="Entity"></typeparam>
+            <param name="entity"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.Queryables.IDbQueryable`1.InsertReturnIdAsync``1(``0)">
+            <summary>
+            异步insert查询，并返回id，该接口会忽略identity字段
+            </summary>
+            <typeparam name="Entity"></typeparam>
+            <param name="entity"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.Queryables.IDbQueryable`1.Insert``1(System.Collections.Generic.IEnumerable{``0})">
             <summary>
             批量insert查询
             </summary>
-            <param name="entitys">参数集合</param>
+            <typeparam name="Entity"></typeparam>
+            <param name="entitys"></param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.Queryables.IDbQueryable`1.InsertAsync(System.Collections.Generic.IEnumerable{`0})">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`1.InsertAsync``1(System.Collections.Generic.IEnumerable{``0})">
             <summary>
             异步批量insert查询，该接口会忽略identity字段
             </summary>
+            <typeparam name="Entity"></typeparam>
             <param name="entitys"></param>
             <returns></returns>
         </member>
@@ -1058,6 +971,13 @@
             </summary>
             <typeparam name="TResult">类型推断</typeparam>
             <param name="expression">字段列表</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.Queryables.IDbQueryable`1.Ignore(System.Boolean)">
+            <summary>
+            忽略所有空列
+            </summary>
+            <param name="ignoreAllNullColumns"></param>
             <returns></returns>
         </member>
         <member name="M:SqlBatis.Queryables.IDbQueryable`1.Set``1(System.Linq.Expressions.Expression{System.Func{`0,``0}},``0,System.Boolean)">
@@ -1680,107 +1600,9 @@
             数据库元信息提供程序
             </summary>
         </member>
-        <member name="P:SqlBatis.SqlBatisSettings.XmlCommandsProvider">
-            <summary>
-            xml命令配置
-            </summary>
-        </member>
         <member name="P:SqlBatis.SqlBatisSettings.DbEntityMapperProvider">
             <summary>
             实体映射器
-            </summary>
-        </member>
-        <member name="T:SqlBatis.IXmlQuery">
-            <summary>
-            xml命令映射器
-            </summary>
-        </member>
-        <member name="M:SqlBatis.IXmlQuery.MultipleQuery(System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
-             <summary>
-            执行多结果集查询，返回IMultiResult
-             </summary>
-             <param name="commandTimeout">超时时间</param>
-             <param name="commandType">命令类型</param>
-             <returns></returns>
-        </member>
-        <member name="M:SqlBatis.IXmlQuery.Query(System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
-            <summary>
-            执行单结果集查询，并返回dynamic类型的结果集
-            </summary>
-            <param name="commandTimeout">超时时间</param>
-            <param name="commandType">命令类型</param>
-            <returns></returns>
-        </member>
-        <member name="M:SqlBatis.IXmlQuery.QueryAsync(System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
-            <summary>
-            异步执行单结果集查询，并返回dynamic类型的结果集
-            </summary>
-            <param name="commandTimeout">超时时间</param>
-            <param name="commandType">命令类型</param>
-            <returns></returns>
-        </member>
-        <member name="M:SqlBatis.IXmlQuery.Query``1(System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
-            <summary>
-            执行单结果集查询，并返回T类型的结果集
-            </summary>
-            <typeparam name="T">返回类型</typeparam>
-            <param name="commandTimeout">超时时间</param>
-            <param name="commandType">命令类型</param>
-            <returns></returns>
-        </member>
-        <member name="M:SqlBatis.IXmlQuery.QueryAsync``1(System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
-            <summary>
-            异步执行单结果集查询，并返回T类型的结果集
-            </summary>
-            <typeparam name="T">返回类型</typeparam>
-            <param name="commandTimeout">超时时间</param>
-            <param name="commandType">命令类型</param>
-            <returns></returns>
-        </member>
-        <member name="M:SqlBatis.IXmlQuery.Execute(System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
-            <summary>
-            执行无结果集查询，并返回受影响的行数
-            </summary>
-            <param name="commandTimeout">超时时间</param>
-            <param name="commandType">命令类型</param>
-            <returns></returns>
-        </member>
-        <member name="M:SqlBatis.IXmlQuery.ExecuteAsync(System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
-            <summary>
-            异步执行无结果集查询，并返回受影响的行数
-            </summary>
-            <param name="commandTimeout">超时时间</param>
-            <param name="commandType">命令类型</param>
-            <returns></returns>
-        </member>
-        <member name="M:SqlBatis.IXmlQuery.ExecuteScalar``1(System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
-            <summary>
-            执行无结果集查询，并返回指定类型的数据
-            </summary>
-            <typeparam name="T">返回类型</typeparam>
-            <param name="commandTimeout">超时时间</param>
-            <param name="commandType">命令类型</param>
-            <returns></returns>
-        </member>
-        <member name="M:SqlBatis.IXmlQuery.ExecuteScalarAsync``1(System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
-            <summary>
-            异步执行无结果集查询，并返回指定类型的数据
-            </summary>
-            <typeparam name="T"></typeparam>
-            <param name="commandTimeout">超时时间</param>
-            <param name="commandType">命令类型</param>
-            <returns></returns>
-        </member>
-        <member name="M:SqlBatis.IXmlQuery.AddDbParameter(System.String,System.Object)">
-            <summary>
-            添加数据库参数
-            </summary>
-            <param name="name"></param>
-            <param name="value"></param>
-        </member>
-        <member name="T:SqlBatis.XmlQuery">
-            <summary>
-            实现xml命令映射器
             </summary>
         </member>
     </members>

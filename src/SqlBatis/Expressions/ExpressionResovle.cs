@@ -35,33 +35,27 @@ namespace SqlBatis.Expressions
         /// </summary>
         /// <param name="expression"></param>
         /// <returns></returns>
-        public object VisitExpressionValue(Expression expression)
+        public static object VisitExpressionValue(Expression expression)
         {
-            var names = new Stack<string>();
-            var exps = new Stack<Expression>();
-            var mifs = new Stack<MemberInfo>();
             if (expression is ConstantExpression constant)
                 return constant.Value;
             else if (expression is MemberExpression)
             {
+                var mxs = new Stack<MemberExpression>();
                 var temp = expression;
-                object value = null;
                 while (temp is MemberExpression memberExpression)
                 {
-                    names.Push(memberExpression.Member.Name);
-                    exps.Push(memberExpression.Expression);
-                    mifs.Push(memberExpression.Member);
+                    mxs.Push(memberExpression);
                     temp = memberExpression.Expression;
                 }
-                foreach (var name in names)
+                object value = null;
+                foreach (var item in mxs)
                 {
-                    var exp = exps.Pop();
-                    var mif = mifs.Pop();
-                    if (exp is ConstantExpression cex)
+                    if (item.Expression is ConstantExpression cex)
                         value = cex.Value;
-                    if (mif is PropertyInfo pif)
+                    if (item.Member is PropertyInfo pif)
                         value = pif.GetValue(value);
-                    else if (mif is FieldInfo fif)
+                    else if (item.Member is FieldInfo fif)
                         value = fif.GetValue(value);
                 }
                 return value;

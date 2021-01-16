@@ -1,6 +1,5 @@
 ﻿using SqlBatis.Expressions;
 using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 
@@ -12,32 +11,17 @@ namespace SqlBatis.Queryables
         public int Count { get; set; }
     }
 
-    internal class OrderExpression
-    {
-        public bool Asc { get; set; } = true;
-        public Expression Expression { get; set; }
-    }
-
-    internal class SetExpression
-    {
-        public Expression Column { get; set; }
-        public Expression Expression { get; set; }
-    }
-
-    public abstract class Queryable
+    public abstract class BaseQueryable
     {
         #region fields
-        protected readonly bool _isSingleTable = true;
-        private StringBuilder _viewName;
         protected readonly Dictionary<string, object> _parameters = new Dictionary<string, object>();
-        internal readonly PageData _page = new PageData();
-        protected string _lockname = string.Empty;
-        protected readonly IDbContext _context = null;
-        protected readonly List<Expression> _whereExpressions = new List<Expression>();
-        internal readonly List<OrderExpression> _orderExpressions = new List<OrderExpression>();
-        protected readonly List<Expression> _groupExpressions = new List<Expression>();
-        protected readonly List<Expression> _havingExpressions = new List<Expression>();
-        public Queryable(IDbContext context, bool isSingleTable)
+        protected readonly bool _isSingleTable = true;
+        private string _viewName = string.Empty;
+        private string _lockname = string.Empty;
+        private readonly PageData _page = new PageData();
+        protected readonly IDbContext _context;
+        internal readonly DbExpressionCollection _expressions = new DbExpressionCollection();
+        public BaseQueryable(IDbContext context, bool isSingleTable)
         {
             _context = context;
             _isSingleTable = isSingleTable;
@@ -45,42 +29,17 @@ namespace SqlBatis.Queryables
         #endregion
 
         #region resovles
-        protected static string GetSingleTableName<T>()
-        {
-            return SqlBatisSettings.DbMetaInfoProvider.GetTable(typeof(T)).TableName;
-        }
-        protected static List<DbColumnMetaInfo> GetSingleTableColumnMetaInfos<T>()
-        {
-            return SqlBatisSettings.DbMetaInfoProvider.GetColumns(typeof(T));
-        }
-        protected void SetViewName(string viewName)
-        {
-            _viewName = new StringBuilder(viewName);
-        }
-        protected void AddViewName(string viewName)
-        {
-            if (_viewName == null)
-            {
-                _viewName = new StringBuilder();
-            }
-            if (_viewName.Length > 0)
-            {
-                _viewName.Append(' ');
-            }
-            _viewName.Append(viewName);
-        }
-        protected string GetViewName()
-        {
-            return _viewName.ToString();
-        }
         protected string BuildWhereExpression()
         {
             var builder = new StringBuilder();
-            foreach (var expression in _whereExpressions)
+            var expressions = _expressions.GetWhereExpressions();
+            var first = true;
+            foreach (var expression in expressions)
             {
-                var result = new BooleanExpressionResovle(_isSingleTable, expression, _parameters).Resovle();
-                if (expression == _whereExpressions.First())
+                var result = new BooleanExpressionResovle(_isSingleTable, expression.Expression, _parameters).Resovle();
+                if (first)
                 {
+                    first = false;
                     builder.Append($" WHERE {result}");
                 }
                 else
@@ -93,9 +52,10 @@ namespace SqlBatis.Queryables
         protected string BuildGroupExpression()
         {
             var buffer = new StringBuilder();
-            foreach (var item in _groupExpressions)
+            var expressions = _expressions.GetGroupExpressions();
+            foreach (var item in expressions)
             {
-                var result = new GroupExpressionResovle(_isSingleTable, item).Resovle();
+                var result = new GroupExpressionResovle(_isSingleTable, item.Expression).Resovle();
                 buffer.Append($"{result},");
             }
             var sql = string.Empty;
@@ -109,11 +69,14 @@ namespace SqlBatis.Queryables
         protected string BuildHavingExpression()
         {
             var buffer = new StringBuilder();
-            foreach (var item in _havingExpressions)
+            var expressions = _expressions.GetHavingExpressions();
+            var first = true;
+            foreach (var item in expressions)
             {
-                var result = new BooleanExpressionResovle(_isSingleTable, item, _parameters).Resovle();
-                if (item == _havingExpressions.First())
+                var result = new BooleanExpressionResovle(_isSingleTable, item.Expression, _parameters).Resovle();
+                if (first)
                 {
+                    first = false;
                     buffer.Append($" HAVING {result}");
                 }
                 else
@@ -126,10 +89,13 @@ namespace SqlBatis.Queryables
         protected string BuildOrderExpression()
         {
             var buffer = new StringBuilder();
-            foreach (var item in _orderExpressions)
+            var expressions = _expressions.GetOrderExpressions();
+            var first = true;
+            foreach (var item in expressions)
             {
-                if (item == _orderExpressions.First())
+                if (first)
                 {
+                    first = false;
                     buffer.Append($" ORDER BY ");
                 }
                 var result = new OrderExpressionResovle(_isSingleTable, item.Expression, item.Asc).Resovle();
@@ -232,6 +198,49 @@ namespace SqlBatis.Queryables
             {
                 return $"SELECT EXISTS(SELECT 1 FROM {table}{where}{group}{having}) as flag";
             }
+        }
+        #endregion
+
+        #region protected
+        protected void SetPage(int index, int count)
+        {
+            _page.Index = index;
+            _page.Count = count;
+        }
+        protected void SetViewName(string viewName)
+        {
+            if (_viewName.Length > 0)
+            {
+                _viewName = $" {viewName}";
+            }
+            else
+            {
+                _viewName = viewName;
+            }
+        }
+        protected void SetLockName(string lockname)
+        {
+            _lockname = lockname;
+        }
+        protected string GetViewName()
+        {
+            return _viewName;
+        }
+        protected void AddWhereExpression(Expression expression)
+        {
+            _expressions.Add(new DbWhereExpression(expression));
+        }
+        protected void AddOrderExpression(Expression expression, bool asc)
+        {
+            _expressions.Add(new DbOrderExpression(expression, asc));
+        }
+        protected void AddGroupExpression(Expression expression)
+        {
+            _expressions.Add(new DbGroupExpression(expression));
+        }
+        protected void AddHavingExpression(Expression expression)
+        {
+            _expressions.Add(new DbHavingExpression(expression));
         }
         #endregion
     }

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace SqlBatis.Queryables
 {
-    public class DbQueryable<T1, T2, T3> : Queryable, IDbQueryable<T1, T2, T3>
+    public class DbQueryable<T1, T2, T3> : BaseQueryable, IDbQueryable<T1, T2, T3>
     {
         #region fields
         public DbQueryable(IDbContext context)
@@ -45,7 +45,7 @@ namespace SqlBatis.Queryables
 
         public IDbQueryable<T1, T2, T3> GroupBy<TResult>(Expression<Func<T1, T2, T3, TResult>> expression)
         {
-            _groupExpressions.Add(expression);
+            AddGroupExpression(expression);
             return this;
         }
 
@@ -53,7 +53,7 @@ namespace SqlBatis.Queryables
         {
             if (condition)
             {
-                _havingExpressions.Add(expression);
+                AddHavingExpression(expression);
             }
             return this;
         }
@@ -62,11 +62,7 @@ namespace SqlBatis.Queryables
         {
             if (condition)
             {
-                _orderExpressions.Add(new OrderExpression
-                {
-                    Asc = true,
-                    Expression = expression
-                });
+                AddOrderExpression(expression, true);
             }
             return this;
         }
@@ -75,11 +71,7 @@ namespace SqlBatis.Queryables
         {
             if (condition)
             {
-                _orderExpressions.Add(new OrderExpression
-                {
-                    Asc = false,
-                    Expression = expression
-                });
+                AddOrderExpression(expression, false);
             }
             return this;
         }
@@ -145,8 +137,7 @@ namespace SqlBatis.Queryables
         {
             if (condition)
             {
-                _page.Index = index;
-                _page.Count = count;
+                SetPage(index, count);
             }
             return this;
         }
@@ -164,14 +155,14 @@ namespace SqlBatis.Queryables
         {
             if (condition)
             {
-                _whereExpressions.Add(expression);
+                AddWhereExpression(expression);
             }
             return this;
         }
 
         public IDbQueryable<T1, T2, T3> With(string lockname)
         {
-            _lockname = $" {lockname}";
+            SetLockName($" {lockname}");
             return this;
         }
 
@@ -186,17 +177,17 @@ namespace SqlBatis.Queryables
             {
                 _tables.Add(table1Name);
                 _tables.Add(table2Name);
-                AddViewName(string.Format("{0} {1} {2} ON {3}", table1Name, joinType, table2Name, onExpression));
+                SetViewName(string.Format("{0} {1} {2} ON {3}", table1Name, joinType, table2Name, onExpression));
             }
             else if (_tables.Exists(a => table1Name == a))
             {
                 _tables.Add(table2Name);
-                AddViewName(string.Format("{0} {1} ON {2}", joinType, table2Name, onExpression));
+                SetViewName(string.Format("{0} {1} ON {2}", joinType, table2Name, onExpression));
             }
             else
             {
                 _tables.Add(table1Name);
-                AddViewName(string.Format("{0} {1} ON {2}", joinType, table1Name, onExpression));
+                SetViewName(string.Format("{0} {1} ON {2}", joinType, table1Name, onExpression));
             }
             return this;
         }

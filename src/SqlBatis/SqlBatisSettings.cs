@@ -15,11 +15,6 @@ namespace SqlBatis
         public static IDbMetaInfoProvider DbMetaInfoProvider { get; set; }
             = new AnnotationDbMetaInfoProvider();
         /// <summary>
-        /// xml命令配置
-        /// </summary>
-        public static IXmlCommandsProvider XmlCommandsProvider { get; set; }
-            = new XmlCommandsProvider();
-        /// <summary>
         /// 实体映射器
         /// </summary>
         public static DbEntityMapperProvider DbEntityMapperProvider { get; set; }
