@@ -51,7 +51,7 @@ public class Student
     public string StuName {get; set;}
 }
 
-``
+```
 
 ## Sqlbuilder
 
