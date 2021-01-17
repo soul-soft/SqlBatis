@@ -72,7 +72,28 @@ using(var multi = context.QueryMultiple($"{tmp1.RawSql};{tmp2.RawSql}",new {Id=1
 }
 
 ```
+## Linq查询
 
+``` C#
+var entity = context.From<Student>().Where(a=>a.id==1).Single();
+var entitys = context.From<Student>().Where(a=>a.id>1).Select();
+var entiityNames = context.From<Student>().Select(s=>new 
+{ 
+    s.Name,
+    s.Age
+});
+var row = context.From<Student>().Insert(new {Name="zs",Age=1});
+var row = context.From<Student>().Update(new {Name="zs",Id=1});
+
+public class Student
+{
+   [PrimaryKey]
+   [Indenity]
+   public int Id {get;set;}
+   public string Name {get;set;}
+   public int Age {get;set;}
+}
+```
 
 ## 自定义类型映射
 
