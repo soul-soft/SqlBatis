@@ -252,18 +252,19 @@ namespace SqlBatis.Queryables
         /// <returns></returns>
         Task<TResult> SingleAsync<TResult>(Expression<Func<T, TResult>> expression, int? commandTimeout = null);
         /// <summary>
-        /// 在insert,update,select时过滤字段
-        /// </summary>
-        /// <typeparam name="TResult">类型推断</typeparam>
-        /// <param name="expression">字段列表</param>
-        /// <returns></returns>
-        IDbQueryable<T> Ignore<TResult>(Expression<Func<T, TResult>> expression);
-        /// <summary>
         /// 忽略所有空列
         /// </summary>
         /// <param name="ignoreAllNullColumns"></param>
         /// <returns></returns>
         IDbQueryable<T> Ignore(bool ignoreAllNullColumns = true);
+        /// <summary>
+        /// 在insert,update,select时忽略字段
+        /// </summary>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="expression"></param>
+        /// <param name="condition"></param>
+        /// <returns></returns>
+        IDbQueryable<T> Ignore<TResult>(Expression<Func<T, TResult>> expression, bool condition = true);
         /// <summary>
         /// set查询
         /// </summary>

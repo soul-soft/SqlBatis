@@ -5,13 +5,8 @@ using System.Text;
 
 namespace SqlBatis.Queryables
 {
-    internal class PageData
-    {
-        public int Index { get; set; } = -1;
-        public int Count { get; set; }
-    }
+    public abstract class DbQueryable
 
-    public abstract class BaseQueryable
     {
         #region fields
         protected readonly Dictionary<string, object> _parameters = new Dictionary<string, object>();
@@ -21,14 +16,14 @@ namespace SqlBatis.Queryables
         private readonly PageData _page = new PageData();
         protected readonly IDbContext _context;
         internal readonly DbExpressionCollection _expressions = new DbExpressionCollection();
-        public BaseQueryable(IDbContext context, bool isSingleTable)
+        public DbQueryable(IDbContext context, bool isSingleTable)
         {
             _context = context;
             _isSingleTable = isSingleTable;
         }
         #endregion
 
-        #region resovles
+        #region resovles     
         protected string BuildWhereExpression()
         {
             var builder = new StringBuilder();
@@ -103,6 +98,17 @@ namespace SqlBatis.Queryables
                 buffer.Append(',');
             }
             return buffer.ToString().Trim(',');
+        }
+        protected List<string> BuildIgnoreExpression()
+        {
+            var result = new List<string>();
+            var expressions = _expressions.GetIgnoreExpressions();
+            foreach (var item in expressions)
+            {
+                var list = new IgnoreExpressionResovle(item.Expression).Resovles();
+                result.AddRange(list);
+            }
+            return result;
         }
         protected string BuildCountCommand(Expression expression = null)
         {
@@ -211,7 +217,7 @@ namespace SqlBatis.Queryables
         {
             if (_viewName.Length > 0)
             {
-                _viewName = $" {viewName}";
+                _viewName += $" {viewName}";
             }
             else
             {
@@ -241,6 +247,18 @@ namespace SqlBatis.Queryables
         protected void AddHavingExpression(Expression expression)
         {
             _expressions.Add(new DbHavingExpression(expression));
+        }
+        protected void AddIgnoreExpression(Expression expression)
+        {
+            _expressions.Add(new DbIgnoreExpression(expression));
+        }
+        #endregion
+
+        #region class
+        class PageData
+        {
+            public int Index { get; set; } = -1;
+            public int Count { get; set; }
         }
         #endregion
     }

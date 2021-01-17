@@ -7,15 +7,15 @@ using System.Threading.Tasks;
 
 namespace SqlBatis.Queryables
 {
-    public class DbQueryable<T1, T2, T3> : BaseQueryable, IDbQueryable<T1, T2, T3>
+    public class DbQueryable<T1, T2, T3> : DbQueryable, IDbQueryable<T1, T2, T3>
     {
         #region fields
+        private readonly List<string> _tables = new List<string>();
         public DbQueryable(IDbContext context)
             : base(context, false)
         {
 
         }
-        private readonly List<string> _tables = new List<string>();
         #endregion
 
         public int Count(int? commandTimeout = null)
@@ -218,7 +218,5 @@ namespace SqlBatis.Queryables
             Join(expression, "RIGHT");
             return this;
         }
-
-
     }
 }

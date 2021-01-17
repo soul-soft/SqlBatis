@@ -165,7 +165,7 @@ namespace SqlBatis
                 var list = new List<dynamic>();
                 using (var reader = cmd.ExecuteReader())
                 {
-                    var handler = SqlBatisSettings.DbEntityMapperProvider.GetSerializer();
+                    var handler = SqlBatisSettings.DbEntityMapperProvider.GetEntityMapper();
                     while (reader.Read())
                     {
                         list.Add(handler(reader));
@@ -181,7 +181,7 @@ namespace SqlBatis
                 using (var reader = await cmd.ExecuteReaderAsync())
                 {
                     var list = new List<dynamic>();
-                    var handler = SqlBatisSettings.DbEntityMapperProvider.GetSerializer();
+                    var handler = SqlBatisSettings.DbEntityMapperProvider.GetEntityMapper();
                     while (reader.Read())
                     {
                         list.Add(handler(reader));
@@ -202,7 +202,7 @@ namespace SqlBatis
                 var list = new List<T>();
                 using (var reader = cmd.ExecuteReader())
                 {
-                    var handler = SqlBatisSettings.DbEntityMapperProvider.GetSerializer<T>(reader);
+                    var handler = SqlBatisSettings.DbEntityMapperProvider.GetEntityMapper<T>(reader);
                     while (reader.Read())
                     {
                         list.Add(handler(reader));
@@ -218,7 +218,7 @@ namespace SqlBatis
                 using (var reader = await cmd.ExecuteReaderAsync())
                 {
                     var list = new List<T>();
-                    var handler = SqlBatisSettings.DbEntityMapperProvider.GetSerializer<T>(reader);
+                    var handler = SqlBatisSettings.DbEntityMapperProvider.GetEntityMapper<T>(reader);
                     while (await reader.ReadAsync())
                     {
                         list.Add(handler(reader));
@@ -405,7 +405,11 @@ namespace SqlBatis
                             cmd.CommandText = Regex.Replace(cmd.CommandText, name, $"(SELECT 1 WHERE 1 = 0)");
                         }
                     }
-                    else// if (Regex.IsMatch(cmd.CommandText, $@"([\@,\:,\?]+{item.ParameterName})", options))
+                    else if (SqlBatisSettings.IgnoreInvalidParameters && Regex.IsMatch(cmd.CommandText, $@"([\@,\:,\?]+{item.ParameterName})", options))
+                    {
+                        cmd.Parameters.Add(item);
+                    }
+                    else
                     {
                         cmd.Parameters.Add(item);
                     }

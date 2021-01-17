@@ -12,14 +12,13 @@ namespace SqlBatis.Queryables
     /// 基础操作
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class DbQueryable<T> : BaseQueryable, IDbQueryable<T>
+    public class DbQueryable<T> : DbQueryable, IDbQueryable<T>
     {
         #region fields
         private readonly DbTableMetaInfo _tableMetaInfo;
         private readonly IReadOnlyList<DbColumnMetaInfo> _columns;
         private readonly string _parameterPrefix = "@";
         private bool _ignoreAllNullColumns = false;
-        protected Expression _filterExpression = null;
         public DbQueryable(IDbContext context)
             : base(context, true)
         {
@@ -52,9 +51,10 @@ namespace SqlBatis.Queryables
         /// <returns></returns>
         protected Expression DefaultSelectColumnsExpression()
         {
-            var filters = new IgnoreExpressionResovle(_filterExpression).Resovles();
+            var ignores = BuildIgnoreExpression();
             var columns = _columns
-                .Where(a => !filters.Contains(a.ColumnName) && !a.IsNotMapped)
+                .Where(a => !a.IsNotMapped)
+                .Where(a => !ignores.Contains(a.ColumnName))
                 .Select(s => s.ColumnName != s.CsharpName ? $"{s.ColumnName} AS {s.CsharpName}" : s.CsharpName);
             var expression = string.Join(",", columns);
             return Expression.Constant(expression);
@@ -88,7 +88,7 @@ namespace SqlBatis.Queryables
         private string BuildInsertCommand(bool identity, Type entityType)
         {
             var table = GetViewName();
-            var ignores = new IgnoreExpressionResovle(_filterExpression).Resovles();
+            var ignores = BuildIgnoreExpression();
             var columns = _columns;
             var insertcolumns = columns
                 .Where(a => !ignores.Contains(a.ColumnName))//忽略列
@@ -153,7 +153,7 @@ namespace SqlBatis.Queryables
         private string BuildBatchInsertCommand(IEnumerable<T> entitys)
         {
             var table = GetViewName();
-            var filters = new IgnoreExpressionResovle(_filterExpression).Resovles();
+            var filters = BuildIgnoreExpression();
             var columns = _columns
                 .Where(a => !a.IsComplexType).ToList();
             var intcolumns = columns
@@ -244,13 +244,15 @@ namespace SqlBatis.Queryables
             }
             else
             {
-                var filters = new IgnoreExpressionResovle(_filterExpression).Resovles();
+                var filters = BuildIgnoreExpression();
                 var where = BuildWhereExpression();
                 var columns = _columns;
                 var updatecolumns = columns
                     .Where(a => !filters.Contains(a.ColumnName))
                     .Where(a => !a.IsComplexType)
-                    .Where(a => !a.IsIdentity && !a.IsPrimaryKey && !a.IsNotMapped)
+                    .Where(a => !a.IsPrimaryKey)
+                    .Where(a => !a.IsNotMapped)
+                    .Where(a => !a.IsIdentity)
                     .Where(a => !a.IsConcurrencyCheck)
                     .ToList();
                 if (typeof(T) != entityType)
@@ -283,7 +285,7 @@ namespace SqlBatis.Queryables
                 if (string.IsNullOrEmpty(where))
                 {
                     var primaryKey = columns.Where(a => a.IsPrimaryKey).FirstOrDefault();
-                    if (primaryKey==null)
+                    if (primaryKey == null)
                     {
                         throw new Exception("primary key is required");
                     }
@@ -334,19 +336,10 @@ namespace SqlBatis.Queryables
             return buffer.ToString();
         }
 
-        /// <summary>
-        /// 忽略所有空列
-        /// </summary>
-        /// <param name="ignoreAllNullColumns"></param>
-        /// <returns></returns>
-        public IDbQueryable<T> Ignore(bool ignoreAllNullColumns = true)
-        {
-            _ignoreAllNullColumns = ignoreAllNullColumns;
-            return this;
-        }
+
         #endregion
 
-        #region sync
+        #region sync       
         public int Count(int? commandTimeout = null)
         {
             var sql = BuildCountCommand();
@@ -506,10 +499,18 @@ namespace SqlBatis.Queryables
             }
             return this;
         }
-
-        public IDbQueryable<T> Ignore<TResult>(Expression<Func<T, TResult>> column)
+        public IDbQueryable<T> Ignore(bool ignoreAllNullColumns = true)
         {
-            _filterExpression = column;
+            _ignoreAllNullColumns = ignoreAllNullColumns;
+            return this;
+        }
+
+        public IDbQueryable<T> Ignore<TResult>(Expression<Func<T, TResult>> column, bool condition = true)
+        {
+            if (condition)
+            {
+                AddIgnoreExpression(column);
+            }
             return this;
         }
 
@@ -584,7 +585,7 @@ namespace SqlBatis.Queryables
         {
             if (condition)
             {
-                SetPage(index,count);               
+                SetPage(index, count);
             }
             return this;
         }

@@ -4,11 +4,15 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace SqlBatis.XUnit
+namespace SqlBatis
 {
+    /// <summary>
+    /// 构建动态sql
+    /// </summary>
     public class SqlBuilder
     {
         private readonly Dictionary<string, Clauses> _data = new Dictionary<string, Clauses>();
+      
         private int _seq;
 
         private class Clause
@@ -86,8 +90,8 @@ namespace SqlBatis.XUnit
             }
         }
 
-        public Template Build(string sql) =>
-            new Template(this, sql);
+        public Template Build(string template) =>
+            new Template(this, template);
 
         protected SqlBuilder AddClause(string name, string sql, string joiner, string prefix = "", string postfix = "", bool isInclusive = false)
         {

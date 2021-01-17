@@ -35,7 +35,7 @@ namespace SqlBatis
         /// <typeparam name="T"></typeparam>
         /// <param name="record"></param>
         /// <returns></returns>
-        public virtual Func<IDataRecord, T> GetSerializer<T>(IDataRecord record)
+        public virtual Func<IDataRecord, T> GetEntityMapper<T>(IDataRecord record)
         {
             string[] names = new string[record.FieldCount];
             for (int i = 0; i < record.FieldCount; i++)
@@ -53,7 +53,7 @@ namespace SqlBatis
         /// <summary>
         /// 获取动态实体序列化器
         /// </summary>
-        public virtual Func<IDataRecord, dynamic> GetSerializer()
+        public virtual Func<IDataRecord, dynamic> GetEntityMapper()
         {
             return (reader) =>
             {
@@ -421,46 +421,31 @@ namespace SqlBatis
         /// </summary>
         struct SerializerKey : IEquatable<SerializerKey>
         {
-            private string[] Names { get; set; }
+            private string[] Columns { get; set; }
+            
             private Type Type { get; set; }
-            public override bool Equals(object obj)
-            {
-                return obj is SerializerKey key && Equals(key);
-            }
+            
+            public override bool Equals(object obj)=> obj is SerializerKey key && Equals(key);
+            
             public bool Equals(SerializerKey other)
             {
                 if (Type != other.Type)
-                {
                     return false;
-                }
-                else if (Names == other.Names)
-                {
-                    return true;
-                }
-                else if (Names.Length != other.Names.Length)
-                {
+                else if (Columns.Length != other.Columns.Length)
                     return false;
-                }
                 else
-                {
-                    for (int i = 0; i < Names.Length; i++)
-                    {
-                        if (Names[i] != other.Names[i])
-                        {
+                    for (int i = 0; i < Columns.Length; i++)
+                        if (Columns[i] != other.Columns[i])
                             return false;
-                        }
-                    }
-                    return true;
-                }
+                return true;
             }
-            public override int GetHashCode()
-            {
-                return Type.GetHashCode();
-            }
+           
+            public override int GetHashCode()=> Type.GetHashCode();
+            
             public SerializerKey(Type type, string[] names)
             {
                 Type = type;
-                Names = names;
+                Columns = names;
             }
         }
         #endregion

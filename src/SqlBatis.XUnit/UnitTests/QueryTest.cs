@@ -10,9 +10,13 @@ namespace SqlBatis.XUnit
         {
             try
             {
+                var query = new
+                {
+                    Keywords = (string)null
+                };
                 var b1 = new SqlBuilder();
-                b1.Where("id>@Id",false)
-                  .Where("score>@Score", false)
+                b1.Where("name like @Keywords", query.Keywords != null)
+                  .Where("is_del=true")
                   .Join("student_name as b on a.id=b.sid");
                 var p = new { Age = 1, Score = 20 };
                 var tmp1 = b1.Build("select * from student as a /**join**/ /**where**/ ");
@@ -58,6 +62,58 @@ namespace SqlBatis.XUnit
                 .With("FOR UPDATE")
                 .Page(2, 2)
                 .SelectMany();
+        }
+
+        [Fact(DisplayName = "忽略列")]
+        public void Ignore()
+        {
+            var list = _context.From<StudentDto>()
+                .Ignore(a => a.StuGender)
+                .Select();
+
+        }
+        [Fact(DisplayName = "表连接1")]
+        public void Join2()
+        {
+            var list = _context.From<StudentDto, SchoolDto>()
+                .Join((a, b) => a.SchId == b.Id)
+                .Select((a, b) => new
+                {
+                    a.Id,
+                    a.StuName,
+                    b.SchName
+                });
+
+        }
+        [Fact(DisplayName = "表连接2")]
+        public void Join3()
+        {
+            var list = _context.From<StudentDto, SchoolDto, AddressDto>()
+               .Join<StudentDto, SchoolDto>((a, b) => a.SchId == b.Id)
+               .Join<StudentDto, AddressDto>((a, c) => a.AddrId == c.Id)
+               .Select((a, b, c) => new
+               {
+                   a.Id,
+                   a.StuName,
+                   b.SchName,
+                   c.AddrName
+               });
+        }
+
+        [Fact(DisplayName = "表连接3")]
+        public void Join4()
+        {
+            var list1 = _context.From<StudentDto>().Select(s=>new StudentDto 
+            {
+                Id=s.Id,
+                StuName=s.StuName
+            });
+            var list2 = _context.From<StudentDto>().Select(s => new StudentDto
+            {
+                Id = s.Id,
+                StuName = s.StuName,
+                StuGender=s.StuGender
+            });
         }
     }
 }

@@ -312,6 +312,11 @@
             <typeparam name="T">结果集类型</typeparam>
             <returns></returns>
         </member>
+        <member name="T:SqlBatis.SqlBuilder">
+            <summary>
+            构建动态sql
+            </summary>
+        </member>
         <member name="T:SqlBatis.DbUpdateConcurrencyException">
             <summary>
             修改数据时并发冲突
@@ -400,7 +405,7 @@
             参数解序列化器
             </summary>
         </member>
-        <member name="M:SqlBatis.DbEntityMapperProvider.GetSerializer``1(System.Data.IDataRecord)">
+        <member name="M:SqlBatis.DbEntityMapperProvider.GetEntityMapper``1(System.Data.IDataRecord)">
             <summary>
             获取实体序列化器
             </summary>
@@ -408,7 +413,7 @@
             <param name="record"></param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.DbEntityMapperProvider.GetSerializer">
+        <member name="M:SqlBatis.DbEntityMapperProvider.GetEntityMapper">
             <summary>
             获取动态实体序列化器
             </summary>
@@ -674,13 +679,6 @@
             防止注入检测
             </summary>
             <param name="sql"></param>
-            <returns></returns>
-        </member>
-        <member name="M:SqlBatis.Queryables.DbQueryable`1.Ignore(System.Boolean)">
-            <summary>
-            忽略所有空列
-            </summary>
-            <param name="ignoreAllNullColumns"></param>
             <returns></returns>
         </member>
         <member name="T:SqlBatis.Queryables.IDbQueryable`1">
@@ -965,19 +963,20 @@
             <param name="commandTimeout">超时时间</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.Queryables.IDbQueryable`1.Ignore``1(System.Linq.Expressions.Expression{System.Func{`0,``0}})">
-            <summary>
-            在insert,update,select时过滤字段
-            </summary>
-            <typeparam name="TResult">类型推断</typeparam>
-            <param name="expression">字段列表</param>
-            <returns></returns>
-        </member>
         <member name="M:SqlBatis.Queryables.IDbQueryable`1.Ignore(System.Boolean)">
             <summary>
             忽略所有空列
             </summary>
             <param name="ignoreAllNullColumns"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.Queryables.IDbQueryable`1.Ignore``1(System.Linq.Expressions.Expression{System.Func{`0,``0}},System.Boolean)">
+            <summary>
+            在insert,update,select时忽略字段
+            </summary>
+            <typeparam name="TResult"></typeparam>
+            <param name="expression"></param>
+            <param name="condition"></param>
             <returns></returns>
         </member>
         <member name="M:SqlBatis.Queryables.IDbQueryable`1.Set``1(System.Linq.Expressions.Expression{System.Func{`0,``0}},``0,System.Boolean)">
@@ -1593,6 +1592,11 @@
         <member name="T:SqlBatis.SqlBatisSettings">
             <summary>
             全局设置
+            </summary>
+        </member>
+        <member name="P:SqlBatis.SqlBatisSettings.IgnoreInvalidParameters">
+            <summary>
+            是否忽略DbCommand中的无效参数
             </summary>
         </member>
         <member name="P:SqlBatis.SqlBatisSettings.DbMetaInfoProvider">

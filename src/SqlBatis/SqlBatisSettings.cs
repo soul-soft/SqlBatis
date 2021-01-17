@@ -10,6 +10,10 @@ namespace SqlBatis
     public static class SqlBatisSettings
     {
         /// <summary>
+        /// 是否忽略DbCommand中的无效参数
+        /// </summary>
+        public static bool IgnoreInvalidParameters { get; set; } = false;
+        /// <summary>
         /// 数据库元信息提供程序
         /// </summary>
         public static IDbMetaInfoProvider DbMetaInfoProvider { get; set; }

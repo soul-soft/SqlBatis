@@ -7,6 +7,49 @@ namespace SqlBatis.XUnit
 	/// <summary>
     /// 
     /// </summary>
+	[Table("address")]
+	public partial class AddressDto
+	{
+				
+		/// <summary>
+        /// 
+		/// </summary>
+		[Column("id")]
+        [PrimaryKey]  
+        public int? Id { get; set; }
+			
+		/// <summary>
+        /// 
+		/// </summary>
+		[Column("addr_name")]
+        public string AddrName { get; set; }
+	}
+	
+	/// <summary>
+    /// 
+    /// </summary>
+	[Table("school")]
+	public partial class SchoolDto
+	{
+				
+		/// <summary>
+        /// 
+		/// </summary>
+		[Column("id")]
+        [PrimaryKey]  
+        [Identity]
+        public int? Id { get; set; }
+			
+		/// <summary>
+        /// 
+		/// </summary>
+		[Column("sch_name")]
+        public string SchName { get; set; }
+	}
+	
+	/// <summary>
+    /// 
+    /// </summary>
 	[Table("student")]
 	public partial class StudentDto
 	{
@@ -18,6 +61,18 @@ namespace SqlBatis.XUnit
         [PrimaryKey]  
         [Identity]
         public int? Id { get; set; }
+			
+		/// <summary>
+        /// 
+		/// </summary>
+		[Column("sch_id")]
+        public int? SchId { get; set; }
+			
+		/// <summary>
+        /// 
+		/// </summary>
+		[Column("addr_id")]
+        public int? AddrId { get; set; }
 			
 		/// <summary>
         /// 
@@ -41,6 +96,7 @@ namespace SqlBatis.XUnit
         /// 
 		/// </summary>
 		[Column("version")]
+        [ConcurrencyCheck]
         public string Version { get; set; }
 			
 		/// <summary>

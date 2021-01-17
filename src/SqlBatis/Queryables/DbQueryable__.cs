@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace SqlBatis.Queryables
 {
-    public class DbQueryable<T1, T2> : BaseQueryable, IDbQueryable<T1, T2>
+    public class DbQueryable<T1, T2> : DbQueryable, IDbQueryable<T1, T2>
     {
         #region fields
         public DbQueryable(IDbContext context)
