@@ -82,8 +82,12 @@ var entiityNames = context.From<Student>().Select(s=>new
     s.Name,
     s.Age
 });
+//默认忽略：这会忽略id字段
 var row = context.From<Student>().Insert(new {Name="zs",Age=1});
+//默认忽略：这会忽略Age字段
 var row = context.From<Student>().Update(new {Name="zs",Id=1});
+//显示忽略：这会忽略所有为null的字段
+var row = context.From<Student>().Ignore().Update(new Student{Name="zs",Id=1});
 
 public class Student
 {
