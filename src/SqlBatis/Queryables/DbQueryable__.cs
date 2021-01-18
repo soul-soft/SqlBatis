@@ -101,8 +101,8 @@ namespace SqlBatis.Queryables
             var sql2 = BuildCountCommand();
             using (var multi = _context.QueryMultiple($"{sql1};{sql2}", _parameters, commandTimeout))
             {
-                var list = multi.GetList<TResult>();
-                var count = multi.Get<int>();
+                var list = multi.Read<TResult>();
+                var count = multi.ReadFirst<int>();
                 return (list, count);
             }
         }
@@ -113,8 +113,8 @@ namespace SqlBatis.Queryables
             var sql2 = BuildCountCommand();
             using (var multi = _context.QueryMultiple($"{sql1};{sql2}", _parameters, commandTimeout))
             {
-                var list = await multi.GetListAsync<TResult>();
-                var count = await multi.GetAsync<int>();
+                var list = await multi.ReadAsync<TResult>();
+                var count = await multi.ReadFirstAsync<int>();
                 return (list, count);
             }
         }

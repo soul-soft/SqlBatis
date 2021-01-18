@@ -59,6 +59,10 @@ namespace SqlBatis
         {
             return _connection.ExecuteAsync(sql, parameter, _transaction, commandTimeout, commandType);
         }
+        public object ExecuteScalar(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null)
+        {
+            return _connection.ExecuteScalar(sql, parameter, _transaction, commandTimeout, commandType);
+        }
         public T ExecuteScalar<T>(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null)
         {
             return _connection.ExecuteScalar<T>(sql, parameter, _transaction, commandTimeout, commandType);

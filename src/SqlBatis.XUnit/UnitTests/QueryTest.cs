@@ -33,6 +33,7 @@ namespace SqlBatis.XUnit
         [Fact(DisplayName = "获取单个")]
         public void Single()
         {
+            SqlBatisSettings.IgnoreInvalidParameters = true;
             _context.Query("select * from student");
             var p = new { b = new { id = 444 } };
             var data = _context.From<StudentDto>()
@@ -44,11 +45,12 @@ namespace SqlBatis.XUnit
         public void Page()
         {
             var (list1, count1) = _context.From<StudentDto>()
-                .Page(1, 2)
-                .SelectMany();
+                  .Page(1, 2)
+                  .SelectMany();
             var (list2, count2) = _context.From<StudentDto>()
                 .Page(2, 2)
                 .SelectMany();
+
         }
 
         [Fact(DisplayName = "R锁")]

@@ -13,6 +13,7 @@ namespace SqlBatis.XUnit
             _context = new MyDbContext(new DbContextBuilder
             {
                 Connection = new MySqlConnector.MySqlConnection("server=127.0.0.1;user id=root;password=1024;database=test;"),
+                //Connection = new System.Data.SQLite.SQLiteConnection(@"Data Source=D:\SqlBatis\src\SqlBatis.XUnit\sqlite.db;"),
                 DbContextType = DbContextType.Mysql
             });
         }

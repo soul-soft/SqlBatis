@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
@@ -141,7 +142,11 @@ namespace SqlBatis.Queryables
             var sql = $"INSERT INTO {table}({columnNames}) VALUES ({parameters})";
             if (identity)
             {
-                sql = $"{sql};SELECT @@IDENTITY";
+                if (_context.DbContextType==DbContextType.Sqlite)
+                    sql = $"{sql};SELECT LAST_INSERT_ROWID()";
+                else
+                    sql = $"{sql};SELECT @@IDENTITY";
+                
             }
             return sql;
         }
@@ -287,7 +292,7 @@ namespace SqlBatis.Queryables
                     var primaryKey = columns.Where(a => a.IsPrimaryKey).FirstOrDefault();
                     if (primaryKey == null)
                     {
-                        throw new Exception("primary key is required");
+                        throw new MissingPrimaryKeyException("primary key is required");
                     }
                     where = $" WHERE {primaryKey.ColumnName} = {_parameterPrefix}{primaryKey.CsharpName}";
                 }
@@ -297,6 +302,10 @@ namespace SqlBatis.Queryables
                 if (columns.Any(a => a.IsConcurrencyCheck))
                 {
                     var checkColumn = columns.Where(a => a.IsConcurrencyCheck).FirstOrDefault();
+                    if (!_parameters.ContainsKey(checkColumn.CsharpName)||_parameters[checkColumn.CsharpName]==null)
+                    {                        
+                        throw new ArgumentNullException(checkColumn.CsharpName);
+                    }
                     sql += $",{checkColumn.ColumnName} = {_parameterPrefix}New{checkColumn.CsharpName}";
                     where += $" AND {checkColumn.ColumnName} = {_parameterPrefix}{checkColumn.CsharpName}";
                     _parameters.Add($"New{checkColumn.CsharpName}", GetConcurrencyColumnValue(checkColumn.CsharpType));
@@ -541,8 +550,8 @@ namespace SqlBatis.Queryables
             var sql2 = BuildCountCommand();
             using (var multi = _context.QueryMultiple($"{sql1};{sql2}", _parameters, commandTimeout))
             {
-                var list = multi.GetList<T>();
-                var count = multi.Get<int>();
+                var list = multi.Read<T>();
+                var count = multi.ReadFirst<int>();
                 return (list, count);
             }
         }
@@ -563,8 +572,8 @@ namespace SqlBatis.Queryables
             var sql2 = BuildCountCommand();
             using (var multi = _context.QueryMultiple($"{sql1};{sql2}", _parameters, commandTimeout))
             {
-                var list = multi.GetList<TResult>();
-                var count = multi.Get<int>();
+                var list = multi.Read<TResult>();
+                var count = multi.ReadFirst<int>();
                 return (list, count);
             }
         }
@@ -749,8 +758,8 @@ namespace SqlBatis.Queryables
             var sql2 = BuildCountCommand();
             using (var multi = _context.QueryMultiple($"{sql1};{sql2}", _parameters, commandTimeout))
             {
-                var list = await multi.GetListAsync<T>();
-                var count = await multi.GetAsync<int>();
+                var list = await multi.ReadAsync<T>();
+                var count = await multi.ReadFirstAsync<int>();
                 return (list, count);
             }
         }
@@ -767,8 +776,8 @@ namespace SqlBatis.Queryables
             var sql2 = BuildCountCommand();
             using (var multi = _context.QueryMultiple($"{sql1};{sql2}", _parameters, commandTimeout))
             {
-                var list = await multi.GetListAsync<TResult>();
-                var count = await multi.GetAsync<int>();
+                var list = await multi.ReadAsync<TResult>();
+                var count = await multi.ReadFirstAsync<int>();
                 return (list, count);
             }
         }

@@ -9,19 +9,29 @@ namespace SqlBatis.XUnit
         [Fact(DisplayName = "SQL插入")]
         public void ExecuteSql()
         {
-            var data = new StudentDto
+            try
             {
-                Score = 50.5,
-                StuGender = true,
-                CreateTime = DateTime.Now,
-                Version = Guid.NewGuid().ToString("N"),
-                StuName = "zs",
-            };
-            var sql = @"INSERT INTO student
+                _context.Open();
+                var data = new StudentDto
+                {
+                    Score = 50.5,
+                    StuGender = true,
+                    CreateTime = DateTime.Now,
+                    Version = Guid.NewGuid().ToString("N"),
+                    StuName = "zs",
+                };
+                var sql = @"INSERT INTO student
                 (stu_name,stu_gender,score,version,create_time) values 
                 (@StuName,@StuGender,@Score,@Version,@CreateTime)";
-            var row = _context.Execute(sql, data);
-            Assert.Equal(1, row);
+                var row = _context.Execute(sql, data);
+                Assert.Equal(1, row);
+            }
+            catch (Exception e)
+            {
+
+                throw;
+            }
+           
         }
 
         [Fact(DisplayName = "基本插入")]
@@ -123,6 +133,5 @@ namespace SqlBatis.XUnit
             Assert.Equal(id, entity.Id);
         }
 
-       
     }
 }

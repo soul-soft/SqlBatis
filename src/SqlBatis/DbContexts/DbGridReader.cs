@@ -16,46 +16,46 @@ namespace SqlBatis
         /// 返回当前dynamic类型结果集
         /// </summary>
         /// <returns></returns>
-        List<dynamic> GetList();
+        List<dynamic> Read();
         /// <summary>
         /// 异步返回当前dynamic类型结果集
         /// </summary>
         /// <returns></returns>
-        Task<List<dynamic>> GetListAsync();
+        Task<List<dynamic>> ReadAsync();
         /// <summary>
         /// 返回当前T结果集
         /// </summary>
         /// <typeparam name="T">结果集类型</typeparam>
         /// <returns></returns>
-        List<T> GetList<T>();
+        List<T> Read<T>();
         /// <summary>
         ///  异步返回当前T类型结果集
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        Task<List<T>> GetListAsync<T>();
+        Task<List<T>> ReadAsync<T>();
         /// <summary>
         /// 返回当前dynamic类型结果
         /// </summary>
         /// <returns></returns>
-        object Get();
+        object ReadFirst();
         /// <summary>
         /// 异步返回当前dynamic类型结果
         /// </summary>
         /// <returns></returns>
-        Task<object> GetAsync();
+        Task<object> ReadFirstAsync();
         /// <summary>
         /// 返回当前T类型结果
         /// </summary>
         /// <typeparam name="T">结果集类型</typeparam>
         /// <returns></returns>
-        T Get<T>();
+        T ReadFirst<T>();
         /// <summary>
         /// 异步返回当前T类型结果
         /// </summary>
         /// <typeparam name="T">结果集类型</typeparam>
         /// <returns></returns>
-        Task<T> GetAsync<T>();
+        Task<T> ReadFirstAsync<T>();
     }
 
     internal class DbGridReader : IDbGridReader
@@ -79,27 +79,27 @@ namespace SqlBatis
             GC.SuppressFinalize(this);
         }
 
-        public T Get<T>()
+        public T ReadFirst<T>()
         {
-            return GetList<T>().FirstOrDefault();
+            return Read<T>().FirstOrDefault();
         }
 
-        public async Task<T> GetAsync<T>()
+        public async Task<T> ReadFirstAsync<T>()
         {
-            return (await GetListAsync<T>()).FirstOrDefault();
+            return (await ReadAsync<T>()).FirstOrDefault();
         }
 
-        public object Get()
+        public object ReadFirst()
         {
-            return GetList<object>().FirstOrDefault();
+            return Read<object>().FirstOrDefault();
         }
 
-        public async Task<object> GetAsync()
+        public async Task<object> ReadFirstAsync()
         {
-            return (await GetListAsync<object>()).FirstOrDefault();
+            return (await ReadAsync<object>()).FirstOrDefault();
         }
 
-        public async Task<List<dynamic>> GetListAsync()
+        public async Task<List<dynamic>> ReadAsync()
         {
             var handler = SqlBatisSettings.DbEntityMapperProvider.GetEntityMapper();
             var list = new List<dynamic>();
@@ -111,7 +111,7 @@ namespace SqlBatis
             return list;
         }
 
-        public List<dynamic> GetList()
+        public List<dynamic> Read()
         {
             var handler = SqlBatisSettings.DbEntityMapperProvider.GetEntityMapper();
             var list = new List<dynamic>();
@@ -123,7 +123,7 @@ namespace SqlBatis
             return list;
         }
 
-        public List<T> GetList<T>()
+        public List<T> Read<T>()
         {
             var handler = SqlBatisSettings.DbEntityMapperProvider.GetEntityMapper<T>(_reader);
             var list = new List<T>();
@@ -135,7 +135,7 @@ namespace SqlBatis
             return list;
         }
 
-        public async Task<List<T>> GetListAsync<T>()
+        public async Task<List<T>> ReadAsync<T>()
         {
             var handler = SqlBatisSettings.DbEntityMapperProvider.GetEntityMapper<T>(_reader);
             var list = new List<T>();

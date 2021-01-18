@@ -20,43 +20,43 @@ namespace SqlBatis
             GC.SuppressFinalize(this);
         }
 
-        public object Get()
+        public object ReadFirst()
         {
-            return _reader.Read(false);
+            return _reader.ReadFirst();
         }
 
-        public T Get<T>()
+        public T ReadFirst<T>()
         {
             return _reader.ReadFirst<T>();
         }
 
-        public Task<object> GetAsync()
+        public Task<object> ReadFirstAsync()
         {
             return _reader.ReadFirstAsync();
         }
 
-        public Task<T> GetAsync<T>()
+        public Task<T> ReadFirstAsync<T>()
         {
             return _reader.ReadFirstAsync<T>();
         }
 
-        public List<dynamic> GetList()
+        public List<dynamic> Read()
         {
             return _reader.Read(false).AsList();
         }
 
-        public List<T> GetList<T>()
+        public List<T> Read<T>()
         {
             return _reader.Read<T>(false).AsList();
         }
 
-        public async Task<List<dynamic>> GetListAsync()
+        public async Task<List<dynamic>> ReadAsync()
         {
             var list = await _reader.ReadAsync(false);
             return list.AsList();
         }
 
-        public async Task<List<T>> GetListAsync<T>()
+        public async Task<List<T>> ReadAsync<T>()
         {
             var list = await _reader.ReadAsync<T>(false);
             return list.AsList();

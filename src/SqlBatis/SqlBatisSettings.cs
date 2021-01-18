@@ -22,6 +22,6 @@ namespace SqlBatis
         /// 实体映射器
         /// </summary>
         public static DbEntityMapperProvider DbEntityMapperProvider { get; set; }
-          = new DbEntityMapperProvider();
+            = new DbEntityMapperProvider();
     }
 }

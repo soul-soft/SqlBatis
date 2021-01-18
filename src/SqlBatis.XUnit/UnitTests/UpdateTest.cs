@@ -1,5 +1,6 @@
 using SqlBatis.Expressions;
 using System;
+using System.Data;
 using Xunit;
 
 namespace SqlBatis.XUnit
@@ -48,9 +49,9 @@ namespace SqlBatis.XUnit
                 var row = _context.From<StudentDto>().Update(entity);
                 Assert.Equal(1, row);
             }
-            catch (DbUpdateConcurrencyException e)
+            catch (Exception e)
             {
-                Assert.NotNull(e);
+                Assert.True(e is DbUpdateConcurrencyException);
             }
 
         }
@@ -94,7 +95,8 @@ namespace SqlBatis.XUnit
             var updateEntity = new  
             {
                 Id=entity.Id,
-                StuName="aaa"
+                StuName="aaa",
+                data.Version
             };
             var row = _context.From<StudentDto>()
               //.Ignore(ignoreAllNullColumns: true)

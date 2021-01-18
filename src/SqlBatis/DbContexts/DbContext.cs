@@ -112,6 +112,15 @@ namespace SqlBatis
         /// <summary>
         /// 执行无结果集查询，并返回指定类型的数据
         /// </summary>
+        /// <param name="sql"></param>
+        /// <param name="parameter"></param>
+        /// <param name="commandTimeout"></param>
+        /// <param name="commandType"></param>
+        /// <returns></returns>
+        object ExecuteScalar(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null);
+        /// <summary>
+        /// 执行无结果集查询，并返回指定类型的数据
+        /// </summary>
         /// <typeparam name="T">返回类型</typeparam>
         /// <param name="sql">sql命令</param>
         /// <param name="parameter">参数</param>
@@ -239,6 +248,18 @@ namespace SqlBatis
             using (var cmd = CreateDbCommand(sql, parameter, commandTimeout, commandType) as DbCommand)
             {
                 return await cmd.ExecuteNonQueryAsync();
+            }
+        }
+        public virtual object ExecuteScalar(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null)
+        {
+            using (var cmd = CreateDbCommand(sql, parameter, commandTimeout, commandType))
+            {
+                var result = cmd.ExecuteScalar();
+                if (result is DBNull || result == null)
+                {
+                    return default;
+                }
+                return result;
             }
         }
         public virtual T ExecuteScalar<T>(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null)

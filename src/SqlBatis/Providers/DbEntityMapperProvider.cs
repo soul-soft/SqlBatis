@@ -42,7 +42,7 @@ namespace SqlBatis
             {
                 names[i] = record.GetName(i);
             }
-            var key = new SerializerKey(typeof(T), names.Length == 1 ? null : names);
+            var key = new SerializerKey(typeof(T), names.Length == 1 ? new string[] { } : names);
             var handler = _serializers.GetOrAdd(key, k =>
              {
                  return CreateTypeSerializerHandler<T>(record);
@@ -422,11 +422,11 @@ namespace SqlBatis
         struct SerializerKey : IEquatable<SerializerKey>
         {
             private string[] Columns { get; set; }
-            
+
             private Type Type { get; set; }
-            
-            public override bool Equals(object obj)=> obj is SerializerKey key && Equals(key);
-            
+
+            public override bool Equals(object obj) => obj is SerializerKey key && Equals(key);
+
             public bool Equals(SerializerKey other)
             {
                 if (Type != other.Type)
@@ -439,9 +439,9 @@ namespace SqlBatis
                             return false;
                 return true;
             }
-           
-            public override int GetHashCode()=> Type.GetHashCode();
-            
+
+            public override int GetHashCode() => Type.GetHashCode();
+
             public SerializerKey(Type type, string[] names)
             {
                 Type = type;

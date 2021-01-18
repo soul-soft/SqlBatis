@@ -168,6 +168,16 @@
             <param name="commandType">命令类型</param>
             <returns></returns>
         </member>
+        <member name="M:SqlBatis.IDbContext.ExecuteScalar(System.String,System.Object,System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
+            <summary>
+            执行无结果集查询，并返回指定类型的数据
+            </summary>
+            <param name="sql"></param>
+            <param name="parameter"></param>
+            <param name="commandTimeout"></param>
+            <param name="commandType"></param>
+            <returns></returns>
+        </member>
         <member name="M:SqlBatis.IDbContext.ExecuteScalar``1(System.String,System.Object,System.Nullable{System.Int32},System.Nullable{System.Data.CommandType})">
             <summary>
             执行无结果集查询，并返回指定类型的数据
@@ -260,52 +270,52 @@
             DataReader多个结果集
             </summary>
         </member>
-        <member name="M:SqlBatis.IDbGridReader.GetList">
+        <member name="M:SqlBatis.IDbGridReader.Read">
             <summary>
             返回当前dynamic类型结果集
             </summary>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbGridReader.GetListAsync">
+        <member name="M:SqlBatis.IDbGridReader.ReadAsync">
             <summary>
             异步返回当前dynamic类型结果集
             </summary>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbGridReader.GetList``1">
+        <member name="M:SqlBatis.IDbGridReader.Read``1">
             <summary>
             返回当前T结果集
             </summary>
             <typeparam name="T">结果集类型</typeparam>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbGridReader.GetListAsync``1">
+        <member name="M:SqlBatis.IDbGridReader.ReadAsync``1">
             <summary>
              异步返回当前T类型结果集
             </summary>
             <typeparam name="T"></typeparam>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbGridReader.Get">
+        <member name="M:SqlBatis.IDbGridReader.ReadFirst">
             <summary>
             返回当前dynamic类型结果
             </summary>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbGridReader.GetAsync">
+        <member name="M:SqlBatis.IDbGridReader.ReadFirstAsync">
             <summary>
             异步返回当前dynamic类型结果
             </summary>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbGridReader.Get``1">
+        <member name="M:SqlBatis.IDbGridReader.ReadFirst``1">
             <summary>
             返回当前T类型结果
             </summary>
             <typeparam name="T">结果集类型</typeparam>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.IDbGridReader.GetAsync``1">
+        <member name="M:SqlBatis.IDbGridReader.ReadFirstAsync``1">
             <summary>
             异步返回当前T类型结果
             </summary>
