@@ -42,8 +42,8 @@ List<Student> list = context.Query<Student>("select id,stu_name from student").T
 //多结果集
 using(var multi = context.QueryMultiple("select id,stu_name from student;select count(1) from student"))
 {
-    var list = multi.GetList<Student>();
-    var count = multi.get<int>();
+    var list = multi.Read<Student>();
+    var count = multi.ReadFirst<int>();
 }
 public class Student
 {
