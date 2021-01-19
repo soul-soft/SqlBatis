@@ -105,6 +105,17 @@ namespace SqlBatis.XUnit
         [Fact(DisplayName = "±Ì¡¨Ω”3")]
         public void Join4()
         {
+            try
+            {
+                var sum = _context.From<StudentDto>().Sum(a => a.Id);
+            }
+            catch (Exception e)
+            {
+
+                throw;
+            }
+            
+            var flag = _context.From<StudentDto>().Where(a => a.Id > 0).Exists();
             var list1 = _context.From<StudentDto>().Select(s=>new StudentDto 
             {
                 Id=s.Id,

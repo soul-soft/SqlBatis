@@ -266,12 +266,20 @@ namespace SqlBatis
         {
             using (var cmd = CreateDbCommand(sql, parameter, commandTimeout, commandType))
             {
-                var result = cmd.ExecuteScalar();
-                if (result is DBNull || result == null)
+                var value = cmd.ExecuteScalar();
+                if (value is null || value is DBNull) return default;
+                if (value is T t) return t;
+                var type = typeof(T);
+                type = Nullable.GetUnderlyingType(type) ?? type;
+                if (type.IsEnum)
                 {
-                    return default;
+                    if (value is float || value is double || value is decimal)
+                    {
+                        value = Convert.ChangeType(value, Enum.GetUnderlyingType(type), System.Globalization.CultureInfo.InvariantCulture);
+                    }
+                    return (T)Enum.ToObject(type, value);
                 }
-                return (T)Convert.ChangeType(result, typeof(T));
+                return (T)Convert.ChangeType(value, type, System.Globalization.CultureInfo.InvariantCulture);
             }
         }
         public virtual async Task<T> ExecuteScalarAsync<T>(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null)
@@ -467,6 +475,6 @@ namespace SqlBatis
         ~DbContext()
         {
             Dispose();
-        }
+        }              
     }
 }
