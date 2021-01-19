@@ -42,8 +42,8 @@ List<Student> list = context.Query<Student>("select id,stu_name from student").T
 //多结果集
 using(var multi = context.QueryMultiple("select id,stu_name from student;select count(1) from student"))
 {
-    var list = multi.GetList<Student>();
-    var count = multi.get<int>();
+    var list = multi.Read<Student>();
+    var count = multi.ReadFirst<int>();
 }
 public class Student
 {
@@ -67,8 +67,8 @@ var tmp1 = b1.Build("select * from student as a /**join**/ /**where**/ ");
 var tmp2 = b1.Build("select count(1) from student as a /**join**/ /**where**/ ");
 using(var multi = context.QueryMultiple($"{tmp1.RawSql};{tmp2.RawSql}",new {Id=1,Score=5}))
 {
-    var list = multi.GetList<Student>();
-    var count = multi.Get<int>();
+    var list = multi.Read<Student>();
+    var count = multi.ReadFirst<int>();
 }
 
 ```
