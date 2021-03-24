@@ -157,7 +157,7 @@ public class MyDbEntityMapperProvider : DbEntityMapperProvider
         {
             return MyConvertMethod.CharArrayConvertStringMethod;
         }
-        if (entityMemberType?.IsClass && entityMemberType!=typeof(string) && )
+        if (entityMemberType.IsClass && entityMemberType!=typeof(string) && )
         {
             //如果是泛型方法，必须MakeGenericMethod
             return MyConvertMethod.StringConvertJsonMethod.MakeGenericMethod(entityMemberType);
