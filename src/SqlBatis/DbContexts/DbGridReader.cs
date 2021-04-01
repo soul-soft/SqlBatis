@@ -60,9 +60,10 @@ namespace SqlBatis
 
     internal class DbGridReader : IDbGridReader
     {
+        private bool _disposed = false;
         private readonly IDataReader _reader = null;
         private readonly IDbCommand _command = null;
-        ~DbGridReader() 
+        ~DbGridReader()
         {
             Dispose();
         }
@@ -74,8 +75,14 @@ namespace SqlBatis
 
         public void Dispose()
         {
-            _reader?.Dispose();
-            _command?.Dispose();
+            if (_disposed)
+            {
+                return;
+            }
+            _disposed = true;
+            try { _reader?.Close(); } catch { }
+            try {_reader?.Dispose(); } catch { }
+            try {_command?.Dispose(); } catch { }
             GC.SuppressFinalize(this);
         }
 

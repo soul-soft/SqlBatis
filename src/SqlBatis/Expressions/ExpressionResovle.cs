@@ -37,8 +37,9 @@ namespace SqlBatis.Expressions
         /// <returns></returns>
         public static object VisitExpressionValue(Expression expression)
         {
+            object value = null;
             if (expression is ConstantExpression constant)
-                return constant.Value;
+                value = constant.Value;
             else if (expression is MemberExpression)
             {
                 var mxs = new Stack<MemberExpression>();
@@ -48,7 +49,6 @@ namespace SqlBatis.Expressions
                     mxs.Push(memberExpression);
                     temp = memberExpression.Expression;
                 }
-                object value = null;
                 foreach (var item in mxs)
                 {
                     if (item.Expression is ConstantExpression cex)
@@ -58,12 +58,16 @@ namespace SqlBatis.Expressions
                     else if (item.Member is FieldInfo fif)
                         value = fif.GetValue(value);
                 }
-                return value;
             }
             else
             {
-                return Expression.Lambda(expression).Compile().DynamicInvoke();
+                value = Expression.Lambda(expression).Compile().DynamicInvoke();
             }
+            if (!SqlBatisSettings.AllowConstantExpressionResultIsNull && value == null)
+            {
+                throw new NullReferenceException($"The result of '{expression}' is not allowed to be null");
+            }
+            return value;
         }
 
         /// <summary>

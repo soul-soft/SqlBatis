@@ -157,14 +157,16 @@ namespace SqlBatis
     /// </summary>
     public class DbContext : IDbContext
     {
-        private readonly IDbConnection _connection;
-        private IDbTransaction _transaction;
-        public bool IsTransactioned { get => _transaction != null; }
+        private bool _disposed = false;
+        public IDbConnection Connection;
+        public string TransactionId { get; private set; }
+        protected IDbTransaction Transaction;
+        public bool IsTransactioned { get => Transaction != null; }
         public DbContextState DbContextState { get; private set; } = DbContextState.Closed;
         public DbContextType DbContextType { get; } = DbContextType.Mysql;
         public DbContext(DbContextBuilder builder)
         {
-            _connection = builder.Connection;
+            Connection = builder.Connection;
             DbContextType = builder.DbContextType;
         }
         public virtual IEnumerable<dynamic> Query(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null)
@@ -294,34 +296,34 @@ namespace SqlBatis
                 return (T)Convert.ChangeType(result, typeof(T));
             }
         }
-        public virtual void BeginTransaction()
+        private void DoBegionTransaction()
         {
             Open();
-            _transaction = _connection.BeginTransaction();
+            TransactionId = Guid.NewGuid().ToString("N");
+        }
+        public virtual void BeginTransaction()
+        {
+            DoBegionTransaction();
+            Transaction = Connection.BeginTransaction();
         }
         public virtual void BeginTransaction(IsolationLevel level)
         {
-            Open();
-            _transaction = _connection.BeginTransaction(level);
+            DoBegionTransaction();
+            Transaction = Connection.BeginTransaction(level);
         }
         public virtual void Close()
         {
-            try
-            {
-                _transaction?.Dispose();
-                _connection?.Close();
-            }
-            finally
-            {
-                DbContextState = DbContextState.Closed;
-            }
+            RollbackTransaction();
+            try { Connection?.Close(); } catch (Exception) { }
+            DbContextState = DbContextState.Closed;
         }
         public virtual void CommitTransaction()
         {
-            if (_transaction != null)
+            if (Transaction != null)
             {
-                _transaction.Commit();
-                _transaction = null;
+                TransactionId = null;
+                Transaction.Commit();
+                Transaction = null;
                 DbContextState = DbContextState.Commit;
             }
         }
@@ -329,7 +331,7 @@ namespace SqlBatis
         {
             if (DbContextState == DbContextState.Closed)
             {
-                _connection.Open();
+                Connection.Open();
                 DbContextState = DbContextState.Open;
             }
         }
@@ -337,16 +339,17 @@ namespace SqlBatis
         {
             if (DbContextState == DbContextState.Closed)
             {
-                await (_connection as DbConnection).OpenAsync();
+                await (Connection as DbConnection).OpenAsync();
                 DbContextState = DbContextState.Open;
             }
         }
         public virtual void RollbackTransaction()
         {
-            if (_transaction != null)
+            if (Transaction != null)
             {
-                _transaction.Rollback();
-                _transaction = null;
+                try {Transaction.Rollback();} catch { }
+                try {Transaction?.Dispose();} catch { }
+                Transaction = null;
                 DbContextState = DbContextState.Rollback;
             }
         }
@@ -361,9 +364,9 @@ namespace SqlBatis
         protected virtual IDbCommand CreateDbCommand(string sql, object parameter, int? commandTimeout = null, CommandType? commandType = null)
         {
             Open();
-            var cmd = _connection.CreateCommand();
+            var cmd = Connection.CreateCommand();
             var dbParameters = new List<IDbDataParameter>();
-            cmd.Transaction = _transaction;
+            cmd.Transaction = Transaction;
             cmd.CommandText = sql;
             if (commandTimeout.HasValue)
             {
@@ -434,7 +437,7 @@ namespace SqlBatis
                             cmd.CommandText = Regex.Replace(cmd.CommandText, name, $"(SELECT 1 WHERE 1 = 0)");
                         }
                     }
-                    else if (SqlBatisSettings.IgnoreInvalidParameters && Regex.IsMatch(cmd.CommandText, $@"([\@,\:,\?]+{item.ParameterName})", options))
+                    else if (SqlBatisSettings.IgnoreDbCommandInvalidParameters && Regex.IsMatch(cmd.CommandText, $@"([\@,\:,\?]+{item.ParameterName})", options))
                     {
                         cmd.Parameters.Add(item);
                     }
@@ -463,18 +466,16 @@ namespace SqlBatis
         /// <summary>
         /// 释放
         /// </summary>
-        public virtual void Dispose()
+        public void Dispose()
         {
-            RollbackTransaction();
-            Close();
+            if (_disposed)
+            {
+                return;
+            }
+            _disposed = true;
+            try { Close(); Connection?.Dispose(); } catch { }
+            Connection = null;
             GC.SuppressFinalize(this);
         }
-        /// <summary>
-        /// 析构
-        /// </summary>
-        ~DbContext()
-        {
-            Dispose();
-        }              
     }
 }

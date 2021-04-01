@@ -245,11 +245,6 @@
             释放
             </summary>
         </member>
-        <member name="M:SqlBatis.DbContext.Finalize">
-            <summary>
-            析构
-            </summary>
-        </member>
         <member name="P:SqlBatis.DbContextBuilder.Connection">
             <summary>
             设置要托管的数据库连接
@@ -651,18 +646,24 @@
             </summary>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.Queryables.DbQueryable`1.EntityToParameter``1(``0)">
+        <member name="M:SqlBatis.Queryables.DbQueryable`1.EntityToDictionary``1(``0)">
             <summary>
             实体属性转换成字典
             </summary>
             <param name="entity"></param>
         </member>
-        <member name="M:SqlBatis.Queryables.DbQueryable`1.BuildInsertCommand(System.Boolean,System.Type)">
+        <member name="M:SqlBatis.Queryables.DbQueryable`1.IgnoreAllNullColumns(System.Collections.Generic.IReadOnlyList{SqlBatis.DbColumnMetaInfo})">
+            <summary>
+            护理空值列
+            </summary>
+            <param name="columns"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.Queryables.DbQueryable`1.BuildInsertCommand(System.Boolean)">
             <summary>
             构建新增命令
             </summary>
             <param name="identity"></param>
-            <param name="entityType"></param>
             <returns></returns>
         </member>
         <member name="M:SqlBatis.Queryables.DbQueryable`1.BuildBatchInsertCommand(System.Collections.Generic.IEnumerable{`0})">
@@ -672,7 +673,7 @@
             <param name="entitys"></param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.Queryables.DbQueryable`1.BuildUpdateCommand(System.Type)">
+        <member name="M:SqlBatis.Queryables.DbQueryable`1.BuildUpdateCommand">
             <summary>
             构建更新命令
             </summary>
@@ -1604,7 +1605,7 @@
             全局设置
             </summary>
         </member>
-        <member name="P:SqlBatis.SqlBatisSettings.IgnoreInvalidParameters">
+        <member name="P:SqlBatis.SqlBatisSettings.IgnoreDbCommandInvalidParameters">
             <summary>
             是否忽略DbCommand中的无效参数
             </summary>

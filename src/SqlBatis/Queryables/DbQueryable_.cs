@@ -64,7 +64,7 @@ namespace SqlBatis.Queryables
         /// 实体属性转换成字典
         /// </summary>
         /// <param name="entity"></param>
-        private void EntityToParameter<Entity>(Entity entity)
+        private void EntityToDictionary<Entity>(Entity entity)
         {
             var serializer = SqlBatisSettings.DbEntityMapperProvider.GetDeserializer(typeof(Entity));
             var values = serializer(entity);
@@ -81,23 +81,48 @@ namespace SqlBatis.Queryables
             }
         }
         /// <summary>
+        /// 护理空值列
+        /// </summary>
+        /// <param name="columns"></param>
+        /// <returns></returns>
+        private List<DbColumnMetaInfo> IgnoreAllNullColumns(IReadOnlyList<DbColumnMetaInfo> columns)
+        {
+            var temps = new List<DbColumnMetaInfo>();
+            foreach (var item in columns)
+            {
+                if (!_parameters.ContainsKey(item.CsharpName))
+                {
+                    continue;
+                }
+                if (_ignoreAllNullColumns)
+                {
+                    if (_parameters[item.CsharpName] == null)
+                    {
+                        _parameters.Remove(item.CsharpName);
+                        continue;
+                    }
+                }
+                temps.Add(item);
+            }
+            return temps;
+        }
+        /// <summary>
         /// 构建新增命令
         /// </summary>
         /// <param name="identity"></param>
-        /// <param name="entityType"></param>
         /// <returns></returns>
-        private string BuildInsertCommand(bool identity, Type entityType)
+        private string BuildInsertCommand(bool identity)
         {
             var table = GetViewName();
             var ignores = BuildIgnoreExpression();
-            var columns = _columns;
-            var insertcolumns = columns
+            var columns = _columns
                 .Where(a => !ignores.Contains(a.ColumnName))//忽略列
                 .Where(a => !a.IsNotMapped)//非映射列
                 .Where(a => !a.IsIdentity)//非自增列
                 .Where(a => !a.IsComplexType)//非计算列
                 .Where(a => !a.IsDefault || (_parameters.ContainsKey(a.CsharpName) && _parameters[a.CsharpName] != null))
                 .ToList();
+            var insertcolumns= IgnoreAllNullColumns(_columns);
             //并发检查列
             if (insertcolumns.Any(a => a.IsConcurrencyCheck))
             {
@@ -110,46 +135,20 @@ namespace SqlBatis.Queryables
                         _parameters.Add(checkColumn.CsharpName, GetConcurrencyColumnValue(checkColumn.CsharpType));
                 }
             }
-            if (typeof(T) != entityType)//如果插入的实体类型和表实体类型不同，则忽略null值
-            {
-                var temps = new List<DbColumnMetaInfo>();
-                foreach (var item in insertcolumns)
-                {
-                    if (_parameters.ContainsKey(item.CsharpName))
-                    {
-                        temps.Add(item);
-                    }
-                }
-                insertcolumns = temps;
-            }
-            else if (_ignoreAllNullColumns)
-            {
-                foreach (var item in _parameters)
-                {
-                    if (item.Value == null)
-                    {
-                        var c = insertcolumns.Where(a => a.CsharpName == item.Key).FirstOrDefault();
-                        if (c != null)
-                        {
-                            insertcolumns.Remove(c);
-                        }
-                        _parameters.Remove(item.Key);
-                    }
-                }
-            }
             var columnNames = string.Join(",", insertcolumns.Select(s => s.ColumnName));
             var parameters = string.Join(",", insertcolumns.Select(s => $"{_parameterPrefix}{s.CsharpName}"));
             var sql = $"INSERT INTO {table}({columnNames}) VALUES ({parameters})";
             if (identity)
             {
-                if (_context.DbContextType==DbContextType.Sqlite)
+                if (_context.DbContextType == DbContextType.Sqlite)
                     sql = $"{sql};SELECT LAST_INSERT_ROWID()";
                 else
                     sql = $"{sql};SELECT @@IDENTITY";
-                
+
             }
             return sql;
         }
+        
         /// <summary>
         /// 构建批量新增命令
         /// </summary>
@@ -159,10 +158,11 @@ namespace SqlBatis.Queryables
         {
             var table = GetViewName();
             var filters = BuildIgnoreExpression();
-            var columns = _columns
-                .Where(a => !a.IsComplexType).ToList();
-            var intcolumns = columns
-                .Where(a => !filters.Contains(a.ColumnName) && !a.IsNotMapped && !a.IsIdentity)
+            var intcolumns = _columns
+                .Where(a => !a.IsComplexType)
+                .Where(a => !filters.Contains(a.ColumnName))
+                .Where(a=> !a.IsNotMapped)
+                .Where(a=> !a.IsIdentity)
                 .ToList();
             var columnNames = string.Join(",", intcolumns.Select(s => s.ColumnName));
             if (_context.DbContextType == DbContextType.Mysql)
@@ -230,7 +230,7 @@ namespace SqlBatis.Queryables
         /// 构建更新命令
         /// </summary>
         /// <returns></returns>
-        private string BuildUpdateCommand(Type entityType = null)
+        private string BuildUpdateCommand()
         {
             var table = GetViewName();
             var builder = new StringBuilder();
@@ -251,8 +251,7 @@ namespace SqlBatis.Queryables
             {
                 var filters = BuildIgnoreExpression();
                 var where = BuildWhereExpression();
-                var columns = _columns;
-                var updatecolumns = columns
+                var columns = _columns
                     .Where(a => !filters.Contains(a.ColumnName))
                     .Where(a => !a.IsComplexType)
                     .Where(a => !a.IsPrimaryKey)
@@ -260,33 +259,7 @@ namespace SqlBatis.Queryables
                     .Where(a => !a.IsIdentity)
                     .Where(a => !a.IsConcurrencyCheck)
                     .ToList();
-                if (typeof(T) != entityType)
-                {
-                    var temps = new List<DbColumnMetaInfo>();
-                    foreach (var item in updatecolumns)
-                    {
-                        if (_parameters.ContainsKey(item.CsharpName))
-                        {
-                            temps.Add(item);
-                        }
-                    }
-                    updatecolumns = temps;
-                }
-                else if (_ignoreAllNullColumns)
-                {
-                    foreach (var item in _parameters)
-                    {
-                        if (item.Value == null)
-                        {
-                            var c = updatecolumns.Where(a => a.CsharpName == item.Key).FirstOrDefault();
-                            if (c != null)
-                            {
-                                updatecolumns.Remove(c);
-                            }
-                            _parameters.Remove(item.Key);
-                        }
-                    }
-                }
+                var updatecolumns = IgnoreAllNullColumns(columns);
                 if (string.IsNullOrEmpty(where))
                 {
                     var primaryKey = columns.Where(a => a.IsPrimaryKey).FirstOrDefault();
@@ -302,8 +275,8 @@ namespace SqlBatis.Queryables
                 if (columns.Any(a => a.IsConcurrencyCheck))
                 {
                     var checkColumn = columns.Where(a => a.IsConcurrencyCheck).FirstOrDefault();
-                    if (!_parameters.ContainsKey(checkColumn.CsharpName)||_parameters[checkColumn.CsharpName]==null)
-                    {                        
+                    if (!_parameters.ContainsKey(checkColumn.CsharpName) || _parameters[checkColumn.CsharpName] == null)
+                    {
                         throw new ArgumentNullException(checkColumn.CsharpName);
                     }
                     sql += $",{checkColumn.ColumnName} = {_parameterPrefix}New{checkColumn.CsharpName}";
@@ -344,8 +317,6 @@ namespace SqlBatis.Queryables
             }
             return buffer.ToString();
         }
-
-
         #endregion
 
         #region sync       
@@ -363,15 +334,15 @@ namespace SqlBatis.Queryables
 
         public int Insert<Entity>(Entity entity)
         {
-            EntityToParameter(entity);
-            var sql = BuildInsertCommand(false, typeof(Entity));
+            EntityToDictionary(entity);
+            var sql = BuildInsertCommand(false);
             return _context.Execute(sql, _parameters);
         }
 
         public int InsertReturnId<Entity>(Entity entity)
         {
-            EntityToParameter(entity);
-            var sql = BuildInsertCommand(true, typeof(Entity));
+            EntityToDictionary(entity);
+            var sql = BuildInsertCommand(true);
             return _context.ExecuteScalar<int>(sql, _parameters);
         }
 
@@ -424,8 +395,8 @@ namespace SqlBatis.Queryables
 
         public int Update<Entity>(Entity entity)
         {
-            EntityToParameter(entity);
-            var sql = BuildUpdateCommand(typeof(Entity));
+            EntityToDictionary(entity);
+            var sql = BuildUpdateCommand();
             var row = _context.Execute(sql, _parameters);
             if (_columns.Any(a => a.IsConcurrencyCheck) && row == 0)
             {
@@ -668,8 +639,8 @@ namespace SqlBatis.Queryables
 
         public async Task<int> UpdateAsync<Entity>(Entity entity)
         {
-            EntityToParameter(entity);
-            var sql = BuildUpdateCommand(typeof(Entity));
+            EntityToDictionary(entity);
+            var sql = BuildUpdateCommand();
             var row = await _context.ExecuteAsync(sql, _parameters);
             if (_columns.Any(a => a.IsConcurrencyCheck) && row == 0)
             {
@@ -680,8 +651,8 @@ namespace SqlBatis.Queryables
 
         public Task<int> InsertAsync<Entity>(Entity entity)
         {
-            EntityToParameter(entity);
-            var sql = BuildInsertCommand(false, typeof(Entity));
+            EntityToDictionary(entity);
+            var sql = BuildInsertCommand(false);
             return _context.ExecuteAsync(sql, _parameters);
         }
 
@@ -735,8 +706,8 @@ namespace SqlBatis.Queryables
 
         public Task<int> InsertReturnIdAsync<Entity>(Entity entity)
         {
-            EntityToParameter(entity);
-            var sql = BuildInsertCommand(true, typeof(Entity));
+            EntityToDictionary(entity);
+            var sql = BuildInsertCommand(true);
             return _context.ExecuteScalarAsync<int>(sql, _parameters);
         }
 

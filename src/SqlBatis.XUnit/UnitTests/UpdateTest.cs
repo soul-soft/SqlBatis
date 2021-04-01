@@ -96,10 +96,11 @@ namespace SqlBatis.XUnit
             {
                 Id=entity.Id,
                 StuName="aaa",
-                data.Version
+                data.Version,
+                Score=(double?)null
             };
             var row = _context.From<StudentDto>()
-              //.Ignore(ignoreAllNullColumns: true)
+              .Ignore(ignoreAllNullColumns: true)
               .Update(updateEntity);
             var queryEntity = _context.From<StudentDto>().Where(a => a.Id == entity.Id).Single();
             Assert.Equal("aaa", queryEntity.StuName);

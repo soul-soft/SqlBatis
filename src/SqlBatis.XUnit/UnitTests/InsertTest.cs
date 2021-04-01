@@ -103,7 +103,7 @@ namespace SqlBatis.XUnit
         {
             var data = new {Age=5,Name="zs" };
             var row = _context.From<StudentDto>()
-              //.Ignore(ignoreAllNullColumns: true)
+              .Ignore(ignoreAllNullColumns: true)
               .Insert(new
               {
                   StuName = "zs",

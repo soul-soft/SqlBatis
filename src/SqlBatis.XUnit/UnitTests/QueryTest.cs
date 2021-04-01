@@ -33,7 +33,7 @@ namespace SqlBatis.XUnit
         [Fact(DisplayName = "获取单个")]
         public void Single()
         {
-            SqlBatisSettings.IgnoreInvalidParameters = true;
+            SqlBatisSettings.IgnoreDbCommandInvalidParameters = true;
             _context.Query("select * from student");
             var p = new { b = new { id = 444 } };
             var data = _context.From<StudentDto>()
