@@ -15,10 +15,6 @@
 		<FileVersion>1.1.9.0</FileVersion>
 		<AssemblyVersion>1.1.9.0</AssemblyVersion>
 		<RepositoryType>github</RepositoryType>
-		<PublishRepositoryUrl>true</PublishRepositoryUrl>
-		<EmbedUntrackedSources>true</EmbedUntrackedSources>
-		<IncludeSymbols>true</IncludeSymbols>
-		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
 		<DocumentationFile>D:\SqlBatis\src\SqlBatis\SqlBatis.xml</DocumentationFile>
@@ -38,8 +34,5 @@
 	<ItemGroup Condition="'$(TargetFramework)' == 'net45'">
 		<Reference Include="Microsoft.CSharp" />
 		<PackageReference Include="System.ValueTuple" Version="4.5.0" />
-	</ItemGroup>
-	<ItemGroup>
-		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
 	</ItemGroup>
 </Project>
