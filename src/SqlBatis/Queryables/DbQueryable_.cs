@@ -124,9 +124,9 @@ namespace SqlBatis.Queryables
                 .ToList();
             var insertcolumns= IgnoreAllNullColumns(_columns);
             //并发检查列
-            if (insertcolumns.Any(a => a.IsConcurrencyCheck))
+            if (_columns.Any(a => a.IsConcurrencyCheck))
             {
-                var checkColumn = insertcolumns.Where(a => a.IsConcurrencyCheck).First();
+                var checkColumn = _columns.Where(a => a.IsConcurrencyCheck).First();
                 if (!_parameters.ContainsKey(checkColumn.CsharpName) || _parameters[checkColumn.CsharpName] == null)
                 {
                     if (_parameters.ContainsKey(checkColumn.CsharpName))
@@ -262,7 +262,7 @@ namespace SqlBatis.Queryables
                 var updatecolumns = IgnoreAllNullColumns(columns);
                 if (string.IsNullOrEmpty(where))
                 {
-                    var primaryKey = columns.Where(a => a.IsPrimaryKey).FirstOrDefault();
+                    var primaryKey = _columns.Where(a => a.IsPrimaryKey).FirstOrDefault();
                     if (primaryKey == null)
                     {
                         throw new MissingPrimaryKeyException("primary key is required");
@@ -272,9 +272,9 @@ namespace SqlBatis.Queryables
                 var setsql = updatecolumns.Select(s => $"{s.ColumnName} = {_parameterPrefix}{s.CsharpName}");
                 var sql = $"UPDATE {table} SET {string.Join(",", setsql)}";
                 //并发检查
-                if (columns.Any(a => a.IsConcurrencyCheck))
+                if (_columns.Any(a => a.IsConcurrencyCheck))
                 {
-                    var checkColumn = columns.Where(a => a.IsConcurrencyCheck).FirstOrDefault();
+                    var checkColumn = _columns.Where(a => a.IsConcurrencyCheck).FirstOrDefault();
                     if (!_parameters.ContainsKey(checkColumn.CsharpName) || _parameters[checkColumn.CsharpName] == null)
                     {
                         throw new ArgumentNullException(checkColumn.CsharpName);
