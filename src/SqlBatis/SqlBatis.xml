@@ -1605,6 +1605,11 @@
             全局设置
             </summary>
         </member>
+        <member name="P:SqlBatis.SqlBatisSettings.AllowConstantExpressionResultIsNull">
+            <summary>
+            是否允许常量表达式的结果为：默认不允许将抛出NullReferenceException
+            </summary>
+        </member>
         <member name="P:SqlBatis.SqlBatisSettings.IgnoreDbCommandInvalidParameters">
             <summary>
             是否忽略DbCommand中的无效参数

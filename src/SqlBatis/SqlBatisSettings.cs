@@ -9,7 +9,10 @@ namespace SqlBatis
     /// </summary>
     public static class SqlBatisSettings
     {
-        public static bool AllowConstantExpressionResultIsNull { get; set; } = true;
+        /// <summary>
+        /// 是否允许常量表达式的结果为：默认不允许将抛出NullReferenceException
+        /// </summary>
+        public static bool AllowConstantExpressionResultIsNull { get; set; } = false;
        
         /// <summary>
         /// 是否忽略DbCommand中的无效参数
