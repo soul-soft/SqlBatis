@@ -108,7 +108,7 @@ namespace SqlBatis
 
         public async Task<List<dynamic>> ReadAsync()
         {
-            var handler = SqlBatisSettings.DbEntityMapperProvider.GetEntityMapper();
+            var handler = SqlBatisSettings.DbDataConvertProvider.GetDynamicHandler();
             var list = new List<dynamic>();
             while (await (_reader as DbDataReader).ReadAsync())
             {
@@ -120,7 +120,7 @@ namespace SqlBatis
 
         public List<dynamic> Read()
         {
-            var handler = SqlBatisSettings.DbEntityMapperProvider.GetEntityMapper();
+            var handler = SqlBatisSettings.DbDataConvertProvider.GetDynamicHandler();
             var list = new List<dynamic>();
             while (_reader.Read())
             {
@@ -132,7 +132,7 @@ namespace SqlBatis
 
         public List<T> Read<T>()
         {
-            var handler = SqlBatisSettings.DbEntityMapperProvider.GetEntityMapper<T>(_reader);
+            var handler = SqlBatisSettings.DbDataConvertProvider.GetEntityHandler<T>(_reader);
             var list = new List<T>();
             while (_reader.Read())
             {
@@ -144,7 +144,7 @@ namespace SqlBatis
 
         public async Task<List<T>> ReadAsync<T>()
         {
-            var handler = SqlBatisSettings.DbEntityMapperProvider.GetEntityMapper<T>(_reader);
+            var handler = SqlBatisSettings.DbDataConvertProvider.GetEntityHandler<T>(_reader);
             var list = new List<T>();
             while (await (_reader as DbDataReader).ReadAsync())
             {

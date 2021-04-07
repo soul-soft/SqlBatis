@@ -6,7 +6,6 @@ using System.Text;
 namespace SqlBatis.Queryables
 {
     public abstract class DbQueryable
-
     {
         #region fields
         protected readonly Dictionary<string, object> _parameters = new Dictionary<string, object>();

@@ -22,13 +22,13 @@ namespace SqlBatis
         /// <summary>
         /// 数据库元信息提供程序
         /// </summary>
-        public static IDbMetaInfoProvider DbMetaInfoProvider { get; set; }
+        internal static IDbMetaInfoProvider DbMetaInfoProvider { get; set; }
             = new AnnotationDbMetaInfoProvider();
         
         /// <summary>
         /// 实体映射器
         /// </summary>
-        public static DbEntityMapperProvider DbEntityMapperProvider { get; set; }
-            = new DbEntityMapperProvider();
+        public static DbConvertProvider DbDataConvertProvider { get; set; }
+            = new DbConvertProvider();
     }
 }

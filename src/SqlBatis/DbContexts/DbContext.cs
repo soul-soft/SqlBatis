@@ -176,7 +176,7 @@ namespace SqlBatis
                 var list = new List<dynamic>();
                 using (var reader = cmd.ExecuteReader())
                 {
-                    var handler = SqlBatisSettings.DbEntityMapperProvider.GetEntityMapper();
+                    var handler = SqlBatisSettings.DbDataConvertProvider.GetDynamicHandler();
                     while (reader.Read())
                     {
                         list.Add(handler(reader));
@@ -192,7 +192,7 @@ namespace SqlBatis
                 using (var reader = await cmd.ExecuteReaderAsync())
                 {
                     var list = new List<dynamic>();
-                    var handler = SqlBatisSettings.DbEntityMapperProvider.GetEntityMapper();
+                    var handler = SqlBatisSettings.DbDataConvertProvider.GetDynamicHandler();
                     while (reader.Read())
                     {
                         list.Add(handler(reader));
@@ -213,7 +213,7 @@ namespace SqlBatis
                 var list = new List<T>();
                 using (var reader = cmd.ExecuteReader())
                 {
-                    var handler = SqlBatisSettings.DbEntityMapperProvider.GetEntityMapper<T>(reader);
+                    var handler = SqlBatisSettings.DbDataConvertProvider.GetEntityHandler<T>(reader);
                     while (reader.Read())
                     {
                         list.Add(handler(reader));
@@ -229,7 +229,7 @@ namespace SqlBatis
                 using (var reader = await cmd.ExecuteReaderAsync())
                 {
                     var list = new List<T>();
-                    var handler = SqlBatisSettings.DbEntityMapperProvider.GetEntityMapper<T>(reader);
+                    var handler = SqlBatisSettings.DbDataConvertProvider.GetEntityHandler<T>(reader);
                     while (await reader.ReadAsync())
                     {
                         list.Add(handler(reader));
@@ -268,20 +268,8 @@ namespace SqlBatis
         {
             using (var cmd = CreateDbCommand(sql, parameter, commandTimeout, commandType))
             {
-                var value = cmd.ExecuteScalar();
-                if (value is null || value is DBNull) return default;
-                if (value is T t) return t;
-                var type = typeof(T);
-                type = Nullable.GetUnderlyingType(type) ?? type;
-                if (type.IsEnum)
-                {
-                    if (value is float || value is double || value is decimal)
-                    {
-                        value = Convert.ChangeType(value, Enum.GetUnderlyingType(type), System.Globalization.CultureInfo.InvariantCulture);
-                    }
-                    return (T)Enum.ToObject(type, value);
-                }
-                return (T)Convert.ChangeType(value, type, System.Globalization.CultureInfo.InvariantCulture);
+                var result = cmd.ExecuteScalar();
+                return SqlBatisSettings.DbDataConvertProvider.ChangeType<T>(result);
             }
         }
         public virtual async Task<T> ExecuteScalarAsync<T>(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null)
@@ -289,11 +277,7 @@ namespace SqlBatis
             using (var cmd = CreateDbCommand(sql, parameter, commandTimeout, commandType) as DbCommand)
             {
                 var result = await cmd.ExecuteScalarAsync();
-                if (result is DBNull || result == null)
-                {
-                    return default;
-                }
-                return (T)Convert.ChangeType(result, typeof(T));
+                return SqlBatisSettings.DbDataConvertProvider.ChangeType<T>(result);
             }
         }
         private void DoBegionTransaction()
@@ -347,8 +331,8 @@ namespace SqlBatis
         {
             if (Transaction != null)
             {
-                try {Transaction.Rollback();} catch { }
-                try {Transaction?.Dispose();} catch { }
+                try { Transaction.Rollback(); } catch { }
+                try { Transaction?.Dispose(); } catch { }
                 Transaction = null;
                 DbContextState = DbContextState.Rollback;
             }
@@ -388,17 +372,17 @@ namespace SqlBatis
             {
                 foreach (var item in keyValues)
                 {
-                    var param = CreateDbDataParameter(cmd, item.Key, item.Value);
+                    var param = CreateDbParameter(cmd, item.Key, item.Value);
                     dbParameters.Add(param);
                 }
             }
             else if (parameter != null)
             {
-                var handler = SqlBatisSettings.DbEntityMapperProvider.GetDeserializer(parameter.GetType());
+                var handler = SqlBatisSettings.DbDataConvertProvider.GetTypeDbParameterHandler(parameter.GetType());
                 var values = handler(parameter);
                 foreach (var item in values)
                 {
-                    var param = CreateDbDataParameter(cmd, item.Key, item.Value);
+                    var param = CreateDbParameter(cmd, item.Key, item.Value);
                     dbParameters.Add(param);
                 }
             }
@@ -427,7 +411,7 @@ namespace SqlBatis
                             {
                                 plist.Add($"{name}{i}");
                                 var key = $"{item.ParameterName}{i}";
-                                var param = CreateDbDataParameter(cmd, key, list[i]);
+                                var param = CreateDbParameter(cmd, key, list[i]);
                                 cmd.Parameters.Add(param);
                             }
                             cmd.CommandText = Regex.Replace(cmd.CommandText, name, $"({string.Join(",", plist)})");
@@ -450,17 +434,18 @@ namespace SqlBatis
             return cmd;
         }
         /// <summary>
-        /// 创建DbDataParameter
+        /// 创建数据库参数
         /// </summary>
         /// <param name="command"></param>
         /// <param name="name"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        protected virtual IDbDataParameter CreateDbDataParameter(IDbCommand command, string name, object value)
+        public virtual IDbDataParameter CreateDbParameter(IDbCommand command, string name, object value)
         {
+            var keyvalue = SqlBatisSettings.DbDataConvertProvider.CreateDbParameter(name,value);
             var parameter = command.CreateParameter();
-            parameter.ParameterName = name;
-            parameter.Value = value ?? DBNull.Value;
+            parameter.ParameterName = keyvalue.Key;
+            parameter.Value = keyvalue.Value ?? DBNull.Value;
             return parameter;
         }
         /// <summary>
