@@ -122,7 +122,7 @@ namespace SqlBatis.Queryables
                 .Where(a => !a.IsComplexType)//非计算列
                 .Where(a => !a.IsDefault || (_parameters.ContainsKey(a.CsharpName) && _parameters[a.CsharpName] != null))
                 .ToList();
-            var insertcolumns= IgnoreAllNullColumns(_columns);
+            var insertcolumns = IgnoreAllNullColumns(_columns);
             //并发检查列
             if (_columns.Any(a => a.IsConcurrencyCheck))
             {
@@ -148,7 +148,7 @@ namespace SqlBatis.Queryables
             }
             return sql;
         }
-        
+
         /// <summary>
         /// 构建批量新增命令
         /// </summary>
@@ -161,8 +161,8 @@ namespace SqlBatis.Queryables
             var intcolumns = _columns
                 .Where(a => !a.IsComplexType)
                 .Where(a => !filters.Contains(a.ColumnName))
-                .Where(a=> !a.IsNotMapped)
-                .Where(a=> !a.IsIdentity)
+                .Where(a => !a.IsNotMapped)
+                .Where(a => !a.IsIdentity)
                 .ToList();
             var columnNames = string.Join(",", intcolumns.Select(s => s.ColumnName));
             if (_context.DbContextType == DbContextType.Mysql)
@@ -433,7 +433,16 @@ namespace SqlBatis.Queryables
         {
             if (condition)
             {
-                _expressions.Add(new DbSetExpression(column, Expression.Constant(value)));
+                Expression expression;
+                if (value == null)
+                {
+                    expression = Expression.Constant(DBNull.Value);
+                }
+                else
+                {
+                    expression = Expression.Constant(value);
+                }
+                _expressions.Add(new DbSetExpression(column, expression));
             }
             return this;
         }

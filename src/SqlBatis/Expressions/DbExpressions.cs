@@ -50,7 +50,7 @@ namespace SqlBatis.Expressions
     }
     internal class DbSetExpression : DbExpression
     {
-        public Expression Column;
+        public readonly Expression Column;
         public DbSetExpression(Expression column,Expression expression)
             : base(expression, DbExpressionType.Set)
         {

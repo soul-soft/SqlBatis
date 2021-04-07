@@ -19,11 +19,14 @@ namespace SqlBatis.XUnit
                 StuName = "zs",
             };
             _context.From<StudentDto>().Insert(data);
-            var entity = _context.From<StudentDto>().Where(a => a.Version == data.Version).Single();
-            entity.Score = 1;
+            var entity = _context.From<StudentDto>()
+                .Where(a => a.Version == data.Version)
+                .Single();
+            entity.Score = null;
             entity.StuName = "BaseUpdate";
             entity.StuGender = false;
-            var row = _context.From<StudentDto>().Update(entity);
+            var row = _context.From<StudentDto>()
+                .Update(entity);
             Assert.Equal(1, row);
         }
 

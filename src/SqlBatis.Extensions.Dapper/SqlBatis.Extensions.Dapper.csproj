@@ -10,9 +10,9 @@
 		<Description>A high performance Micro-ORM supporting SQL Server, MySQL, Sqlite etc..</Description>
 		<PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
 		<PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-		<Version>1.0.1.2</Version>
-		<AssemblyVersion>1.0.1.1</AssemblyVersion>
-		<FileVersion>1.0.1.1</FileVersion>
+		<Version>1.0.1.3</Version>
+		<AssemblyVersion>1.0.1.3</AssemblyVersion>
+		<FileVersion>1.0.1.3</FileVersion>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|netstandard2.0|AnyCPU'">
