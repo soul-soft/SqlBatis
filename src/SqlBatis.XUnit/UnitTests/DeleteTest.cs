@@ -21,5 +21,50 @@ namespace SqlBatis.XUnit
             var flag = _context.From<StudentDto>().Exists(a => a.Id == id);
             Assert.False(flag);
         }
+
+        [Fact(DisplayName = "删除实体")]
+        public void BaseDeleteEntity()
+        {
+            var data = new StudentDto
+            {
+                Score = 50.5,
+                StuGender = true,
+                CreateTime = DateTime.Now,
+                Version = Guid.NewGuid().ToString("N"),
+                StuName = "zs",
+            };
+            var id = _context.From<StudentDto>().InsertReturnId(data);
+            data.Id = id;
+            var row = _context.Delete(data);
+            var flag = _context.From<StudentDto>().Exists(a => a.Id == id);
+            Assert.False(flag);
+        }
+        [Fact(DisplayName = "删除实体")]
+        public void BaseDeleteEntities()
+        {
+            var data = new StudentDto
+            {
+                Score = 50.5,
+                StuGender = true,
+                CreateTime = DateTime.Now,
+                Version = Guid.NewGuid().ToString("N"),
+                StuName = "zs",
+            };
+            var data2 = new StudentDto
+            {
+                Score = 50.5,
+                StuGender = true,
+                CreateTime = DateTime.Now,
+                Version = Guid.NewGuid().ToString("N"),
+                StuName = "zs",
+            };
+            var id = _context.From<StudentDto>().InsertReturnId(data);
+            data.Id = id;
+            var id2 = _context.From<StudentDto>().InsertReturnId(data2);
+            data2.Id = id2;
+            var row = _context.DeleteBatch(new StudentDto[] { data,data2});
+            var flag = _context.From<StudentDto>().Exists(a => a.Id == id);
+            Assert.False(flag);
+        }
     }
 }

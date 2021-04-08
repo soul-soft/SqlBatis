@@ -24,5 +24,53 @@ namespace SqlBatis
         {
             return new DbQueryable<T1, T2, T3>(context);
         }
+        public static int Insert<T>(this IDbContext context, T entity)
+        {
+            return new DbQueryable<T>(context).Insert(entity);
+        }
+        public static Task<int> InsertAsync<T>(this IDbContext context, T entity)
+        {
+            return new DbQueryable<T>(context).InsertAsync(entity);
+        }
+        public static int InsertBatch<T>(this IDbContext context, IEnumerable<T> entities, int? commandTimeout = null)
+        {
+            return new DbQueryable<T>(context).InsertBatch(entities, commandTimeout);
+        }
+        public static Task<int> InsertBatchAsync<T>(this IDbContext context, IEnumerable<T> entities, int? commandTimeout = null)
+        {
+            return new DbQueryable<T>(context).InsertBatchAsync(entities, commandTimeout);
+        }
+        public static int InsertReturnId<T>(this IDbContext context, IEnumerable<T> entities)
+        {
+            return new DbQueryable<T>(context).InsertReturnId(entities);
+        }
+        public static Task<int> InsertReturnIdAsync<T>(this IDbContext context, IEnumerable<T> entities)
+        {
+            return new DbQueryable<T>(context).InsertReturnIdAsync(entities);
+        }
+        public static int Update<T>(this IDbContext context, IEnumerable<T> entities)
+        {
+            return new DbQueryable<T>(context).Update(entities);
+        }
+        public static Task<int> UpdateAsync<T>(this IDbContext context, IEnumerable<T> entities)
+        {
+            return new DbQueryable<T>(context).UpdateAsync(entities);
+        }
+        public static int Delete<T>(this IDbContext context,T entity)
+        {
+            return new DbQueryable<T>(context).Delete(entity);
+        }
+        public static Task<int> DeleteAsync<T>(this IDbContext context, T entity)
+        {
+            return new DbQueryable<T>(context).DeleteAsync(entity);
+        }
+        public static int DeleteBatch<T>(this IDbContext context, IEnumerable<T> entities)
+        {
+            return new DbQueryable<T>(context).DeleteBatch(entities);
+        }
+        public static Task<int> DeleteBatchAsync<T>(this IDbContext context, IEnumerable<T> entities)
+        {
+            return new DbQueryable<T>(context).DeleteBatchAsync(entities);
+        }
     }
 }

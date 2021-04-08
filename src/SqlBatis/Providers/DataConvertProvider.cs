@@ -12,7 +12,7 @@ namespace SqlBatis
     /// <summary>
     /// 提供数据转换能力
     /// </summary>
-    public class DbConvertProvider
+    public class DataConvertProvider
     {
         #region 内部属性
         /// <summary>

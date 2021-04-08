@@ -16,7 +16,6 @@ namespace SqlBatis
         /// <param name="column">字段</param>
         /// <param name="values">参数</param>
         /// <returns></returns>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("样式", "IDE0060:删除未使用的参数", Justification = "<挂起>")]
         public static bool In(object column, IEnumerable values) => default;
         /// <summary>
         /// in
@@ -24,7 +23,6 @@ namespace SqlBatis
         /// <param name="column">字段</param>
         /// <param name="values">参数</param>
         /// <returns></returns>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("样式", "IDE0060:删除未使用的参数", Justification = "<挂起>")]
         public static bool In(object column, params object[] values) => default;
         /// <summary>
         /// not in
@@ -32,7 +30,6 @@ namespace SqlBatis
         /// <param name="column">字段</param>
         /// <param name="values">参数</param>
         /// <returns></returns>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("样式", "IDE0060:删除未使用的参数", Justification = "<挂起>")]
         public static bool NotIn(object column, IEnumerable values) => default;
         /// <summary>
         /// not in
@@ -40,7 +37,6 @@ namespace SqlBatis
         /// <param name="column">字段</param>
         /// <param name="values">参数</param>
         /// <returns></returns>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("样式", "IDE0060:删除未使用的参数", Justification = "<挂起>")]
         public static bool NotIn(object column, params object[] values) => default;
         /// <summary>
         /// like %value%
@@ -48,7 +44,6 @@ namespace SqlBatis
         /// <param name="column">字段</param>
         /// <param name="value">参数</param>
         /// <returns></returns>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("样式", "IDE0060:删除未使用的参数", Justification = "<挂起>")]
         public static bool Contains(string column, string value) => default;
         /// <summary>
         /// not like %value%
@@ -56,7 +51,6 @@ namespace SqlBatis
         /// <param name="column">字段</param>
         /// <param name="value">参数</param>
         /// <returns></returns>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("样式", "IDE0060:删除未使用的参数", Justification = "<挂起>")]
         public static bool NotContains(string column, string value) => default;
         /// <summary>
         /// like value%
@@ -64,7 +58,6 @@ namespace SqlBatis
         /// <param name="column">字段</param>
         /// <param name="value">参数</param>
         /// <returns></returns>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("样式", "IDE0060:删除未使用的参数", Justification = "<挂起>")]
         public static bool StartsWith(string column, string value) => default;
         /// <summary>
         /// not like value%
@@ -72,7 +65,6 @@ namespace SqlBatis
         /// <param name="column">字段</param>
         /// <param name="value">参数</param>
         /// <returns></returns>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("样式", "IDE0060:删除未使用的参数", Justification = "<挂起>")]
         public static bool NotStartsWith(string column, string value) => default;
         /// <summary>
         /// like %value
@@ -80,7 +72,6 @@ namespace SqlBatis
         /// <param name="column">字段</param>
         /// <param name="value">参数</param>
         /// <returns></returns>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("样式", "IDE0060:删除未使用的参数", Justification = "<挂起>")]
         public static bool EndsWith(string column, string value) => default;
         /// <summary>
         /// not like %value
@@ -88,7 +79,6 @@ namespace SqlBatis
         /// <param name="column">字段</param>
         /// <param name="value">参数</param>
         /// <returns></returns>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("样式", "IDE0060:删除未使用的参数", Justification = "<挂起>")]
         public static bool NotEndsWith(string column, string value) => default;
         /// <summary>
         /// regex value
@@ -96,7 +86,6 @@ namespace SqlBatis
         /// <param name="column">字段</param>
         /// <param name="value">参数</param>
         /// <returns></returns>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("样式", "IDE0060:删除未使用的参数", Justification = "<挂起>")]
         public static bool Regexp(string column, string value) => default;
         /// <summary>
         /// not regex value
@@ -104,7 +93,6 @@ namespace SqlBatis
         /// <param name="column">字段</param>
         /// <param name="value">参数</param>
         /// <returns></returns>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("样式", "IDE0060:删除未使用的参数", Justification = "<挂起>")]
         public static bool NotRegexp(string column, string value) => default;
         /// <summary>
         /// 解析表达式
@@ -206,6 +194,9 @@ namespace SqlBatis
                     break;
                 case nameof(Operator.NotRegexp):
                     name = "NOT REGEXP";
+                    break;
+                case "IN":
+                    name = "IN";
                     break;
                 case "NOT":
                     name = "NOT";

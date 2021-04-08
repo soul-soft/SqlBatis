@@ -26,9 +26,9 @@ namespace SqlBatis
             = new AnnotationDbMetaInfoProvider();
         
         /// <summary>
-        /// 实体映射器
+        /// 数据转换提供程序
         /// </summary>
-        public static DbConvertProvider DbDataConvertProvider { get; set; }
-            = new DbConvertProvider();
+        public static DataConvertProvider DataConvertProvider { get; set; }
+            = new DataConvertProvider();
     }
 }

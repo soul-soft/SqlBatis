@@ -52,6 +52,30 @@ namespace SqlBatis.Queryables
         /// <summary>
         /// delete查询
         /// </summary>
+        /// <param name="entity">查询条件</param>
+        /// <returns></returns>
+        int Delete(T entity);
+        /// <summary>
+        /// delete查询
+        /// </summary>
+        /// <param name="entities"></param>
+        /// <returns></returns>
+        int DeleteBatch(IEnumerable<T> entities);
+        /// <summary>
+        /// delete查询
+        /// </summary>
+        /// <param name="entities"></param>
+        /// <returns></returns>
+        Task<int> DeleteBatchAsync(IEnumerable<T> entities);
+        /// <summary>
+        /// delete查询
+        /// </summary>
+        /// <param name="entity">查询条件</param>
+        /// <returns></returns>
+        Task<int> DeleteAsync(T entity);
+        /// <summary>
+        /// delete查询
+        /// </summary>
         /// <param name="expression">查询条件</param>
         /// <returns></returns>
         int Delete(Expression<Func<T, bool>> expression);

@@ -66,7 +66,7 @@ namespace SqlBatis.Queryables
         /// <param name="entity"></param>
         private void EntityToDictionary<Entity>(Entity entity)
         {
-            var serializer = SqlBatisSettings.DbDataConvertProvider.GetTypeDbParameterHandler(typeof(Entity));
+            var serializer = SqlBatisSettings.DataConvertProvider.GetTypeDbParameterHandler(typeof(Entity));
             var values = serializer(entity);
             foreach (var item in values)
             {
@@ -77,6 +77,27 @@ namespace SqlBatis.Queryables
                 else
                 {
                     _parameters.Add(item.Key, item.Value);
+                }
+            }
+        }
+        private void EntitiesToDictionary<Entity>(IEnumerable<Entity> entities)
+        {
+            var serializer = SqlBatisSettings.DataConvertProvider.GetTypeDbParameterHandler(typeof(Entity));
+            foreach (var entity in entities)
+            {
+                var values = serializer(entity);
+                foreach (var iitem in values)
+                {
+                    if (_parameters.ContainsKey(iitem.Key))
+                    {
+                        (_parameters[iitem.Key] as List<object>).Add(iitem.Value);
+                    }
+                    else
+                    {
+                        var list = new List<object>();
+                        list.Add(iitem.Value);
+                        _parameters.Add(iitem.Key, list);
+                    }
                 }
             }
         }
@@ -122,7 +143,7 @@ namespace SqlBatis.Queryables
                 .Where(a => !a.IsComplexType)//非计算列
                 .Where(a => !a.IsDefault || (_parameters.ContainsKey(a.CsharpName) && _parameters[a.CsharpName] != null))
                 .ToList();
-            var insertcolumns = IgnoreAllNullColumns(_columns);
+            var insertcolumns = IgnoreAllNullColumns(columns);
             //并发检查列
             if (_columns.Any(a => a.IsConcurrencyCheck))
             {
@@ -169,7 +190,7 @@ namespace SqlBatis.Queryables
             {
                 var buffer = new StringBuilder();
                 buffer.Append($"INSERT INTO {table}({columnNames}) VALUES ");
-                var serializer = SqlBatisSettings.DbDataConvertProvider.GetTypeDbParameterHandler(typeof(T));
+                var serializer = SqlBatisSettings.DataConvertProvider.GetTypeDbParameterHandler(typeof(T));
                 var list = entitys.ToList();
                 for (var i = 0; i < list.Count; i++)
                 {
@@ -291,10 +312,31 @@ namespace SqlBatis.Queryables
         /// 构建删除命令
         /// </summary>
         /// <returns></returns>
-        private string BuildDeleteCommand()
+        private string BuildDeleteCommand(bool byPrimaryKey=false)
         {
             var table = GetViewName();
-            var where = BuildWhereExpression();
+            var where = string.Empty;
+            if (byPrimaryKey)
+            {
+                var primaryKey = _columns.Where(a => a.IsPrimaryKey).FirstOrDefault();
+                if (primaryKey == null)
+                {
+                    throw new MissingPrimaryKeyException("primary key is required");
+                }
+                foreach (var item in _parameters.Keys)
+                {
+                    if (item!= primaryKey.CsharpName)
+                    {
+                        _parameters.Remove(item);
+                    }
+                }
+                var opt = _parameters[primaryKey.CsharpName] is List<object> ? Operator.ResovleExpressionType("IN") : "=";
+                where = $" WHERE {primaryKey.ColumnName} {opt} {_parameterPrefix}{primaryKey.CsharpName}";
+            }
+            else
+            {
+                where = BuildWhereExpression();
+            }
             var sql = $"DELETE FROM {table}{where}";
             return sql;
         }
@@ -373,14 +415,14 @@ namespace SqlBatis.Queryables
             }
         }
 
-        public int InsertBatch(IEnumerable<T> entitys, int? commandTimeout = null)
+        public int InsertBatch(IEnumerable<T> entities, int? commandTimeout = null)
         {
             var count = 0;
-            if (entitys == null || !entitys.Any())
+            if (entities == null || !entities.Any())
             {
                 return count;
             }
-            var sql = BuildBatchInsertCommand(entitys);
+            var sql = BuildBatchInsertCommand(entities);
             return _context.Execute(sql, _parameters, commandTimeout);
         }
         public int Update(int? commandTimeout = null)
@@ -403,6 +445,18 @@ namespace SqlBatis.Queryables
                 throw new DbUpdateConcurrencyException("更新失败：数据版本不一致");
             }
             return row;
+        }
+        public int DeleteBatch(IEnumerable<T> entities)
+        {
+            EntitiesToDictionary<T>(entities);
+            var sql = BuildDeleteCommand(true);
+            return _context.Execute(sql, _parameters);
+        }
+        public int Delete(T entity)
+        {
+            EntityToDictionary(entity);
+            var sql = BuildDeleteCommand(true);
+            return _context.Execute(sql, _parameters);
         }
 
         public int Delete(int? commandTimeout = null)
@@ -623,7 +677,18 @@ namespace SqlBatis.Queryables
             Where(expression);
             return DeleteAsync();
         }
-
+        public Task<int> DeleteAsync(T entity)
+        {
+            EntityToDictionary(entity);
+            var sql = BuildDeleteCommand(true);
+            return _context.ExecuteAsync(sql, _parameters);
+        }
+        public Task<int> DeleteBatchAsync(IEnumerable<T> entities)
+        {
+            EntitiesToDictionary<T>(entities);
+            var sql = BuildDeleteCommand(true);
+            return _context.ExecuteAsync(sql, _parameters);
+        }
         public Task<bool> ExistsAsync(int? commandTimeout = null)
         {
             var sql = BuildExistsCommand();
@@ -773,6 +838,8 @@ namespace SqlBatis.Queryables
             Take(1);
             return (await SelectAsync(expression, commandTimeout)).FirstOrDefault();
         }
+
+
         #endregion
     }
 }

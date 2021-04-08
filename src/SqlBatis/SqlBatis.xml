@@ -396,22 +396,22 @@
             排序表达式解析
             </summary>
         </member>
-        <member name="T:SqlBatis.DbConvertProvider">
+        <member name="T:SqlBatis.DataConvertProvider">
             <summary>
             提供数据转换能力
             </summary>
         </member>
-        <member name="F:SqlBatis.DbConvertProvider._serializers">
+        <member name="F:SqlBatis.DataConvertProvider._serializers">
             <summary>
             序列化器
             </summary>
         </member>
-        <member name="F:SqlBatis.DbConvertProvider._deserializers">
+        <member name="F:SqlBatis.DataConvertProvider._deserializers">
             <summary>
             参数解序列化器
             </summary>
         </member>
-        <member name="M:SqlBatis.DbConvertProvider.GetEntityHandler``1(System.Data.IDataRecord)">
+        <member name="M:SqlBatis.DataConvertProvider.GetEntityHandler``1(System.Data.IDataRecord)">
             <summary>
             获取实体序列化器
             </summary>
@@ -419,17 +419,17 @@
             <param name="record"></param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.DbConvertProvider.GetDynamicHandler">
+        <member name="M:SqlBatis.DataConvertProvider.GetDynamicHandler">
             <summary>
             获取动态实体序列化器
             </summary>
         </member>
-        <member name="M:SqlBatis.DbConvertProvider.GetTypeDbParameterHandler(System.Type)">
+        <member name="M:SqlBatis.DataConvertProvider.GetTypeDbParameterHandler(System.Type)">
             <summary>
             获取类成员到字典的一个转换器
             </summary>
         </member>
-        <member name="M:SqlBatis.DbConvertProvider.CreateDbParameter(System.String,System.Object)">
+        <member name="M:SqlBatis.DataConvertProvider.CreateDbParameter(System.String,System.Object)">
             <summary>
             创建数据库参数
             </summary>
@@ -437,14 +437,14 @@
             <param name="value"></param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.DbConvertProvider.FindEntityConstructor(System.Type)">
+        <member name="M:SqlBatis.DataConvertProvider.FindEntityConstructor(System.Type)">
             <summary>
             获取参数最多的构造器
             </summary>
             <param name="entityType"></param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.DbConvertProvider.FindEntityConstructorParameter(System.Reflection.ConstructorInfo,SqlBatis.DataRecordField)">
+        <member name="M:SqlBatis.DataConvertProvider.FindEntityConstructorParameter(System.Reflection.ConstructorInfo,SqlBatis.DataRecordField)">
             <summary>
             获取参数在DataReader中的顺序
             </summary>
@@ -452,7 +452,7 @@
             <param name="recordField"></param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.DbConvertProvider.FindEntityMember(System.Type,SqlBatis.DataRecordField)">
+        <member name="M:SqlBatis.DataConvertProvider.FindEntityMember(System.Type,SqlBatis.DataRecordField)">
             <summary>
             获取实体的成员信息
             </summary>
@@ -460,7 +460,7 @@
             <param name="fieldInfo">数据字段信息</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.DbConvertProvider.ChangeType``1(System.Object)">
+        <member name="M:SqlBatis.DataConvertProvider.ChangeType``1(System.Object)">
             <summary>
             类型转换
             </summary>
@@ -468,7 +468,7 @@
             <param name="value"></param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.DbConvertProvider.FindConvertMethod(System.Type,System.Type,SqlBatis.DataRecordField)">
+        <member name="M:SqlBatis.DataConvertProvider.FindConvertMethod(System.Type,System.Type,SqlBatis.DataRecordField)">
             <summary>
             获取映射实体成员的转换方法
             </summary>
@@ -477,19 +477,19 @@
             <param name="recordField">数据库字段</param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.DbConvertProvider.ConvertToDynamic(System.Data.IDataRecord,System.Int32)">
+        <member name="M:SqlBatis.DataConvertProvider.ConvertToDynamic(System.Data.IDataRecord,System.Int32)">
             <summary>
             获取动态映射值
             </summary>
         </member>
-        <member name="M:SqlBatis.DbConvertProvider.CreateTypeDeserializerHandler(System.Type)">
+        <member name="M:SqlBatis.DataConvertProvider.CreateTypeDeserializerHandler(System.Type)">
             <summary>
             创建动态方法
             </summary>
             <param name="type"></param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.DbConvertProvider.CreateTypeSerializerHandler``1(System.Data.IDataRecord)">
+        <member name="M:SqlBatis.DataConvertProvider.CreateTypeSerializerHandler``1(System.Data.IDataRecord)">
             <summary>
             创建动态方法
             </summary>
@@ -497,14 +497,14 @@
             <param name="record"></param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.DbConvertProvider.GetUnderlyingType(System.Type)">
+        <member name="M:SqlBatis.DataConvertProvider.GetUnderlyingType(System.Type)">
             <summary>
             获取类型的非Nullable类型
             </summary>
             <param name="type"></param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.DbConvertProvider.IsNullableType(System.Type)">
+        <member name="M:SqlBatis.DataConvertProvider.IsNullableType(System.Type)">
             <summary>
             判断是否是null的类型
             </summary>
@@ -691,7 +691,7 @@
             </summary>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.Queryables.DbQueryable`1.BuildDeleteCommand">
+        <member name="M:SqlBatis.Queryables.DbQueryable`1.BuildDeleteCommand(System.Boolean)">
             <summary>
             构建删除命令
             </summary>
@@ -752,6 +752,34 @@
             异步delete查询
             </summary>
             <param name="commandTimeout"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.Queryables.IDbQueryable`1.Delete(`0)">
+            <summary>
+            delete查询
+            </summary>
+            <param name="entity">查询条件</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.Queryables.IDbQueryable`1.DeleteBatch(System.Collections.Generic.IEnumerable{`0})">
+            <summary>
+            delete查询
+            </summary>
+            <param name="entities"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.Queryables.IDbQueryable`1.DeleteBatchAsync(System.Collections.Generic.IEnumerable{`0})">
+            <summary>
+            delete查询
+            </summary>
+            <param name="entities"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.Queryables.IDbQueryable`1.DeleteAsync(`0)">
+            <summary>
+            delete查询
+            </summary>
+            <param name="entity">查询条件</param>
             <returns></returns>
         </member>
         <member name="M:SqlBatis.Queryables.IDbQueryable`1.Delete(System.Linq.Expressions.Expression{System.Func{`0,System.Boolean}})">
@@ -1632,9 +1660,9 @@
             数据库元信息提供程序
             </summary>
         </member>
-        <member name="P:SqlBatis.SqlBatisSettings.DbDataConvertProvider">
+        <member name="P:SqlBatis.SqlBatisSettings.DataConvertProvider">
             <summary>
-            实体映射器
+            数据转换提供程序
             </summary>
         </member>
     </members>

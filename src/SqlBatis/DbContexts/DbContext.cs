@@ -176,7 +176,7 @@ namespace SqlBatis
                 var list = new List<dynamic>();
                 using (var reader = cmd.ExecuteReader())
                 {
-                    var handler = SqlBatisSettings.DbDataConvertProvider.GetDynamicHandler();
+                    var handler = SqlBatisSettings.DataConvertProvider.GetDynamicHandler();
                     while (reader.Read())
                     {
                         list.Add(handler(reader));
@@ -192,7 +192,7 @@ namespace SqlBatis
                 using (var reader = await cmd.ExecuteReaderAsync())
                 {
                     var list = new List<dynamic>();
-                    var handler = SqlBatisSettings.DbDataConvertProvider.GetDynamicHandler();
+                    var handler = SqlBatisSettings.DataConvertProvider.GetDynamicHandler();
                     while (reader.Read())
                     {
                         list.Add(handler(reader));
@@ -213,7 +213,7 @@ namespace SqlBatis
                 var list = new List<T>();
                 using (var reader = cmd.ExecuteReader())
                 {
-                    var handler = SqlBatisSettings.DbDataConvertProvider.GetEntityHandler<T>(reader);
+                    var handler = SqlBatisSettings.DataConvertProvider.GetEntityHandler<T>(reader);
                     while (reader.Read())
                     {
                         list.Add(handler(reader));
@@ -229,7 +229,7 @@ namespace SqlBatis
                 using (var reader = await cmd.ExecuteReaderAsync())
                 {
                     var list = new List<T>();
-                    var handler = SqlBatisSettings.DbDataConvertProvider.GetEntityHandler<T>(reader);
+                    var handler = SqlBatisSettings.DataConvertProvider.GetEntityHandler<T>(reader);
                     while (await reader.ReadAsync())
                     {
                         list.Add(handler(reader));
@@ -269,7 +269,7 @@ namespace SqlBatis
             using (var cmd = CreateDbCommand(sql, parameter, commandTimeout, commandType))
             {
                 var result = cmd.ExecuteScalar();
-                return SqlBatisSettings.DbDataConvertProvider.ChangeType<T>(result);
+                return SqlBatisSettings.DataConvertProvider.ChangeType<T>(result);
             }
         }
         public virtual async Task<T> ExecuteScalarAsync<T>(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null)
@@ -277,7 +277,7 @@ namespace SqlBatis
             using (var cmd = CreateDbCommand(sql, parameter, commandTimeout, commandType) as DbCommand)
             {
                 var result = await cmd.ExecuteScalarAsync();
-                return SqlBatisSettings.DbDataConvertProvider.ChangeType<T>(result);
+                return SqlBatisSettings.DataConvertProvider.ChangeType<T>(result);
             }
         }
         private void DoBegionTransaction()
@@ -378,7 +378,7 @@ namespace SqlBatis
             }
             else if (parameter != null)
             {
-                var handler = SqlBatisSettings.DbDataConvertProvider.GetTypeDbParameterHandler(parameter.GetType());
+                var handler = SqlBatisSettings.DataConvertProvider.GetTypeDbParameterHandler(parameter.GetType());
                 var values = handler(parameter);
                 foreach (var item in values)
                 {
@@ -442,7 +442,7 @@ namespace SqlBatis
         /// <returns></returns>
         public virtual IDbDataParameter CreateDbParameter(IDbCommand command, string name, object value)
         {
-            var keyvalue = SqlBatisSettings.DbDataConvertProvider.CreateDbParameter(name,value);
+            var keyvalue = SqlBatisSettings.DataConvertProvider.CreateDbParameter(name,value);
             var parameter = command.CreateParameter();
             parameter.ParameterName = keyvalue.Key;
             parameter.Value = keyvalue.Value ?? DBNull.Value;

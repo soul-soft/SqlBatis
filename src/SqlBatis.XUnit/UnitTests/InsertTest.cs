@@ -84,7 +84,7 @@ namespace SqlBatis.XUnit
         public void IgnoreColumnInsert()
         {
             var row = _context.From<StudentDto>()
-            .Ignore(a => a.Version)
+            .Ignore(a => a.Score)
             .Insert(new StudentDto
             {
                 Score = 50.5,
@@ -95,7 +95,7 @@ namespace SqlBatis.XUnit
             var entity = _context.From<StudentDto>()
                 .OrderByDescending(a => a.Id)
                 .Single();
-            Assert.Null(entity.Version);
+            Assert.Null(entity.Score);
         }
 
         [Fact(DisplayName = "ºöÂÔËùÓĞNull×Ö¶Î²åÈë")]
