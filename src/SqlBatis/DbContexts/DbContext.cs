@@ -158,6 +158,7 @@ namespace SqlBatis
     public class DbContext : IDbContext
     {
         private bool _disposed = false;
+        private readonly DbContextBehavior _behavior;
         public IDbConnection Connection;
         public string TransactionId { get; private set; }
         protected IDbTransaction Transaction;
@@ -168,6 +169,7 @@ namespace SqlBatis
         {
             Connection = builder.Connection;
             DbContextType = builder.DbContextType;
+            _behavior = builder.DbContextBehavior;
         }
         public virtual IEnumerable<dynamic> Query(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null)
         {
@@ -176,7 +178,7 @@ namespace SqlBatis
                 var list = new List<dynamic>();
                 using (var reader = cmd.ExecuteReader())
                 {
-                    var handler = SqlBatisSettings.DataConvertProvider.GetDynamicHandler();
+                    var handler = _behavior.GetDataReaderDynamicHandler();
                     while (reader.Read())
                     {
                         list.Add(handler(reader));
@@ -192,7 +194,7 @@ namespace SqlBatis
                 using (var reader = await cmd.ExecuteReaderAsync())
                 {
                     var list = new List<dynamic>();
-                    var handler = SqlBatisSettings.DataConvertProvider.GetDynamicHandler();
+                    var handler = _behavior.GetDataReaderDynamicHandler();
                     while (reader.Read())
                     {
                         list.Add(handler(reader));
@@ -204,7 +206,7 @@ namespace SqlBatis
         public virtual IDbGridReader QueryMultiple(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null)
         {
             var cmd = CreateDbCommand(sql, parameter, commandTimeout, commandType);
-            return new DbGridReader(cmd);
+            return new DbGridReader(cmd,_behavior);
         }
         public virtual IEnumerable<T> Query<T>(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null)
         {
@@ -213,7 +215,7 @@ namespace SqlBatis
                 var list = new List<T>();
                 using (var reader = cmd.ExecuteReader())
                 {
-                    var handler = SqlBatisSettings.DataConvertProvider.GetEntityHandler<T>(reader);
+                    var handler = _behavior.GetDataReaderEntityHandler<T>(reader);
                     while (reader.Read())
                     {
                         list.Add(handler(reader));
@@ -229,7 +231,7 @@ namespace SqlBatis
                 using (var reader = await cmd.ExecuteReaderAsync())
                 {
                     var list = new List<T>();
-                    var handler = SqlBatisSettings.DataConvertProvider.GetEntityHandler<T>(reader);
+                    var handler = _behavior.GetDataReaderEntityHandler<T>(reader);
                     while (await reader.ReadAsync())
                     {
                         list.Add(handler(reader));
@@ -269,7 +271,7 @@ namespace SqlBatis
             using (var cmd = CreateDbCommand(sql, parameter, commandTimeout, commandType))
             {
                 var result = cmd.ExecuteScalar();
-                return SqlBatisSettings.DataConvertProvider.ChangeType<T>(result);
+                return _behavior.ChangeType<T>(result);
             }
         }
         public virtual async Task<T> ExecuteScalarAsync<T>(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null)
@@ -277,7 +279,7 @@ namespace SqlBatis
             using (var cmd = CreateDbCommand(sql, parameter, commandTimeout, commandType) as DbCommand)
             {
                 var result = await cmd.ExecuteScalarAsync();
-                return SqlBatisSettings.DataConvertProvider.ChangeType<T>(result);
+                return _behavior.ChangeType<T>(result);
             }
         }
         private void DoBegionTransaction()
@@ -378,7 +380,7 @@ namespace SqlBatis
             }
             else if (parameter != null)
             {
-                var handler = SqlBatisSettings.DataConvertProvider.GetTypeDbParameterHandler(parameter.GetType());
+                var handler = DbContextBehavior.GetEntityToDictionaryHandler(parameter.GetType());
                 var values = handler(parameter);
                 foreach (var item in values)
                 {
@@ -442,7 +444,7 @@ namespace SqlBatis
         /// <returns></returns>
         public virtual IDbDataParameter CreateDbParameter(IDbCommand command, string name, object value)
         {
-            var keyvalue = SqlBatisSettings.DataConvertProvider.CreateDbParameter(name,value);
+            var keyvalue = _behavior.CreateDbCommandParameter(name,value);
             var parameter = command.CreateParameter();
             parameter.ParameterName = keyvalue.Key;
             parameter.Value = keyvalue.Value ?? DBNull.Value;

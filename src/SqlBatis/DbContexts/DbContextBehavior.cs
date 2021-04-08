@@ -5,6 +5,7 @@ using System.Data;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Text;
 
 namespace SqlBatis
 {
@@ -12,19 +13,19 @@ namespace SqlBatis
     /// <summary>
     /// 提供数据转换能力
     /// </summary>
-    public class DataConvertProvider
+    public class DbContextBehavior
     {
         #region 内部属性
         /// <summary>
         /// 序列化器
         /// </summary>
-        private readonly ConcurrentDictionary<SerializerKey, object> _serializers
+        private static readonly ConcurrentDictionary<SerializerKey, object> _serializers
             = new ConcurrentDictionary<SerializerKey, object>();
 
         /// <summary>
         /// 参数解序列化器
         /// </summary>
-        private readonly ConcurrentDictionary<Type, Func<object, Dictionary<string, object>>> _deserializers
+        private static readonly ConcurrentDictionary<Type, Func<object, Dictionary<string, object>>> _deserializers
             = new ConcurrentDictionary<Type, Func<object, Dictionary<string, object>>>();
         #endregion
 
@@ -35,17 +36,24 @@ namespace SqlBatis
         /// <typeparam name="T"></typeparam>
         /// <param name="record"></param>
         /// <returns></returns>
-        public virtual Func<IDataRecord, T> GetEntityHandler<T>(IDataRecord record)
+        internal Func<IDataRecord, T> GetDataReaderEntityHandler<T>(IDataRecord record)
         {
-            string[] names = new string[record.FieldCount];
-            for (int i = 0; i < record.FieldCount; i++)
+            var names = new StringBuilder();
+            if (record.FieldCount>1)
             {
-                names[i] = record.GetName(i);
+                for (int i = 0; i < record.FieldCount; i++)
+                {
+                    names.Append(record.GetName(i));
+                    if (i+1!= record.FieldCount)
+                    {
+                        names.Append('.');
+                    }
+                }
             }
-            var key = new SerializerKey(typeof(T), names.Length == 1 ? new string[] { } : names);
+            var key = new SerializerKey(typeof(T), names.ToString());
             var handler = _serializers.GetOrAdd(key, k =>
             {
-                 return CreateTypeSerializerHandler<T>(record);
+                 return CreateEntityBindHandler<T>(record);
             });
             return handler as Func<IDataRecord, T>;
         }
@@ -53,7 +61,7 @@ namespace SqlBatis
         /// <summary>
         /// 获取动态实体序列化器
         /// </summary>
-        public virtual Func<IDataRecord, dynamic> GetDynamicHandler()
+        internal Func<IDataRecord, dynamic> GetDataReaderDynamicHandler()
         {
             return (reader) =>
             {
@@ -62,7 +70,11 @@ namespace SqlBatis
                 for (int i = 0; i < reader.FieldCount; i++)
                 {
                     var name = reader.GetName(i);
-                    var value = ConvertToDynamic(reader, i);
+                    if (reader.IsDBNull(i))
+                    {
+                        return null;
+                    }
+                    var value = reader.GetValue(i);
                     entity.Add(name, value);
                 }
                 return entity;
@@ -72,7 +84,7 @@ namespace SqlBatis
         /// <summary>
         /// 获取类成员到字典的一个转换器
         /// </summary>
-        public virtual Func<object, Dictionary<string, object>> GetTypeDbParameterHandler(Type type)
+        internal static Func<object, Dictionary<string, object>> GetEntityToDictionaryHandler(Type type)
         {
             if (type == typeof(Dictionary<string, object>))
             {
@@ -80,22 +92,47 @@ namespace SqlBatis
             }
             var handler = _deserializers.GetOrAdd(type, t =>
             {
-                return CreateTypeDeserializerHandler(type);
+                return CreateEntityUnBindHandler(type);
             });
             return handler;
         }
+       
+        /// <summary>
+        /// 类型转换
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public virtual T ChangeType<T>(object value)
+        {
+            if (value is null || value is DBNull) return default;
+            if (value is T t) return t;
+            var type = typeof(T);
+            type = GetUnderlyingType(type);
+            if (type.IsEnum)
+            {
+                if (value is float || value is double || value is decimal)
+                {
+                    value = Convert.ChangeType(value, Enum.GetUnderlyingType(type), System.Globalization.CultureInfo.InvariantCulture);
+                }
+                return (T)Enum.ToObject(type, value);
+            }
+            return (T)Convert.ChangeType(value, type, System.Globalization.CultureInfo.InvariantCulture);
+        }
+        
         /// <summary>
         /// 创建数据库参数
         /// </summary>
         /// <param name="name"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        public virtual KeyValuePair<string,object> CreateDbParameter(string name, object value)
+        public virtual KeyValuePair<string,object> CreateDbCommandParameter(string name, object value)
         {
             return new KeyValuePair<string, object>(name,value);
         }
+        
         /// <summary>
-        /// 获取参数最多的构造器
+        /// 获取构造器
         /// </summary>
         /// <param name="entityType"></param>
         /// <returns></returns>
@@ -114,12 +151,12 @@ namespace SqlBatis
         }
 
         /// <summary>
-        /// 获取参数在DataReader中的顺序
+        /// 获取参数
         /// </summary>
         /// <param name="constructor"></param>
         /// <param name="recordField"></param>
         /// <returns></returns>
-        protected virtual ParameterInfo FindEntityConstructorParameter(ConstructorInfo constructor, DataRecordField recordField)
+        protected virtual ParameterInfo FindEntityConstructorParameter(ConstructorInfo constructor, DataReaderField recordField)
         {
             foreach (var item in constructor.GetParameters())
             {
@@ -141,7 +178,7 @@ namespace SqlBatis
         /// <param name="entityType">实体类型</param>
         /// <param name="fieldInfo">数据字段信息</param>
         /// <returns></returns>
-        protected virtual MemberInfo FindEntityMember(Type entityType, DataRecordField fieldInfo)
+        protected virtual MemberInfo FindEntityMember(Type entityType, DataReaderField fieldInfo)
         {
             var properties = entityType.GetProperties();
             foreach (var item in properties)
@@ -157,29 +194,6 @@ namespace SqlBatis
             }
             return null;
         }
-
-        /// <summary>
-        /// 类型转换
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public T ChangeType<T>(object value)
-        {
-            if (value is null || value is DBNull) return default;
-            if (value is T t) return t;
-            var type = typeof(T);
-            type = GetUnderlyingType(type);
-            if (type.IsEnum)
-            {
-                if (value is float || value is double || value is decimal)
-                {
-                    value = Convert.ChangeType(value, Enum.GetUnderlyingType(type), System.Globalization.CultureInfo.InvariantCulture);
-                }
-                return (T)Enum.ToObject(type, value);
-            }
-            return (T)Convert.ChangeType(value, type, System.Globalization.CultureInfo.InvariantCulture);
-        }
         
         /// <summary>
         /// 获取映射实体成员的转换方法
@@ -188,7 +202,7 @@ namespace SqlBatis
         /// <param name="memberType">成员类型</param>
         /// <param name="recordField">数据库字段</param>
         /// <returns></returns>
-        protected virtual MethodInfo FindConvertMethod(Type entityType, Type memberType, DataRecordField recordField)
+        protected virtual MethodInfo FindConvertMethod(Type entityType, Type memberType, DataReaderField recordField)
         {
             if (GetUnderlyingType(memberType) == typeof(bool))
             {
@@ -267,18 +281,7 @@ namespace SqlBatis
             }
             return DbConvertMethods.ToObjectMethod;
         }
-       
-        /// <summary>
-        /// 获取动态映射值
-        /// </summary>
-        protected virtual dynamic ConvertToDynamic(IDataRecord record, int i)
-        {
-            if (record.IsDBNull(i))
-            {
-                return null;
-            }
-            return record.GetValue(i);
-        }
+
         #endregion
 
         #region 内部私有方法
@@ -287,7 +290,7 @@ namespace SqlBatis
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        private static Func<object, Dictionary<string, object>> CreateTypeDeserializerHandler(Type type)
+        private static Func<object, Dictionary<string, object>> CreateEntityUnBindHandler(Type type)
         {
             var properties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
             var methodName = $"{type.Name}Deserializer{Guid.NewGuid():N}";
@@ -323,20 +326,20 @@ namespace SqlBatis
         /// <typeparam name="T"></typeparam>
         /// <param name="record"></param>
         /// <returns></returns>
-        private Func<IDataRecord, T> CreateTypeSerializerHandler<T>(IDataRecord record)
+        private Func<IDataRecord, T> CreateEntityBindHandler<T>(IDataRecord record)
         {
             var type = typeof(T);
             var methodName = $"Serializer{Guid.NewGuid():N}";
             var dynamicMethod = new DynamicMethod(methodName, type, new Type[] { typeof(IDataRecord) }, type, true);
             var generator = dynamicMethod.GetILGenerator();
             LocalBuilder local = generator.DeclareLocal(type);
-            var dataInfos = new DataRecordField[record.FieldCount];
+            var dataInfos = new DataReaderField[record.FieldCount];
             for (int i = 0; i < record.FieldCount; i++)
             {
                 var dataname = record.GetName(i);
                 var datatype = record.GetFieldType(i);
                 var typename = record.GetDataTypeName(i);
-                dataInfos[i] = new DataRecordField(i, typename, datatype, dataname);
+                dataInfos[i] = new DataReaderField(i, typename, datatype, dataname);
             }
             if (type == typeof(object) || dataInfos.Length == 1 && (type.IsValueType || type == typeof(string)))
             {
@@ -456,7 +459,7 @@ namespace SqlBatis
     /// </summary>
     internal struct SerializerKey : IEquatable<SerializerKey>
     {
-        private string[] Columns { get; set; }
+        private string _columns;
 
         private Type Type { get; set; }
 
@@ -466,28 +469,26 @@ namespace SqlBatis
         {
             if (Type != other.Type)
                 return false;
-            else if (Columns.Length != other.Columns.Length)
+            else if (_columns.Length != other._columns.Length)
                 return false;
-            else
-                for (int i = 0; i < Columns.Length; i++)
-                    if (Columns[i] != other.Columns[i])
-                        return false;
+            else if (_columns != other._columns)
+                return false;
             return true;
         }
 
         public override int GetHashCode() => Type.GetHashCode();
 
-        public SerializerKey(Type type, string[] names)
+        public SerializerKey(Type type, string names)
         {
             Type = type;
-            Columns = names;
+            _columns = names;
         }
     }
     /// <summary>
     /// DataReader中的行信息
     /// </summary>
    
-    public class DataRecordField
+    public class DataReaderField
     {
         /// <summary>
         /// 数据库类型名称
@@ -512,7 +513,7 @@ namespace SqlBatis
         /// <param name="typeName"></param>
         /// <param name="dataType"></param>
         /// <param name="dataName"></param>
-        public DataRecordField(int ordinal, string typeName, Type dataType, string dataName)
+        public DataReaderField(int ordinal, string typeName, Type dataType, string dataName)
         {
             Ordinal = ordinal;
             TypeName = typeName;

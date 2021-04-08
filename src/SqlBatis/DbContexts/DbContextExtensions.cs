@@ -16,11 +16,23 @@ namespace SqlBatis
         {
             return new DbQueryable<T>(context);
         }
+        public static IDbQueryable<T> Queryable<T>(this IDbContext context)
+        {
+            return new DbQueryable<T>(context);
+        }
         public static IDbQueryable<T1, T2> From<T1, T2>(this IDbContext context)
         {
             return new DbQueryable<T1, T2>(context);
         }
+        public static IDbQueryable<T1, T2> Queryable<T1, T2>(this IDbContext context)
+        {
+            return new DbQueryable<T1, T2>(context);
+        }
         public static IDbQueryable<T1, T2, T3> From<T1, T2, T3>(this IDbContext context)
+        {
+            return new DbQueryable<T1, T2, T3>(context);
+        }
+        public static IDbQueryable<T1, T2, T3> Queryable<T1, T2, T3>(this IDbContext context)
         {
             return new DbQueryable<T1, T2, T3>(context);
         }
@@ -40,23 +52,23 @@ namespace SqlBatis
         {
             return new DbQueryable<T>(context).InsertBatchAsync(entities, commandTimeout);
         }
-        public static int InsertReturnId<T>(this IDbContext context, IEnumerable<T> entities)
+        public static int InsertReturnId<T>(this IDbContext context, T entity)
         {
-            return new DbQueryable<T>(context).InsertReturnId(entities);
+            return new DbQueryable<T>(context).InsertReturnId(entity);
         }
-        public static Task<int> InsertReturnIdAsync<T>(this IDbContext context, IEnumerable<T> entities)
+        public static Task<int> InsertReturnIdAsync<T>(this IDbContext context, T entity)
         {
-            return new DbQueryable<T>(context).InsertReturnIdAsync(entities);
+            return new DbQueryable<T>(context).InsertReturnIdAsync(entity);
         }
-        public static int Update<T>(this IDbContext context, IEnumerable<T> entities)
+        public static int Update<T>(this IDbContext context, T entity)
         {
-            return new DbQueryable<T>(context).Update(entities);
+            return new DbQueryable<T>(context).Update(entity);
         }
-        public static Task<int> UpdateAsync<T>(this IDbContext context, IEnumerable<T> entities)
+        public static Task<int> UpdateAsync<T>(this IDbContext context, T entity)
         {
-            return new DbQueryable<T>(context).UpdateAsync(entities);
+            return new DbQueryable<T>(context).UpdateAsync(entity);
         }
-        public static int Delete<T>(this IDbContext context,T entity)
+        public static int Delete<T>(this IDbContext context, T entity)
         {
             return new DbQueryable<T>(context).Delete(entity);
         }

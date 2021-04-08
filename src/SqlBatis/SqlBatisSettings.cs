@@ -24,11 +24,5 @@ namespace SqlBatis
         /// </summary>
         internal static IDbMetaInfoProvider DbMetaInfoProvider { get; set; }
             = new AnnotationDbMetaInfoProvider();
-        
-        /// <summary>
-        /// 数据转换提供程序
-        /// </summary>
-        public static DataConvertProvider DataConvertProvider { get; set; }
-            = new DataConvertProvider();
     }
 }

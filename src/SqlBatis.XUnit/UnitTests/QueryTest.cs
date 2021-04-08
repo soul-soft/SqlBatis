@@ -1,5 +1,6 @@
 using System;
 using Xunit;
+using System.Linq;
 
 namespace SqlBatis.XUnit
 {
@@ -8,39 +9,58 @@ namespace SqlBatis.XUnit
         [Fact(DisplayName = "获取单个")]
         public void SqlBuilder()
         {
-            try
+            var query = new
             {
-                var query = new
-                {
-                    Keywords = (string)null
-                };
-                var b1 = new SqlBuilder();
-                b1.Where("name like @Keywords", query.Keywords != null)
-                  .Where("is_del=true")
-                  .Join("student_name as b on a.id=b.sid");
-                var p = new { Age = 1, Score = 20 };
-                var tmp1 = b1.Build("select * from student as a /**join**/ /**where**/ ");
-                var sql = tmp1.RawSql;
-                var tmp2 = b1.Build("select count(1) from student as a /**join**/ /**where**/ ");
-            }
-            catch (Exception e)
-            {
-
-                throw;
-            }
-
+                Keywords = (string)null
+            };
+            var b1 = new SqlBuilder();
+            b1.Where("name like @Keywords", query.Keywords != null)
+              .Where("is_del=true")
+              .Join("student_name as b on a.id=b.sid");
+            var p = new { Age = 1, Score = 20 };
+            var tmp1 = b1.Build("select * from student as a /**join**/ /**where**/ ");
+            var sql = tmp1.RawSql;
+            var tmp2 = b1.Build("select count(1) from student as a /**join**/ /**where**/ ");
         }
         [Fact(DisplayName = "获取单个")]
         public void Single()
         {
-            SqlBatisSettings.IgnoreDbCommandInvalidParameters = true;
             _context.Query("select * from student");
             var p = new { b = new { id = 444 } };
             var data = _context.From<StudentDto>()
                 .Where(a => a.Id == p.b.id)
                 .Single();
         }
-
+        [Fact(DisplayName = "匿名类型查询映射")]
+        public void AnTypeQuery()
+        {
+            var a1 = AnTypeQuery(s => new
+            {
+                s.Id,
+                s.SchId,
+                s.AddrId,
+            });
+            var a2 = AnTypeQuery(s => new
+            {
+                s.AddrId,
+                s.SchId,
+                s.Id,
+            });
+            var a3 = AnTypeQuery(s=>new 
+            {
+                s.Id,
+                s.AddrId
+            });
+            var a4 = AnTypeQuery(s => new
+            {
+                s.Id,
+                s.StuName
+            });
+        }
+        public T AnTypeQuery<T>(Func<StudentDto,T> func)
+        {
+            return _context.Query<T>("select id,sch_id,addr_id from student order by id desc").FirstOrDefault();
+        }
         [Fact(DisplayName = "分页")]
         public void Page()
         {
@@ -105,16 +125,7 @@ namespace SqlBatis.XUnit
         [Fact(DisplayName = "表连接3")]
         public void Join4()
         {
-            try
-            {
-                var sum = _context.From<StudentDto>().Sum(a => a.Id);
-            }
-            catch (Exception e)
-            {
-
-                throw;
-            }
-            
+            var sum = _context.From<StudentDto>().Sum(a => a.Id);
             var flag = _context.From<StudentDto>().Where(a => a.Id > 0).Exists();
             var list1 = _context.From<StudentDto>().Select(s=>new StudentDto 
             {

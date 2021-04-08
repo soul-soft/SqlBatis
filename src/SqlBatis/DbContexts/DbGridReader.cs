@@ -63,13 +63,15 @@ namespace SqlBatis
         private bool _disposed = false;
         private readonly IDataReader _reader = null;
         private readonly IDbCommand _command = null;
+        readonly DbContextBehavior _behavior;
         ~DbGridReader()
         {
             Dispose();
         }
-        internal DbGridReader(IDbCommand command)
+        internal DbGridReader(IDbCommand command,DbContextBehavior behavior)
         {
             _command = command;
+            _behavior = behavior;
             _reader = command.ExecuteReader();
         }
 
@@ -108,7 +110,7 @@ namespace SqlBatis
 
         public async Task<List<dynamic>> ReadAsync()
         {
-            var handler = SqlBatisSettings.DataConvertProvider.GetDynamicHandler();
+            var handler = _behavior.GetDataReaderDynamicHandler();
             var list = new List<dynamic>();
             while (await (_reader as DbDataReader).ReadAsync())
             {
@@ -120,7 +122,7 @@ namespace SqlBatis
 
         public List<dynamic> Read()
         {
-            var handler = SqlBatisSettings.DataConvertProvider.GetDynamicHandler();
+            var handler = _behavior.GetDataReaderDynamicHandler();
             var list = new List<dynamic>();
             while (_reader.Read())
             {
@@ -132,7 +134,7 @@ namespace SqlBatis
 
         public List<T> Read<T>()
         {
-            var handler = SqlBatisSettings.DataConvertProvider.GetEntityHandler<T>(_reader);
+            var handler = _behavior.GetDataReaderEntityHandler<T>(_reader);
             var list = new List<T>();
             while (_reader.Read())
             {
@@ -144,7 +146,7 @@ namespace SqlBatis
 
         public async Task<List<T>> ReadAsync<T>()
         {
-            var handler = SqlBatisSettings.DataConvertProvider.GetEntityHandler<T>(_reader);
+            var handler = _behavior.GetDataReaderEntityHandler<T>(_reader);
             var list = new List<T>();
             while (await (_reader as DbDataReader).ReadAsync())
             {

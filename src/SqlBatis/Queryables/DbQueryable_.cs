@@ -66,7 +66,7 @@ namespace SqlBatis.Queryables
         /// <param name="entity"></param>
         private void EntityToDictionary<Entity>(Entity entity)
         {
-            var serializer = SqlBatisSettings.DataConvertProvider.GetTypeDbParameterHandler(typeof(Entity));
+            var serializer = DbContextBehavior.GetEntityToDictionaryHandler(typeof(Entity));
             var values = serializer(entity);
             foreach (var item in values)
             {
@@ -82,7 +82,7 @@ namespace SqlBatis.Queryables
         }
         private void EntitiesToDictionary<Entity>(IEnumerable<Entity> entities)
         {
-            var serializer = SqlBatisSettings.DataConvertProvider.GetTypeDbParameterHandler(typeof(Entity));
+            var serializer = DbContextBehavior.GetEntityToDictionaryHandler(typeof(Entity));
             foreach (var entity in entities)
             {
                 var values = serializer(entity);
@@ -190,7 +190,7 @@ namespace SqlBatis.Queryables
             {
                 var buffer = new StringBuilder();
                 buffer.Append($"INSERT INTO {table}({columnNames}) VALUES ");
-                var serializer = SqlBatisSettings.DataConvertProvider.GetTypeDbParameterHandler(typeof(T));
+                var serializer = DbContextBehavior.GetEntityToDictionaryHandler(typeof(T));
                 var list = entitys.ToList();
                 for (var i = 0; i < list.Count; i++)
                 {

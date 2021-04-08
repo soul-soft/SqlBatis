@@ -13,5 +13,9 @@ namespace SqlBatis
         /// 设置数据库类型
         /// </summary>
         public DbContextType DbContextType { get; set; }
+        /// <summary>
+        /// 上下文行为
+        /// </summary>
+        public DbContextBehavior DbContextBehavior { get; set; } = new DbContextBehavior();
     }
 }
