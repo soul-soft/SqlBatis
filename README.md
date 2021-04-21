@@ -104,72 +104,64 @@ public class Student
 
 ``` C#
 /// <summary>
-/// 1.定义转换器
+/// 提供json转换能力
 /// </summary>
-public static class MyConvertMethod
+public class MyDDbContextBehavior : DbContextBehavior
 {
-    public static MethodInfo CharArrayConvertStringMethod = typeof(MyConvertMethod).GetMethod(nameof(CharArrayConvertString));
-    public static MethodInfo StringConvertJsonMethod = typeof(MyConvertMethod).GetMethod(nameof(StringConvertJson));
-    /// <summary>
-    /// 用于移除sqlserver中nchar类型末尾的空格
-    /// 参数必须得有(IDataRecord record, int i)
-    /// </summary>
-    /// <param name="record">必须的</param>
-    /// <param name="i">必须的</param>
-    /// <returns></returns>
-    public static string CharArrayConvertString(IDataRecord record, int i)
+    readonly static MethodInfo _methodInfo = typeof(MyDDbContextBehavior).GetMethod("StringToJson");
+
+    static readonly JsonSerializerOptions _jsonSerializerOptions;
+
+    static MyDDbContextBehavior()
     {
-        if (record.IsDBNull(i))
+        _jsonSerializerOptions = new JsonSerializerOptions
         {
-            return default;
-        }
-        return record.GetString(i).Trim();
+            Encoder = JavaScriptEncoder.Create(UnicodeRanges.All),
+            PropertyNameCaseInsensitive = true,
+            PropertyNamingPolicy=JsonNamingPolicy.CamelCase
+        };
+        _jsonSerializerOptions.Converters.Add(new JsonDateTimeConverter("yyyy-MM-dd HH:mm:ss"));
+        _jsonSerializerOptions.Converters.Add(new JsonDateTimeNullableConverter("yyyy-MM-dd HH:mm:ss"));
     }
-    /// <summary>
-    /// 用于将数据库中的json类型映射成实体类
-    /// 泛型方法
-    /// 参数必须得有(IDataRecord record, int i)
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="record"></param>
-    /// <param name="i"></param>
-    /// <returns></returns>
-    public static T StringConvertJson<T>(IDataRecord record, int i)
+
+    public static T StringToJson<T>(IDataRecord record, int i)
     {
         if (record.IsDBNull(i))
         {
             return default;
         }
         var json = record.GetString(i);
-        return System.Text.Json.JsonSerializer.Deserialize<T>(json);
+        return JsonSerializer.Deserialize<T>(json, _jsonSerializerOptions);
     }
-}
 
-/// <summary>
-/// 2.重写转换器匹配函数
-/// </summary>
-public class MyDbEntityMapperProvider : DbEntityMapperProvider
-{
-    protected override MethodInfo MatchDataRecordConvertMethod(Type returnType, Type entityMemberType, DbFieldInfo fieldInfo)
+    public override KeyValuePair<string, object> CreateDbCommandParameter(string name, object value)
     {
-        //如果是nchar或者nvarcher
-        if (fieldInfo.TypeName == "nchar"|| fieldInfo.TypeName == "nvarchar")
+        if (value != null && typeof(ValueObject).IsInstanceOfType(value))
         {
-            return MyConvertMethod.CharArrayConvertStringMethod;
+            var json = JsonSerializer.Serialize(value, _jsonSerializerOptions);
+            return base.CreateDbCommandParameter(name, json);
         }
-        if (entityMemberType.IsClass && entityMemberType!=typeof(string) && )
+        return base.CreateDbCommandParameter(name, value);
+    }
+
+    protected override MethodInfo FindConvertMethod(Type entityType, Type memberType, DataReaderField recordField)
+    {
+        if (typeof(ValueObject).IsAssignableFrom(memberType))
         {
-            //如果是泛型方法，必须MakeGenericMethod
-            return MyConvertMethod.StringConvertJsonMethod.MakeGenericMethod(entityMemberType);
+            return _methodInfo.MakeGenericMethod(memberType);
         }
-        //否则使用群主默认的
-        return base.MatchDataRecordConvertMethod(returnType, entityMemberType, fieldInfo);
+        return base.FindConvertMethod(entityType, memberType, recordField);
     }
 }
 var connectionString = @"server=127.0.0.1;user id=root;password=1024;database=sqlbatis;";
 var connection = new MySqlConnection(connectionString);
-//3.设置默认的转换器
-SqlBatisSettings.DbEntityMapperProvider = new MyDbEntityMapperProvider();
+//3.设置默认的数据库上下文行为
+new MyDbContext(new DbContextBuilder()
+{
+    Connection = new MySqlConnector.MySqlConnection(configuration.GetConnectionString("Mysql")),
+    DbContextType = DbContextType.Mysql,
+    DbContextBehavior = new MyDDbContextBehavior()
+})
 ```
 
 
