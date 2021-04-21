@@ -36,6 +36,14 @@ namespace SqlBatis
         {
             return new DbQueryable<T1, T2, T3>(context);
         }
+        public static IDbQueryable<T1, T2, T3, T4> From<T1, T2, T3, T4>(this IDbContext context)
+        {
+            return new DbQueryable<T1, T2, T3, T4>(context);
+        }
+        public static IDbQueryable<T1, T2, T3, T4> Queryable<T1, T2, T3, T4>(this IDbContext context)
+        {
+            return new DbQueryable<T1, T2, T3, T4>(context);
+        }
         public static int Insert<T>(this IDbContext context, T entity)
         {
             return new DbQueryable<T>(context).Insert(entity);

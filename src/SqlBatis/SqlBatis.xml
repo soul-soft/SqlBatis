@@ -1511,6 +1511,195 @@
             <param name="condition">是否有效</param>
             <returns></returns>
         </member>
+        <member name="T:SqlBatis.Queryables.IDbQueryable`4">
+            <summary>
+            linq 查询
+            </summary>
+            <typeparam name="T1"></typeparam>
+            <typeparam name="T2"></typeparam>
+            <typeparam name="T3"></typeparam>
+            <typeparam name="T4"></typeparam>
+        </member>
+        <member name="M:SqlBatis.Queryables.IDbQueryable`4.Join(System.Linq.Expressions.Expression{System.Func{`0,`1,`2,`3,System.Boolean}})">
+            <summary>
+            内连接
+            </summary>
+            <param name="expression"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.Queryables.IDbQueryable`4.LeftJoin(System.Linq.Expressions.Expression{System.Func{`0,`1,`2,`3,System.Boolean}})">
+            <summary>
+            左外连接
+            </summary>
+            <param name="expression"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.Queryables.IDbQueryable`4.RightJoin(System.Linq.Expressions.Expression{System.Func{`0,`1,`2,`3,System.Boolean}})">
+            <summary>
+            右外连接
+            </summary>
+            <param name="expression"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.Queryables.IDbQueryable`4.Count(System.Nullable{System.Int32})">
+            <summary>
+            count查询
+            </summary>
+            <param name="commandTimeout">超时时间</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.Queryables.IDbQueryable`4.CountAsync(System.Nullable{System.Int32})">
+            <summary>
+            异步count查询
+            </summary>
+            <param name="commandTimeout">超时时间</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.Queryables.IDbQueryable`4.Count``1(System.Linq.Expressions.Expression{System.Func{`0,`1,`2,`3,``0}})">
+            <summary>
+            count查询
+            </summary>
+            <typeparam name="TResult">类型推断</typeparam>
+            <param name="expression">字段列表</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.Queryables.IDbQueryable`4.CountAsync``1(System.Linq.Expressions.Expression{System.Func{`0,`1,`2,`3,``0}})">
+            <summary>
+            异步count查询
+            </summary>
+            <typeparam name="TResult">类型推断</typeparam>
+            <param name="expression">字段列表</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.Queryables.IDbQueryable`4.Select``1(System.Linq.Expressions.Expression{System.Func{`0,`1,`2,`3,``0}},System.Nullable{System.Int32})">
+            <summary>
+            select查询
+            </summary>
+            <typeparam name="TResult">返回类型</typeparam>
+            <param name="expression">字段列表</param>
+            <param name="commandTimeout">超时时间</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.Queryables.IDbQueryable`4.SelectAsync``1(System.Linq.Expressions.Expression{System.Func{`0,`1,`2,`3,``0}},System.Nullable{System.Int32})">
+            <summary>
+            异步select查询
+            </summary>
+            <typeparam name="TResult">返回类型</typeparam>
+            <param name="expression">字段列表</param>
+            <param name="commandTimeout">超时时间</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.Queryables.IDbQueryable`4.SelectMany``1(System.Linq.Expressions.Expression{System.Func{`0,`1,`2,`3,``0}},System.Nullable{System.Int32})">
+            <summary>
+            分页select查询
+            </summary>
+            <typeparam name="TResult">返回类型</typeparam>
+            <param name="expression">字段列表</param>
+            <param name="commandTimeout">超时时间</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.Queryables.IDbQueryable`4.SelectManyAsync``1(System.Linq.Expressions.Expression{System.Func{`0,`1,`2,`3,``0}},System.Nullable{System.Int32})">
+            <summary>
+            异步分页select查询
+            </summary>
+            <typeparam name="TResult">返回类型</typeparam>
+            <param name="expression">字段列表</param>
+            <param name="commandTimeout">超时时间</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.Queryables.IDbQueryable`4.Single``1(System.Linq.Expressions.Expression{System.Func{`0,`1,`2,`3,``0}},System.Nullable{System.Int32})">
+            <summary>
+            select查询
+            </summary>
+            <typeparam name="TResult">返回类型</typeparam>
+            <param name="expression">字段列表</param>
+            <param name="commandTimeout">超时时间</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.Queryables.IDbQueryable`4.SingleAsync``1(System.Linq.Expressions.Expression{System.Func{`0,`1,`2,`3,``0}},System.Nullable{System.Int32})">
+            <summary>
+            异步select查询
+            </summary>
+            <typeparam name="TResult">返回类型</typeparam>
+            <param name="expression">字段列表</param>
+            <param name="commandTimeout">超时时间</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.Queryables.IDbQueryable`4.Take(System.Int32,System.Boolean)">
+            <summary>
+            take查询，从下标为0的行获取count条记录
+            </summary>
+            <param name="count">记录个数</param>
+            <param name="condition">条件</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.Queryables.IDbQueryable`4.Skip(System.Int32,System.Int32,System.Boolean)">
+            <summary>
+            skip，从下标为index的行获取count条记录
+            </summary>
+            <param name="index">起始下标</param>
+            <param name="count">记录个数</param>
+            <param name="condition">条件</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.Queryables.IDbQueryable`4.Page(System.Int32,System.Int32,System.Boolean)">
+            <summary>
+            page查询，从下标为(index-1)*count的行获取count条记录
+            </summary>
+            <param name="index">起始页码</param>
+            <param name="count">记录个数</param>
+            <param name="condition">条件</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.Queryables.IDbQueryable`4.With(System.String)">
+            <summary>
+            指定读锁
+            </summary>
+            <param name="lockname"></param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.Queryables.IDbQueryable`4.Where(System.Linq.Expressions.Expression{System.Func{`0,`1,`2,`3,System.Boolean}},System.Boolean)">
+            <summary>
+            where查询，多个where有效使用and连接
+            </summary>
+            <param name="expression">表达式</param>
+            <param name="condition">是否有效</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.Queryables.IDbQueryable`4.Having(System.Linq.Expressions.Expression{System.Func{`0,`1,`2,`3,System.Boolean}},System.Boolean)">
+            <summary>
+            having查询，多个having查询有效使用and连接
+            </summary>
+            <param name="expression">表达式</param>
+            <param name="condition">是否有效</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.Queryables.IDbQueryable`4.GroupBy``1(System.Linq.Expressions.Expression{System.Func{`0,`1,`2,`3,``0}})">
+            <summary>
+            group查询
+            </summary>
+            <typeparam name="TResult">类型推断</typeparam>
+            <param name="expression">字段列表</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.Queryables.IDbQueryable`4.OrderBy``1(System.Linq.Expressions.Expression{System.Func{`0,`1,`2,`3,``0}},System.Boolean)">
+            <summary>
+            orderby查询，升序
+            </summary>
+            <typeparam name="TResult">类型推断</typeparam>
+            <param name="expression">字段列表</param>
+            <param name="condition">是否有效</param>
+            <returns></returns>
+        </member>
+        <member name="M:SqlBatis.Queryables.IDbQueryable`4.OrderByDescending``1(System.Linq.Expressions.Expression{System.Func{`0,`1,`2,`3,``0}},System.Boolean)">
+            <summary>
+            orderby查询，降序
+            </summary>
+            <typeparam name="TResult">类型推断</typeparam>
+            <param name="expression">字段列表</param>
+            <param name="condition">是否有效</param>
+            <returns></returns>
+        </member>
         <member name="T:SqlBatis.Operator">
             <summary>
             数据库操作符
