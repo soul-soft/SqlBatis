@@ -111,8 +111,8 @@ namespace SqlBatis.XUnit
         public void Join3()
         {
             var list = _context.From<StudentDto, SchoolDto, AddressDto>()
-               .Join<StudentDto, SchoolDto>((a, b) => a.SchId == b.Id)
-               .Join<StudentDto, AddressDto>((a, c) => a.AddrId == c.Id)
+               .Join((a, b, c) => a.SchId == b.Id)
+               .Join((a, b ,c) => a.AddrId == c.Id)
                .Select((a, b, c) => new
                {
                    a.Id,

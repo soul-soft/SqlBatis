@@ -16,11 +16,13 @@ namespace SqlBatis.Expressions
         /// 是否单表操作
         /// </summary>
         private readonly bool _singleTable;
+
         /// <summary>
         /// 表别名
         /// </summary>
-        private readonly Dictionary<Type, string> _tableAliasNames
-            = new Dictionary<Type, string>();
+        private readonly Dictionary<string, string> _tableAliasNames
+            = new Dictionary<string, string>();
+
         /// <summary>
         /// 数据库表达式解析基类
         /// </summary>
@@ -80,36 +82,26 @@ namespace SqlBatis.Expressions
             var tableType = expression.Member.DeclaringType;
             var fieldName = expression.Member.Name;
             var columns = SqlBatisSettings.DbMetaInfoProvider.GetColumns(tableType);
-            var column = columns.Where(a => a.CsharpName == fieldName)
+            var column = columns
+                .Where(a => a.CsharpName == fieldName)
                 .FirstOrDefault().ColumnName;
             if (_singleTable)
             {
                 return column;
             }
             var aliasName = (expression.Expression as ParameterExpression).Name;
-            if (!_tableAliasNames.ContainsKey(tableType))
+            var tableName = SqlBatisSettings.DbMetaInfoProvider.GetTable(tableType).TableName;
+            if (!_tableAliasNames.ContainsKey(aliasName))
             {
-                _tableAliasNames.Add(tableType, aliasName);
+                _tableAliasNames.Add(aliasName, tableName);
             }
             return $"{aliasName}.{column}";
         }
 
-        /// <summary>
-        /// 获取数据库表转换成别名名称
-        /// </summary>
-        /// <param name="type"></param>
-        /// <returns></returns>
-        public string GetDbTableNameAsAlias(Type type)
+        public IReadOnlyDictionary<string, string> GetTableAlias()
         {
-            var tableName = SqlBatisSettings.DbMetaInfoProvider.GetTable(type).TableName;
-            if (_singleTable)
-            {
-                return tableName;
-            }
-            var aliasName = _tableAliasNames[type];
-            return $"{tableName} AS {aliasName}";
+            return _tableAliasNames;
         }
-
         /// <summary>
         /// 解析出一个字符串
         /// </summary>

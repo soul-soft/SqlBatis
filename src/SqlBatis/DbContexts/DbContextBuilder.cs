@@ -16,6 +16,6 @@ namespace SqlBatis
         /// <summary>
         /// 上下文行为
         /// </summary>
-        public DbContextBehavior DbContextBehavior { get; set; } = new DbContextBehavior();
+        public IDbContextBehavior DbContextBehavior { get; set; } = new DbContextBehavior();
     }
 }

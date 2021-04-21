@@ -212,7 +212,7 @@ namespace SqlBatis.Queryables
             _page.Index = index;
             _page.Count = count;
         }
-        protected void SetViewName(string viewName)
+        protected void AppendViewName(string viewName)
         {
             if (_viewName.Length > 0)
             {

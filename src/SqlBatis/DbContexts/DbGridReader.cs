@@ -63,12 +63,12 @@ namespace SqlBatis
         private bool _disposed = false;
         private readonly IDataReader _reader = null;
         private readonly IDbCommand _command = null;
-        readonly DbContextBehavior _behavior;
+        readonly IDbContextBehavior _behavior;
         ~DbGridReader()
         {
             Dispose();
         }
-        internal DbGridReader(IDbCommand command,DbContextBehavior behavior)
+        internal DbGridReader(IDbCommand command, IDbContextBehavior behavior)
         {
             _command = command;
             _behavior = behavior;
@@ -83,8 +83,8 @@ namespace SqlBatis
             }
             _disposed = true;
             try { _reader?.Close(); } catch { }
-            try {_reader?.Dispose(); } catch { }
-            try {_command?.Dispose(); } catch { }
+            try { _reader?.Dispose(); } catch { }
+            try { _command?.Dispose(); } catch { }
             GC.SuppressFinalize(this);
         }
 
@@ -110,7 +110,7 @@ namespace SqlBatis
 
         public async Task<List<dynamic>> ReadAsync()
         {
-            var handler = _behavior.GetDataReaderDynamicHandler();
+            var handler = _behavior.GetDataReaderToDynamicHandler();
             var list = new List<dynamic>();
             while (await (_reader as DbDataReader).ReadAsync())
             {
@@ -122,7 +122,7 @@ namespace SqlBatis
 
         public List<dynamic> Read()
         {
-            var handler = _behavior.GetDataReaderDynamicHandler();
+            var handler = _behavior.GetDataReaderToDynamicHandler();
             var list = new List<dynamic>();
             while (_reader.Read())
             {
@@ -134,7 +134,7 @@ namespace SqlBatis
 
         public List<T> Read<T>()
         {
-            var handler = _behavior.GetDataReaderEntityHandler<T>(_reader);
+            var handler = _behavior.GetDataReaderToEntityHandler<T>(_reader);
             var list = new List<T>();
             while (_reader.Read())
             {
@@ -146,7 +146,7 @@ namespace SqlBatis
 
         public async Task<List<T>> ReadAsync<T>()
         {
-            var handler = _behavior.GetDataReaderEntityHandler<T>(_reader);
+            var handler = _behavior.GetDataReaderToEntityHandler<T>(_reader);
             var list = new List<T>();
             while (await (_reader as DbDataReader).ReadAsync())
             {

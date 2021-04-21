@@ -166,56 +166,42 @@ namespace SqlBatis.Queryables
             return this;
         }
 
-        private IDbQueryable<T1, T2, T3> Join<V1, V2>(Expression<Func<V1, V2, bool>> expression, string joinType)
+        private IDbQueryable<T1, T2, T3> JoinFormat(Expression<Func<T1, T2, T3, bool>> expression, string joinType)
         {
             var resovle = new BooleanExpressionResovle(_isSingleTable, expression, _parameters);
             var onExpression = resovle.Resovle();
-            var table1Name = resovle.GetDbTableNameAsAlias(typeof(V1));
-            var table2Name = resovle.GetDbTableNameAsAlias(typeof(V2));
-            joinType = string.Format("{0} JOIN", joinType);
+            var alias = resovle.GetTableAlias();
             if (_tables.Count == 0)
             {
-                _tables.Add(table1Name);
-                _tables.Add(table2Name);
-                SetViewName(string.Format("{0} {1} {2} ON {3}", table1Name, joinType, table2Name, onExpression));
-            }
-            else if (_tables.Exists(a => table1Name == a))
-            {
-                _tables.Add(table2Name);
-                SetViewName(string.Format("{0} {1} ON {2}", joinType, table2Name, onExpression));
+                joinType = string.Format(" {0} JOIN ", joinType);
+                _tables.AddRange(alias.Select(s => s.Key));
+                var viewName = string.Join(joinType, alias.Select(s => $"{s.Value} AS {s.Key}"));
+                AppendViewName(string.Format("{0} ON {1}", viewName, onExpression));
             }
             else
             {
-                _tables.Add(table1Name);
-                SetViewName(string.Format("{0} {1} ON {2}", joinType, table1Name, onExpression));
+                var alia = alias.Where(a => !_tables.Contains(a.Key)).First();
+                joinType = string.Format("{0} JOIN ", joinType);
+                var viewName = $"{joinType}{alia.Value} AS {alia.Key}";
+                AppendViewName(string.Format("{0} ON {1}", viewName, onExpression));
             }
             return this;
         }
         public IDbQueryable<T1, T2, T3> Join(Expression<Func<T1, T2, T3, bool>> expression)
         {
-            var resovle = new BooleanExpressionResovle(_isSingleTable, expression, _parameters);
-            var onExpression = resovle.Resovle();
-            var table1Name = resovle.GetDbTableNameAsAlias(typeof(T1));
-            var table2Name = resovle.GetDbTableNameAsAlias(typeof(T2));
-            var table3Name = resovle.GetDbTableNameAsAlias(typeof(T3));
-            SetViewName(string.Format("{0} JOIN {1} JOIN {2} ON {3}", table1Name, table2Name, table3Name, onExpression));
-            return this;
-        }
-        public IDbQueryable<T1, T2, T3> Join<V1, V2>(Expression<Func<V1, V2, bool>> expression)
-        {
-            Join(expression, "INNER");
+            JoinFormat(expression, "INNER");
             return this;
         }
 
-        public IDbQueryable<T1, T2, T3> LeftJoin<V1, V2>(Expression<Func<V1, V2, bool>> expression)
+        public IDbQueryable<T1, T2, T3> LeftJoin(Expression<Func<T1, T2, T3, bool>> expression)
         {
-            Join(expression, "LEFT");
+            JoinFormat(expression, "LEFT");
             return this;
         }
 
-        public IDbQueryable<T1, T2, T3> RightJoin<V1, V2>(Expression<Func<V1, V2, bool>> expression)
+        public IDbQueryable<T1, T2, T3> RightJoin(Expression<Func<T1, T2, T3, bool>> expression)
         {
-            Join(expression, "RIGHT");
+            JoinFormat(expression, "RIGHT");
             return this;
         }
     }

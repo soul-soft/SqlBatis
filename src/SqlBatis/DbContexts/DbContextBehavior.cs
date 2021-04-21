@@ -9,11 +9,17 @@ using System.Text;
 
 namespace SqlBatis
 {
-
+    public interface IDbContextBehavior
+    {
+        Func<IDataRecord, T> GetDataReaderToEntityHandler<T>(IDataRecord record);
+        Func<IDataRecord, dynamic> GetDataReaderToDynamicHandler();
+        T ChangeType<T>(object value);
+        KeyValuePair<string, object> CreateDbCommandParameter(string name, object value);
+    }
     /// <summary>
     /// 提供数据转换能力
     /// </summary>
-    public class DbContextBehavior
+    public class DbContextBehavior: IDbContextBehavior
     {
         #region 内部属性
         /// <summary>
@@ -36,7 +42,7 @@ namespace SqlBatis
         /// <typeparam name="T"></typeparam>
         /// <param name="record"></param>
         /// <returns></returns>
-        internal Func<IDataRecord, T> GetDataReaderEntityHandler<T>(IDataRecord record)
+        public Func<IDataRecord, T> GetDataReaderToEntityHandler<T>(IDataRecord record)
         {
             var names = new StringBuilder();
             if (record.FieldCount>1)
@@ -61,7 +67,7 @@ namespace SqlBatis
         /// <summary>
         /// 获取动态实体序列化器
         /// </summary>
-        internal Func<IDataRecord, dynamic> GetDataReaderDynamicHandler()
+        public Func<IDataRecord, dynamic> GetDataReaderToDynamicHandler()
         {
             return (reader) =>
             {
@@ -84,7 +90,7 @@ namespace SqlBatis
         /// <summary>
         /// 获取类成员到字典的一个转换器
         /// </summary>
-        internal static Func<object, Dictionary<string, object>> GetEntityToDictionaryHandler(Type type)
+        public static Func<object, Dictionary<string, object>> GetEntityToDictionaryHandler(Type type)
         {
             if (type == typeof(Dictionary<string, object>))
             {

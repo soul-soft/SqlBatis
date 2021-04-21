@@ -261,7 +261,7 @@
             参数解序列化器
             </summary>
         </member>
-        <member name="M:SqlBatis.DbContextBehavior.GetDataReaderEntityHandler``1(System.Data.IDataRecord)">
+        <member name="M:SqlBatis.DbContextBehavior.GetDataReaderToEntityHandler``1(System.Data.IDataRecord)">
             <summary>
             获取实体序列化器
             </summary>
@@ -269,7 +269,7 @@
             <param name="record"></param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.DbContextBehavior.GetDataReaderDynamicHandler">
+        <member name="M:SqlBatis.DbContextBehavior.GetDataReaderToDynamicHandler">
             <summary>
             获取动态实体序列化器
             </summary>
@@ -520,13 +520,6 @@
             获取数据库字段名转换成别名
             </summary>
             <param name="expression"></param>
-            <returns></returns>
-        </member>
-        <member name="M:SqlBatis.Expressions.ExpressionResovle.GetDbTableNameAsAlias(System.Type)">
-            <summary>
-            获取数据库表转换成别名名称
-            </summary>
-            <param name="type"></param>
             <returns></returns>
         </member>
         <member name="M:SqlBatis.Expressions.ExpressionResovle.Resovle">
@@ -1345,21 +1338,14 @@
             <param name="expression"></param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.Queryables.IDbQueryable`3.Join``2(System.Linq.Expressions.Expression{System.Func{``0,``1,System.Boolean}})">
-            <summary>
-            内连接
-            </summary>
-            <param name="expression"></param>
-            <returns></returns>
-        </member>
-        <member name="M:SqlBatis.Queryables.IDbQueryable`3.LeftJoin``2(System.Linq.Expressions.Expression{System.Func{``0,``1,System.Boolean}})">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`3.LeftJoin(System.Linq.Expressions.Expression{System.Func{`0,`1,`2,System.Boolean}})">
             <summary>
             左外连接
             </summary>
             <param name="expression"></param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.Queryables.IDbQueryable`3.RightJoin``2(System.Linq.Expressions.Expression{System.Func{``0,``1,System.Boolean}})">
+        <member name="M:SqlBatis.Queryables.IDbQueryable`3.RightJoin(System.Linq.Expressions.Expression{System.Func{`0,`1,`2,System.Boolean}})">
             <summary>
             右外连接
             </summary>

@@ -5,32 +5,32 @@
 		<NoWarn>$(NoWarn);1591</NoWarn>
 		<PackageTags>orm;sql;micro-orm;ibatis</PackageTags>
 		<TargetFrameworks>net45;netstandard2.0;net5</TargetFrameworks>
-		<Version>1.1.9.6</Version>
+		<Version>2.0.0</Version>
 		<PackageProjectUrl>https://github.com/1448376744/SqlBatis</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/1448376744/SqlBatis</RepositoryUrl>
 		<PackageTags>orm;sql;micro-orm;</PackageTags>
 		<Description>A high performance Micro-ORM supporting SQL Server, MySQL, Sqlite etc..</Description>
 		<PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
 		<PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-		<FileVersion>1.1.9.6</FileVersion>
-		<AssemblyVersion>1.1.9.6</AssemblyVersion>
+		<FileVersion>2.0.0.0</FileVersion>
+		<AssemblyVersion>2.0.0.0</AssemblyVersion>
 		<RepositoryType>github</RepositoryType>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-		<DocumentationFile>D:\SqlBatis\src\SqlBatis\SqlBatis.xml</DocumentationFile>
+		<DocumentationFile>.\SqlBatis.xml</DocumentationFile>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net45|AnyCPU'">
-		<DocumentationFile>D:\SqlBatis\SqlBatis\SqlBatis.xml</DocumentationFile>
+		<DocumentationFile>.\SqlBatis.xml</DocumentationFile>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-		<DocumentationFile>D:\SqlBatis\src\SqlBatis\SqlBatis.xml</DocumentationFile>
+		<DocumentationFile>.\SqlBatis.xml</DocumentationFile>
 	</PropertyGroup>
-	
+
 	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
 		<PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
 		<PackageReference Include="System.Reflection.Emit.Lightweight" Version="4.7.0" />
 	</ItemGroup>
-	
+
 	<ItemGroup Condition="'$(TargetFramework)' == 'net45'">
 		<Reference Include="Microsoft.CSharp" />
 		<PackageReference Include="System.ValueTuple" Version="4.5.0" />

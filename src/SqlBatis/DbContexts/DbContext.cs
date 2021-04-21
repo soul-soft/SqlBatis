@@ -158,7 +158,7 @@ namespace SqlBatis
     public class DbContext : IDbContext
     {
         private bool _disposed = false;
-        private readonly DbContextBehavior _behavior;
+        private readonly IDbContextBehavior _behavior;
         public IDbConnection Connection;
         public string TransactionId { get; private set; }
         protected IDbTransaction Transaction;
@@ -178,7 +178,7 @@ namespace SqlBatis
                 var list = new List<dynamic>();
                 using (var reader = cmd.ExecuteReader())
                 {
-                    var handler = _behavior.GetDataReaderDynamicHandler();
+                    var handler = _behavior.GetDataReaderToDynamicHandler();
                     while (reader.Read())
                     {
                         list.Add(handler(reader));
@@ -194,7 +194,7 @@ namespace SqlBatis
                 using (var reader = await cmd.ExecuteReaderAsync())
                 {
                     var list = new List<dynamic>();
-                    var handler = _behavior.GetDataReaderDynamicHandler();
+                    var handler = _behavior.GetDataReaderToDynamicHandler();
                     while (reader.Read())
                     {
                         list.Add(handler(reader));
@@ -215,7 +215,7 @@ namespace SqlBatis
                 var list = new List<T>();
                 using (var reader = cmd.ExecuteReader())
                 {
-                    var handler = _behavior.GetDataReaderEntityHandler<T>(reader);
+                    var handler = _behavior.GetDataReaderToEntityHandler<T>(reader);
                     while (reader.Read())
                     {
                         list.Add(handler(reader));
@@ -231,7 +231,7 @@ namespace SqlBatis
                 using (var reader = await cmd.ExecuteReaderAsync())
                 {
                     var list = new List<T>();
-                    var handler = _behavior.GetDataReaderEntityHandler<T>(reader);
+                    var handler = _behavior.GetDataReaderToEntityHandler<T>(reader);
                     while (await reader.ReadAsync())
                     {
                         list.Add(handler(reader));

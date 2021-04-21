@@ -7,6 +7,21 @@ namespace SqlBatis
 {
     public class DaprDbContext : DbContext
     {
+        static DaprDbContext()
+        {
+            Dapper.DefaultTypeMap.MatchNamesWithUnderscores = true;
+        }
+        public static bool MatchNamesWithUnderscores
+        {
+            get
+            {
+                return Dapper.DefaultTypeMap.MatchNamesWithUnderscores;
+            }
+            set
+            {
+                Dapper.DefaultTypeMap.MatchNamesWithUnderscores = value;
+            }
+        }
         public DaprDbContext
             (DbContextBuilder builder) : base(builder)
         {

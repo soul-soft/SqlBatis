@@ -25,7 +25,7 @@ namespace SqlBatis.Queryables
         {
             _tableMetaInfo = SqlBatisSettings.DbMetaInfoProvider.GetTable(typeof(T));
             _columns = SqlBatisSettings.DbMetaInfoProvider.GetColumns(typeof(T));
-            SetViewName(_tableMetaInfo.TableName);
+            AppendViewName(_tableMetaInfo.TableName);
         }
         #endregion
 

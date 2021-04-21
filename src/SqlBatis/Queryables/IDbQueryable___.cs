@@ -20,23 +20,17 @@ namespace SqlBatis.Queryables
         /// <returns></returns>
         IDbQueryable<T1, T2, T3> Join(Expression<Func<T1, T2, T3, bool>> expression);
         /// <summary>
-        /// 内连接
-        /// </summary>
-        /// <param name="expression"></param>
-        /// <returns></returns>
-        IDbQueryable<T1, T2, T3> Join<V1, V2>(Expression<Func<V1, V2, bool>> expression);
-        /// <summary>
         /// 左外连接
         /// </summary>
         /// <param name="expression"></param>
         /// <returns></returns>
-        IDbQueryable<T1, T2, T3> LeftJoin<V1, V2>(Expression<Func<V1, V2, bool>> expression);
+        IDbQueryable<T1, T2, T3> LeftJoin(Expression<Func<T1, T2, T3, bool>> expression);
         /// <summary>
         /// 右外连接
         /// </summary>
         /// <param name="expression"></param>
         /// <returns></returns>
-        IDbQueryable<T1, T2, T3> RightJoin<V1, V2>(Expression<Func<V1, V2, bool>> expression);
+        IDbQueryable<T1, T2, T3> RightJoin(Expression<Func<T1, T2, T3, bool>> expression);
         /// <summary>
         /// count查询
         /// </summary>

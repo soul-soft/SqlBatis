@@ -168,10 +168,10 @@ namespace SqlBatis.Queryables
         {
             var resovle = new BooleanExpressionResovle(_isSingleTable, expression, _parameters);
             var onExpression = resovle.Resovle();
-            var table1Name = resovle.GetDbTableNameAsAlias(typeof(T1));
-            var table2Name = resovle.GetDbTableNameAsAlias(typeof(T2));
-            joinType = string.Format("{0} JOIN", joinType);
-            SetViewName(string.Format("{0} {1} {2} ON {3}", table1Name, joinType, table2Name, onExpression));
+            var alias = resovle.GetTableAlias();
+            joinType = string.Format(" {0} JOIN ", joinType);
+            var joinExpress = string.Join(joinType, alias.Select(s => $"{s.Value} AS {s.Key}"));
+            AppendViewName(string.Format("{0} ON {1}", joinExpress, onExpression));
             return this;
         }
 
