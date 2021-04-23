@@ -163,5 +163,30 @@ new MyDbContext(new DbContextBuilder()
     DbContextBehavior = new MyDDbContextBehavior()
 })
 ```
+## 定义简单的函数
+
+```C#
+[SqlBatis.Attributes.Function]
+ public static class SqlFun
+ {
+     public static T2 IF<T1, T2>(T1 column, T2 v1, T2 v2)
+     {
+         return default;
+     }
+
+     public static bool ISNULL<T1>(T1 t1)
+     {
+         return default;
+     }
+ }
+ 
+ var list = _context.From<StudentDto>()
+  .Ignore(a => a.StuGender)
+  .Select(s => new
+  {
+      FF = SqlFun.IF(SqlFun.ISNULL(s.SchId), 1, 2)
+  });
+```
+
 
 
