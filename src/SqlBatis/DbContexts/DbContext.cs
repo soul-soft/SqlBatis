@@ -206,7 +206,7 @@ namespace SqlBatis
         public virtual IDbGridReader QueryMultiple(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null)
         {
             var cmd = CreateDbCommand(sql, parameter, commandTimeout, commandType);
-            return new DbGridReader(cmd,_behavior);
+            return new DbGridReader(cmd, _behavior);
         }
         public virtual IEnumerable<T> Query<T>(string sql, object parameter = null, int? commandTimeout = null, CommandType? commandType = null)
         {
@@ -433,6 +433,7 @@ namespace SqlBatis
                     }
                 }
             }
+            cmd.CommandText = _behavior.FormatDbCommandText(sql, parameter);
             return cmd;
         }
         /// <summary>
@@ -444,7 +445,7 @@ namespace SqlBatis
         /// <returns></returns>
         public virtual IDbDataParameter CreateDbParameter(IDbCommand command, string name, object value)
         {
-            var keyvalue = _behavior.CreateDbCommandParameter(name,value);
+            var keyvalue = _behavior.CreateDbCommandParameter(name, value);
             var parameter = command.CreateParameter();
             parameter.ParameterName = keyvalue.Key;
             parameter.Value = keyvalue.Value ?? DBNull.Value;

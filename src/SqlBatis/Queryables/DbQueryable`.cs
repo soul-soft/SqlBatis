@@ -94,8 +94,10 @@ namespace SqlBatis.Queryables
                     }
                     else
                     {
-                        var list = new List<object>();
-                        list.Add(iitem.Value);
+                        var list = new List<object>
+                        {
+                            iitem.Value
+                        };
                         _parameters.Add(iitem.Key, list);
                     }
                 }

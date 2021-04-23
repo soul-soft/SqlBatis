@@ -14,7 +14,7 @@ namespace SqlBatis.Expressions
         private readonly Expression _expression;
       
         public FunctionExpressionResovle(bool single, Expression expression)
-           : base(single)
+           :  base(single)
         {
             _expression = expression;
         }
@@ -22,17 +22,18 @@ namespace SqlBatis.Expressions
         protected override Expression VisitMethodCall(MethodCallExpression node)
         {
             _textBuilder.Append(node.Method.Name.ToUpper());
-            _textBuilder.Append("(");
+            _textBuilder.Append('(');
             for (var i = 0; i < node.Arguments.Count; i++)
             {
                 var item = node.Arguments[i];
                 Visit(item);
+                _textBuilder.Append(',');
             }
             if (_textBuilder[_textBuilder.Length - 1] == ',')
             {
                 _textBuilder.Remove(_textBuilder.Length - 1, 1);
             }
-            _textBuilder.Append(")");
+            _textBuilder.Append(')');
             return node;
         }
 
@@ -51,14 +52,14 @@ namespace SqlBatis.Expressions
             {
                 value = Convert.ToBoolean(value) ? 1 : 0;
             }
-            _textBuilder.Append($"{value},");
+            _textBuilder.Append($"{value}");
             return node;
         }
 
         protected override Expression VisitMember(MemberExpression node)
         {
             var name = GetDbColumnNameAsAlias(node);
-            _textBuilder.Append($"{name},");
+            _textBuilder.Append($"{name}");
             return node;
         }
 

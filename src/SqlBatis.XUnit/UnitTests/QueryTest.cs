@@ -34,30 +34,30 @@ namespace SqlBatis.XUnit
         [Fact(DisplayName = "匿名类型查询映射")]
         public void AnTypeQuery()
         {
-            var a1 = AnTypeQuery(s => new
+            var a1 = AnTypeQuery2(s => new
             {
                 s.Id,
                 s.SchId,
                 s.AddrId,
             });
-            var a2 = AnTypeQuery(s => new
+            var a2 = AnTypeQuery2(s => new
             {
                 s.AddrId,
                 s.SchId,
                 s.Id,
             });
-            var a3 = AnTypeQuery(s=>new 
+            var a3 = AnTypeQuery2(s => new
             {
                 s.Id,
                 s.AddrId
             });
-            var a4 = AnTypeQuery(s => new
+            var a4 = AnTypeQuery2(s => new
             {
                 s.Id,
                 s.StuName
             });
         }
-        public T AnTypeQuery<T>(Func<StudentDto,T> func)
+        public T AnTypeQuery2<T>(Func<StudentDto, T> func)
         {
             return _context.Query<T>("select id,sch_id,addr_id from student order by id desc").FirstOrDefault();
         }
@@ -85,7 +85,14 @@ namespace SqlBatis.XUnit
                 .Page(2, 2)
                 .SelectMany();
         }
+        [Fact(DisplayName = "函数")]
+        public void SQLFUNC()
+        {
+            var list = _context.From<StudentDto>()
+                .Ignore(a => a.StuGender)
+                .Select(s =>SqlFun.COUNT(1));
 
+        }
         [Fact(DisplayName = "忽略列")]
         public void Ignore()
         {
@@ -112,7 +119,7 @@ namespace SqlBatis.XUnit
         {
             var list = _context.From<StudentDto, SchoolDto, AddressDto>()
                .Join((a, b, c) => a.SchId == b.Id)
-               .Join((a, b ,c) => a.AddrId == c.Id)
+               .Join((a, b, c) => a.AddrId == c.Id)
                .Select((a, b, c) => new
                {
                    a.Id,
@@ -127,16 +134,16 @@ namespace SqlBatis.XUnit
         {
             var sum = _context.From<StudentDto>().Sum(a => a.Id);
             var flag = _context.From<StudentDto>().Where(a => a.Id > 0).Exists();
-            var list1 = _context.From<StudentDto>().Select(s=>new StudentDto 
+            var list1 = _context.From<StudentDto>().Select(s => new StudentDto
             {
-                Id=s.Id,
-                StuName=s.StuName
+                Id = s.Id,
+                StuName = s.StuName
             });
             var list2 = _context.From<StudentDto>().Select(s => new StudentDto
             {
                 Id = s.Id,
                 StuName = s.StuName,
-                StuGender=s.StuGender
+                StuGender = s.StuGender
             });
         }
     }

@@ -15,11 +15,12 @@ namespace SqlBatis
         Func<IDataRecord, dynamic> GetDataReaderToDynamicHandler();
         T ChangeType<T>(object value);
         KeyValuePair<string, object> CreateDbCommandParameter(string name, object value);
+        string FormatDbCommandText(string sql, object parameter);
     }
     /// <summary>
     /// 提供数据转换能力
     /// </summary>
-    public class DbContextBehavior: IDbContextBehavior
+    public class DbContextBehavior : IDbContextBehavior
     {
         #region 内部属性
         /// <summary>
@@ -42,15 +43,15 @@ namespace SqlBatis
         /// <typeparam name="T"></typeparam>
         /// <param name="record"></param>
         /// <returns></returns>
-        public Func<IDataRecord, T> GetDataReaderToEntityHandler<T>(IDataRecord record)
+        public virtual Func<IDataRecord, T> GetDataReaderToEntityHandler<T>(IDataRecord record)
         {
             var names = new StringBuilder();
-            if (record.FieldCount>1)
+            if (record.FieldCount > 1)
             {
                 for (int i = 0; i < record.FieldCount; i++)
                 {
                     names.Append(record.GetName(i));
-                    if (i+1!= record.FieldCount)
+                    if (i + 1 != record.FieldCount)
                     {
                         names.Append('.');
                     }
@@ -59,7 +60,7 @@ namespace SqlBatis
             var key = new SerializerKey(typeof(T), names.ToString());
             var handler = _serializers.GetOrAdd(key, k =>
             {
-                 return CreateEntityBindHandler<T>(record);
+                return CreateEntityBindHandler<T>(record);
             });
             return handler as Func<IDataRecord, T>;
         }
@@ -67,7 +68,7 @@ namespace SqlBatis
         /// <summary>
         /// 获取动态实体序列化器
         /// </summary>
-        public Func<IDataRecord, dynamic> GetDataReaderToDynamicHandler()
+        public virtual Func<IDataRecord, dynamic> GetDataReaderToDynamicHandler()
         {
             return (reader) =>
             {
@@ -102,7 +103,7 @@ namespace SqlBatis
             });
             return handler;
         }
-       
+
         /// <summary>
         /// 类型转换
         /// </summary>
@@ -125,18 +126,27 @@ namespace SqlBatis
             }
             return (T)Convert.ChangeType(value, type, System.Globalization.CultureInfo.InvariantCulture);
         }
-        
+
         /// <summary>
         /// 创建数据库参数
         /// </summary>
         /// <param name="name"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        public virtual KeyValuePair<string,object> CreateDbCommandParameter(string name, object value)
+        public virtual KeyValuePair<string, object> CreateDbCommandParameter(string name, object value)
         {
-            return new KeyValuePair<string, object>(name,value);
+            return new KeyValuePair<string, object>(name, value);
         }
-        
+        /// <summary>
+        /// 用于记录日志
+        /// </summary>
+        /// <param name="sql"></param>
+        /// <param name="parameter"></param>
+        /// <returns></returns>
+        public virtual string FormatDbCommandText(string sql, object parameter)
+        {
+            return sql;
+        }
         /// <summary>
         /// 获取构造器
         /// </summary>
@@ -177,7 +187,7 @@ namespace SqlBatis
             }
             return null;
         }
-        
+
         /// <summary>
         /// 获取实体的成员信息
         /// </summary>
@@ -200,7 +210,7 @@ namespace SqlBatis
             }
             return null;
         }
-        
+
         /// <summary>
         /// 获取映射实体成员的转换方法
         /// </summary>
@@ -383,7 +393,7 @@ namespace SqlBatis
                     }
                     int i = parameters.IndexOf(parameter);
                     var convertMethod = FindConvertMethod(type, parameter.ParameterType, item);
-                    if (convertMethod==null)
+                    if (convertMethod == null)
                     {
                         continue;
                     }
@@ -465,7 +475,7 @@ namespace SqlBatis
     /// </summary>
     internal struct SerializerKey : IEquatable<SerializerKey>
     {
-        private string _columns;
+        private readonly string _columns;
 
         private Type Type { get; set; }
 
@@ -493,7 +503,7 @@ namespace SqlBatis
     /// <summary>
     /// DataReader中的行信息
     /// </summary>
-   
+
     public class DataReaderField
     {
         /// <summary>

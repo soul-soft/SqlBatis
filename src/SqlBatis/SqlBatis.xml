@@ -295,6 +295,14 @@
             <param name="value"></param>
             <returns></returns>
         </member>
+        <member name="M:SqlBatis.DbContextBehavior.FormatDbCommandText(System.String,System.Object)">
+            <summary>
+            用于记录日志
+            </summary>
+            <param name="sql"></param>
+            <param name="parameter"></param>
+            <returns></returns>
+        </member>
         <member name="M:SqlBatis.DbContextBehavior.FindEntityConstructor(System.Type)">
             <summary>
             获取构造器
