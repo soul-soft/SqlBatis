@@ -1,6 +1,7 @@
 using System;
 using Xunit;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace SqlBatis.XUnit
 {
@@ -132,7 +133,6 @@ namespace SqlBatis.XUnit
         [Fact(DisplayName = "表连接3")]
         public void Join4()
         {
-            var sum = _context.From<StudentDto>().Sum(a => a.Id);
             var flag = _context.From<StudentDto>().Where(a => a.Id > 0).Exists();
             var list1 = _context.From<StudentDto>().Select(s => new StudentDto
             {
@@ -146,5 +146,39 @@ namespace SqlBatis.XUnit
                 StuGender = s.StuGender
             });
         }
+        [Fact(DisplayName = "in查询")]
+        public void InQuery()
+        {
+            var arr = new int[] { 449,450};
+            var list1 = _context.From<StudentDto>()
+                .Where(a=>Operator.In(a.Id,arr))
+                .Select();
+           
+        }
+
+        [Fact(DisplayName = "指定返回类型")]
+        public async Task CustomerResultType()
+        {
+            var arr = new int[] { 449, 450 };
+            var list1 = _context.From<StudentDto>()
+                .Where(a => Operator.In(a.Id, arr))
+                .Select<SubSutdent>();
+            var s1 = _context.From<StudentDto>()
+               .Where(a => Operator.In(a.Id, arr))
+               .Single<SubSutdent>();
+            var list2 = await _context.From<StudentDto>()
+               .Where(a => Operator.In(a.Id, arr))
+               .SelectAsync<SubSutdent>();
+            var s2 = await _context.From<StudentDto>()
+             .Where(a => Operator.In(a.Id, arr))
+             .SingleAsync<SubSutdent>();
+
+        }
+    }
+
+    public class SubSutdent
+    {
+        public int Id { get; set; }
+        public string StuName { get; set; }
     }
 }

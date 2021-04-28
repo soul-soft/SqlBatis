@@ -15,7 +15,7 @@ namespace SqlBatis
         Func<IDataRecord, dynamic> GetDataReaderToDynamicHandler();
         T ChangeType<T>(object value);
         KeyValuePair<string, object> CreateDbCommandParameter(string name, object value);
-        string FormatDbCommandText(string sql, object parameter);
+        string FormatDbCommandText(string sql, IDataParameterCollection parameter);
     }
     /// <summary>
     /// 提供数据转换能力
@@ -143,7 +143,7 @@ namespace SqlBatis
         /// <param name="sql"></param>
         /// <param name="parameter"></param>
         /// <returns></returns>
-        public virtual string FormatDbCommandText(string sql, object parameter)
+        public virtual string FormatDbCommandText(string sql, IDataParameterCollection parameter)
         {
             return sql;
         }

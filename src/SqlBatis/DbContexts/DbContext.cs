@@ -433,7 +433,7 @@ namespace SqlBatis
                     }
                 }
             }
-            cmd.CommandText = _behavior.FormatDbCommandText(sql, parameter);
+            cmd.CommandText = _behavior.FormatDbCommandText(cmd.CommandText, cmd.Parameters);
             return cmd;
         }
         /// <summary>

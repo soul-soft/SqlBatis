@@ -295,7 +295,7 @@
             <param name="value"></param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.DbContextBehavior.FormatDbCommandText(System.String,System.Object)">
+        <member name="M:SqlBatis.DbContextBehavior.FormatDbCommandText(System.String,System.Data.IDataParameterCollection)">
             <summary>
             用于记录日志
             </summary>
@@ -653,7 +653,7 @@
             <param name="type"></param>
             <returns></returns>
         </member>
-        <member name="M:SqlBatis.Queryables.DbQueryable`1.DefaultSelectColumnsExpression">
+        <member name="M:SqlBatis.Queryables.DbQueryable`1.GetDefaultSelectColumnsExpression">
             <summary>
             默认查询字段列表表达式
             </summary>
@@ -949,7 +949,7 @@
         </member>
         <member name="M:SqlBatis.Queryables.IDbQueryable`1.Select``1(System.Linq.Expressions.Expression{System.Func{`0,``0}},System.Nullable{System.Int32})">
             <summary>
-            select查询
+            指定查询字段
             </summary>
             <typeparam name="TResult">返回类型</typeparam>
             <param name="expression">字段列表</param>
@@ -1124,24 +1124,6 @@
             <typeparam name="TResult">类型推断</typeparam>
             <param name="expression">字段列表</param>
             <param name="condition">是否有效</param>
-            <returns></returns>
-        </member>
-        <member name="M:SqlBatis.Queryables.IDbQueryable`1.Sum``1(System.Linq.Expressions.Expression{System.Func{`0,``0}},System.Nullable{System.Int32})">
-            <summary>
-            求和
-            </summary>
-            <typeparam name="TResult">返回类型</typeparam>
-            <param name="expression">字段列表</param>
-            <param name="commandTimeout">超时时间</param>
-            <returns></returns>
-        </member>
-        <member name="M:SqlBatis.Queryables.IDbQueryable`1.SumAsync``1(System.Linq.Expressions.Expression{System.Func{`0,``0}},System.Nullable{System.Int32})">
-            <summary>
-            异步求和
-            </summary>
-            <typeparam name="TResult">返回类型</typeparam>
-            <param name="expression">字段列表</param>
-            <param name="commandTimeout">超时时间</param>
             <returns></returns>
         </member>
         <member name="T:SqlBatis.Queryables.IDbQueryable`2">

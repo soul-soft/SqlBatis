@@ -131,14 +131,6 @@ namespace SqlBatis.Queryables
             }
             return sql;
         }
-        protected string BuildSumCommand(Expression expression)
-        {
-            var table = _viewName.ToString();
-            var column = $"SUM({new SelectExpressionResovle(_isSingleTable, expression).Resovle()})";
-            var where = BuildWhereExpression();
-            var sql = $"SELECT {column} FROM {table}{where}";
-            return sql;
-        }
         protected string BuildSelectCommand(Expression expression)
         {
             var table = _viewName.ToString();

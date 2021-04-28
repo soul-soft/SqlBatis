@@ -216,13 +216,13 @@ namespace SqlBatis.Queryables
         /// <returns></returns>
         Task<(IEnumerable<T>, int)> SelectManyAsync(int? commandTimeout = null);
         /// <summary>
-        /// select查询
+        /// 指定查询字段
         /// </summary>
         /// <typeparam name="TResult">返回类型</typeparam>
         /// <param name="expression">字段列表</param>
         /// <param name="commandTimeout">超时时间</param>
         /// <returns></returns>
-        IEnumerable<TResult> Select<TResult>(Expression<Func<T, TResult>> expression, int? commandTimeout = null);
+        IEnumerable<TResult> Select<TResult>(Expression<Func<T, TResult>> expression = null, int? commandTimeout = null);
         /// <summary>
         /// 异步select查询
         /// </summary>
@@ -230,7 +230,7 @@ namespace SqlBatis.Queryables
         /// <param name="expression">字段列表</param>
         /// <param name="commandTimeout">超时时间</param>
         /// <returns></returns>
-        Task<IEnumerable<TResult>> SelectAsync<TResult>(Expression<Func<T, TResult>> expression, int? commandTimeout = null);
+        Task<IEnumerable<TResult>> SelectAsync<TResult>(Expression<Func<T, TResult>> expression = null, int? commandTimeout = null);
         /// <summary>
         /// 分页select查询
         /// </summary>
@@ -238,7 +238,7 @@ namespace SqlBatis.Queryables
         /// <param name="expression">字段列表</param>
         /// <param name="commandTimeout">超时时间</param>
         /// <returns></returns>
-        (IEnumerable<TResult>, int) SelectMany<TResult>(Expression<Func<T, TResult>> expression, int? commandTimeout = null);
+        (IEnumerable<TResult>, int) SelectMany<TResult>(Expression<Func<T, TResult>> expression = null, int? commandTimeout = null);
         /// <summary>
         /// 异步分页select查询
         /// </summary>
@@ -246,7 +246,7 @@ namespace SqlBatis.Queryables
         /// <param name="expression">字段列表</param>
         /// <param name="commandTimeout">超时时间</param>
         /// <returns></returns>
-        Task<(IEnumerable<TResult>, int)> SelectManyAsync<TResult>(Expression<Func<T, TResult>> expression, int? commandTimeout = null);
+        Task<(IEnumerable<TResult>, int)> SelectManyAsync<TResult>(Expression<Func<T, TResult>> expression = null, int? commandTimeout = null);
         /// <summary>
         /// select查询
         /// </summary>
@@ -266,7 +266,7 @@ namespace SqlBatis.Queryables
         /// <param name="expression">字段列表</param>
         /// <param name="commandTimeout">超时时间</param>
         /// <returns></returns>
-        TResult Single<TResult>(Expression<Func<T, TResult>> expression, int? commandTimeout = null);
+        TResult Single<TResult>(Expression<Func<T, TResult>> expression = null, int? commandTimeout = null);
         /// <summary>
         /// 异步select查询
         /// </summary>
@@ -274,7 +274,7 @@ namespace SqlBatis.Queryables
         /// <param name="expression">字段列表</param>
         /// <param name="commandTimeout">超时时间</param>
         /// <returns></returns>
-        Task<TResult> SingleAsync<TResult>(Expression<Func<T, TResult>> expression, int? commandTimeout = null);
+        Task<TResult> SingleAsync<TResult>(Expression<Func<T, TResult>> expression = null, int? commandTimeout = null);
         /// <summary>
         /// 忽略所有空列
         /// </summary>
@@ -373,21 +373,5 @@ namespace SqlBatis.Queryables
         /// <param name="condition">是否有效</param>
         /// <returns></returns>
         IDbQueryable<T> OrderByDescending<TResult>(Expression<Func<T, TResult>> expression, bool condition = true);
-        /// <summary>
-        /// 求和
-        /// </summary>
-        /// <typeparam name="TResult">返回类型</typeparam>
-        /// <param name="expression">字段列表</param>
-        /// <param name="commandTimeout">超时时间</param>
-        /// <returns></returns>
-        TResult Sum<TResult>(Expression<Func<T, TResult>> expression, int? commandTimeout = null);
-        /// <summary>
-        /// 异步求和
-        /// </summary>
-        /// <typeparam name="TResult">返回类型</typeparam>
-        /// <param name="expression">字段列表</param>
-        /// <param name="commandTimeout">超时时间</param>
-        /// <returns></returns>
-        Task<TResult> SumAsync<TResult>(Expression<Func<T, TResult>> expression, int? commandTimeout = null);
     }
 }

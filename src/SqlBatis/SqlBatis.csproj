@@ -5,15 +5,15 @@
 		<NoWarn>$(NoWarn);1591</NoWarn>
 		<PackageTags>orm;sql;micro-orm;ibatis</PackageTags>
 		<TargetFrameworks>net45;netstandard2.0;net5</TargetFrameworks>
-		<Version>2.0.0.1</Version>
+		<Version>2.0.0.2</Version>
 		<PackageProjectUrl>https://github.com/1448376744/SqlBatis</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/1448376744/SqlBatis</RepositoryUrl>
 		<PackageTags>orm;sql;micro-orm;</PackageTags>
 		<Description>A high performance Micro-ORM supporting SQL Server, MySQL, Sqlite etc..</Description>
 		<PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
 		<PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-		<FileVersion>2.0.0.1</FileVersion>
-		<AssemblyVersion>2.0.0.1</AssemblyVersion>
+		<FileVersion>2.0.0.2</FileVersion>
+		<AssemblyVersion>2.0.0.2</AssemblyVersion>
 		<RepositoryType>github</RepositoryType>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

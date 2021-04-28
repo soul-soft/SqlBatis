@@ -50,7 +50,7 @@ namespace SqlBatis.Queryables
         /// 默认查询字段列表表达式
         /// </summary>
         /// <returns></returns>
-        protected Expression DefaultSelectColumnsExpression()
+        protected Expression GetDefaultSelectColumnsExpression()
         {
             var ignores = BuildIgnoreExpression();
             var columns = _columns
@@ -576,13 +576,13 @@ namespace SqlBatis.Queryables
 
         public IEnumerable<T> Select(int? commandTimeout = null)
         {
-            var sql = BuildSelectCommand(DefaultSelectColumnsExpression());
+            var sql = BuildSelectCommand(GetDefaultSelectColumnsExpression());
             return _context.Query<T>(sql, _parameters, commandTimeout);
         }
 
         public (IEnumerable<T>, int) SelectMany(int? commandTimeout = null)
         {
-            var sql1 = BuildSelectCommand(DefaultSelectColumnsExpression());
+            var sql1 = BuildSelectCommand(GetDefaultSelectColumnsExpression());
             var sql2 = BuildCountCommand();
             using (var multi = _context.QueryMultiple($"{sql1};{sql2}", _parameters, commandTimeout))
             {
@@ -591,20 +591,15 @@ namespace SqlBatis.Queryables
                 return (list, count);
             }
         }
-        public TResult Sum<TResult>(Expression<Func<T, TResult>> expression, int? commandTimeout = null)
+        public IEnumerable<TResult> Select<TResult>(Expression<Func<T, TResult>> expression = null, int? commandTimeout = null)
         {
-            var sql = BuildSumCommand(expression);
-            return _context.ExecuteScalar<TResult>(sql, _parameters, commandTimeout);
-        }
-        public IEnumerable<TResult> Select<TResult>(Expression<Func<T, TResult>> expression, int? commandTimeout = null)
-        {
-            var sql = BuildSelectCommand(expression);
+            var sql = BuildSelectCommand(expression??GetDefaultSelectColumnsExpression());
             return _context.Query<TResult>(sql, _parameters, commandTimeout);
         }
 
-        public (IEnumerable<TResult>, int) SelectMany<TResult>(Expression<Func<T, TResult>> expression, int? commandTimeout = null)
+        public (IEnumerable<TResult>, int) SelectMany<TResult>(Expression<Func<T, TResult>> expression = null, int? commandTimeout = null)
         {
-            var sql1 = BuildSelectCommand(expression);
+            var sql1 = BuildSelectCommand(expression ?? GetDefaultSelectColumnsExpression());
             var sql2 = BuildCountCommand();
             using (var multi = _context.QueryMultiple($"{sql1};{sql2}", _parameters, commandTimeout))
             {
@@ -620,7 +615,7 @@ namespace SqlBatis.Queryables
             return Select(commandTimeout).FirstOrDefault();
         }
 
-        public TResult Single<TResult>(Expression<Func<T, TResult>> expression, int? commandTimeout = null)
+        public TResult Single<TResult>(Expression<Func<T, TResult>> expression = null, int? commandTimeout = null)
         {
             Take(1);
             return Select(expression, commandTimeout).FirstOrDefault();
@@ -787,21 +782,15 @@ namespace SqlBatis.Queryables
             return _context.ExecuteScalarAsync<int>(sql, _parameters);
         }
 
-        public async Task<TResult> SumAsync<TResult>(Expression<Func<T, TResult>> expression, int? commandTimeout = null)
-        {
-            var sql = BuildSumCommand(expression);
-            return await _context.ExecuteScalarAsync<TResult>(sql, _parameters, commandTimeout);
-        }
-
         public Task<IEnumerable<T>> SelectAsync(int? commandTimeout = null)
         {
-            var sql = BuildSelectCommand(DefaultSelectColumnsExpression());
+            var sql = BuildSelectCommand(GetDefaultSelectColumnsExpression());
             return _context.QueryAsync<T>(sql, _parameters, commandTimeout);
         }
 
         public async Task<(IEnumerable<T>, int)> SelectManyAsync(int? commandTimeout = null)
         {
-            var sql1 = BuildSelectCommand(DefaultSelectColumnsExpression());
+            var sql1 = BuildSelectCommand(GetDefaultSelectColumnsExpression());
             var sql2 = BuildCountCommand();
             using (var multi = _context.QueryMultiple($"{sql1};{sql2}", _parameters, commandTimeout))
             {
@@ -811,15 +800,15 @@ namespace SqlBatis.Queryables
             }
         }
 
-        public Task<IEnumerable<TResult>> SelectAsync<TResult>(Expression<Func<T, TResult>> expression, int? commandTimeout = null)
+        public Task<IEnumerable<TResult>> SelectAsync<TResult>(Expression<Func<T, TResult>> expression = null, int? commandTimeout = null)
         {
-            var sql = BuildSelectCommand(expression);
+            var sql = BuildSelectCommand(expression ?? GetDefaultSelectColumnsExpression());
             return _context.QueryAsync<TResult>(sql, _parameters, commandTimeout);
         }
 
-        public async Task<(IEnumerable<TResult>, int)> SelectManyAsync<TResult>(Expression<Func<T, TResult>> expression, int? commandTimeout = null)
+        public async Task<(IEnumerable<TResult>, int)> SelectManyAsync<TResult>(Expression<Func<T, TResult>> expression = null, int? commandTimeout = null)
         {
-            var sql1 = BuildSelectCommand(expression);
+            var sql1 = BuildSelectCommand(expression ?? GetDefaultSelectColumnsExpression());
             var sql2 = BuildCountCommand();
             using (var multi = _context.QueryMultiple($"{sql1};{sql2}", _parameters, commandTimeout))
             {
@@ -835,7 +824,7 @@ namespace SqlBatis.Queryables
             return (await SelectAsync(commandTimeout)).FirstOrDefault();
         }
 
-        public async Task<TResult> SingleAsync<TResult>(Expression<Func<T, TResult>> expression, int? commandTimeout = null)
+        public async Task<TResult> SingleAsync<TResult>(Expression<Func<T, TResult>> expression = null, int? commandTimeout = null)
         {
             Take(1);
             return (await SelectAsync(expression, commandTimeout)).FirstOrDefault();
