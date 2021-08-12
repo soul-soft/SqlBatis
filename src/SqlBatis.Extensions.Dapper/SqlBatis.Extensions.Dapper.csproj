@@ -10,9 +10,9 @@
 		<Description>A high performance Micro-ORM supporting SQL Server, MySQL, Sqlite etc..</Description>
 		<PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
 		<PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-		<Version>2.0.0.2</Version>
-		<AssemblyVersion>2.0.0.2</AssemblyVersion>
-		<FileVersion>2.0.0.2</FileVersion>
+		<Version>2.0.0.3</Version>
+		<AssemblyVersion>2.0.0.3</AssemblyVersion>
+		<FileVersion>2.0.0.3</FileVersion>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|netstandard2.0|AnyCPU'">
@@ -24,8 +24,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Dapper" Version="2.0.78" />
-		<PackageReference Include="SqlBatis" Version="1.1.9" />
+		<PackageReference Include="Dapper" Version="2.0.90" />
 	</ItemGroup>
 
 	<ItemGroup>

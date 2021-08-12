@@ -393,37 +393,37 @@ namespace SqlBatis
                 var options = RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Multiline;
                 foreach (IDataParameter item in dbParameters)
                 {
-                    var pattern = $@"in\s+([\@,\:,\?]?{item.ParameterName})";
-                    if (cmd.CommandText.IndexOf("in", StringComparison.OrdinalIgnoreCase) > -1 && Regex.IsMatch(cmd.CommandText, pattern, options))
+                    var namePattern = $@"[\@,\:,\?]+{item.ParameterName}";
+                    var inPattern = $@"in\s+([\@,\:,\?]?{item.ParameterName})[)\s]+";
+                    if (IsInParameter(item.Value) && IsInExpression(cmd.CommandText, inPattern, options))
                     {
-                        var name = Regex.Match(cmd.CommandText, pattern, options).Groups[1].Value;
+                        var name = Regex.Match(cmd.CommandText, inPattern, options).Groups[1].Value;
                         var list = new List<object>();
-                        if (item.Value is IEnumerable<object> || item.Value is Array || item.Value is IEnumerable)
+                        if (item.Value != DBNull.Value)
                         {
-                            list = (item.Value as IEnumerable).Cast<object>().Where(a => a != null && a != DBNull.Value).ToList();
-                        }
-                        else if (item.Value != DBNull.Value)
-                        {
-                            list.Add(item.Value);
+                            list = (item.Value as IEnumerable)
+                                .Cast<object>()
+                                .Where(a => a != null && a != DBNull.Value)
+                                .ToList();
                         }
                         if (list.Count > 0)
                         {
-                            var plist = new List<string>();
+                            var names = new List<string>();
                             for (int i = 0; i < list.Count; i++)
                             {
-                                plist.Add($"{name}{i}");
-                                var key = $"{item.ParameterName}{i}";
-                                var param = CreateDbParameter(cmd, key, list[i]);
+                                var pname = $"{name}_{i}";
+                                names.Add(pname);
+                                var param = CreateDbParameter(cmd, pname, list[i]);
                                 cmd.Parameters.Add(param);
                             }
-                            cmd.CommandText = Regex.Replace(cmd.CommandText, name, $"({string.Join(",", plist)})");
+                            cmd.CommandText = Regex.Replace(cmd.CommandText, name, $"({string.Join(",", names)})");
                         }
                         else
                         {
                             cmd.CommandText = Regex.Replace(cmd.CommandText, name, $"(SELECT 1 WHERE 1 = 0)");
                         }
                     }
-                    else if (SqlBatisSettings.IgnoreDbCommandInvalidParameters && Regex.IsMatch(cmd.CommandText, $@"([\@,\:,\?]+{item.ParameterName})", options))
+                    else if (SqlBatisSettings.IgnoreDbCommandInvalidParameters && Regex.IsMatch(cmd.CommandText, namePattern, options))
                     {
                         cmd.Parameters.Add(item);
                     }
@@ -464,6 +464,19 @@ namespace SqlBatis
             try { Close(); Connection?.Dispose(); } catch { }
             Connection = null;
             GC.SuppressFinalize(this);
+        }
+
+        private bool IsInParameter(object value)
+        {
+            if (value is string)
+            {
+                return false;
+            }
+            return value is IEnumerable<object> || value is Array || value is IEnumerable;
+        }
+        private bool IsInExpression(string text, string pattern, RegexOptions options)
+        {
+            return text.IndexOf("in", StringComparison.OrdinalIgnoreCase) > -1 && Regex.IsMatch(text, pattern, options);
         }
     }
 }
